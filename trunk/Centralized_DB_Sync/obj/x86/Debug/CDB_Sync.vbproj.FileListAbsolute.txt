@@ -1,0 +1,16 @@
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\bin\Debug\CDB_Sync.pdb
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\bin\Debug\CDB_Sync.xml
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\bin\Debug\Common.Utils.dll
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\bin\Debug\Core.dll
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\bin\Debug\System.Data.SQLite.dll
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\bin\Debug\Utils.dll
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\obj\x86\Debug\ResolveAssemblyReference.cache
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\obj\x86\Debug\CDB_Sync.Resources.resources
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\obj\x86\Debug\CDB_Sync.CDB_Sync_settings.resources
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\obj\x86\Debug\ResGen.read.1.tlog
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\obj\x86\Debug\ResGen.write.1.tlog
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\obj\x86\Debug\CDB_Sync.xml
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\obj\x86\Debug\CDB_Sync.pdb
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\bin\Debug\CDB_Sync.dll.config
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\bin\Debug\CDB_Sync.dll
+E:\Rudolph\Documents\Visual Studio 2010\Projects\Centralized_DB_Sync\Centralized_DB_Sync\obj\x86\Debug\CDB_Sync.dll
