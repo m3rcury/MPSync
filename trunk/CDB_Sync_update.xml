@@ -65,9 +65,9 @@
         <Name>CDB_Sync</Name>
         <Id>8ddbfb53-7222-41fd-a139-407eacd78464</Id>
         <Author>m3rcury</Author>
-        <HomePage>http://www.team-mediaportal.com/extensions/dvdart-plugin?lang=en</HomePage>
-        <ForumPage>http://forum.team-mediaportal.com/threads/dvdart-plugin-that-scrapes-fanart-tv-for-dvd-cover-art-of-you-movie-collection-in-movingpictures.112847/</ForumPage>
-        <UpdateUrl>http://www.team-mediaportal.com/index.php?option=com_mtree&amp;task=att_download&amp;link_id=243&amp;cf_id=52</UpdateUrl>
+        <HomePage>http://www.team-mediaportal.com/extensions/utilities/cdb-sync?lang=en</HomePage>
+        <ForumPage>http://forum.team-mediaportal.com/threads/plugin-cdb_sync-central-database-synchronization.117417/</ForumPage>
+        <UpdateUrl>https://code.google.com/p/cdbsync-plugin/source/browse/trunk/CDB_Sync_update.xml</UpdateUrl>
         <Version>
           <Major>0</Major>
           <Minor>0</Minor>
@@ -77,8 +77,8 @@
         <ExtensionDescription>This plugin synchronizes your MediaPortal databases with a central database so that any additons can by automatically applied to any other MP seat you might have in your household.</ExtensionDescription>
         <VersionDescription />
         <DevelopmentStatus>Beta</DevelopmentStatus>
-        <OnlineLocation>http://www.team-mediaportal.com/index.php?option=com_mtree&amp;task=att_download&amp;link_id=243&amp;cf_id=24</OnlineLocation>
-        <ReleaseDate>2012-12-25T23:39:41</ReleaseDate>
+        <OnlineLocation>http://www.team-mediaportal.com/index.php?option=com_mtree&amp;task=att_download&amp;link_id=268&amp;cf_id=24</OnlineLocation>
+        <ReleaseDate>2013-03-17T23:39:41</ReleaseDate>
         <Tags>synchronization, database</Tags>
         <Location>E:\Software\MediaPortal\CDB_Sync\CDB_Sync-v0.0.0.1 Beta.mpe1</Location>
         <Params>
