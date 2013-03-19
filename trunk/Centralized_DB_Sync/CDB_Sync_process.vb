@@ -8,9 +8,9 @@ Imports System.ComponentModel
 
 Public Class CDB_Sync_process
 
-    Dim _source, _target As String
-    Dim _direction, _sync_method, _bw_jobs As Integer
-    Private bw_sync() As BackgroundWorker
+    Dim _source, _target, _databases() As String
+    Dim _direction, _sync_method, _bw_active_jobs, _bw_sync_jobs As Integer
+    Dim bw_sync() As BackgroundWorker
 
     Public Function CPU_Usage_Percent() As String
 
@@ -25,9 +25,9 @@ Public Class CDB_Sync_process
 
     End Function
 
-    Private Sub wait(ByVal seconds As Long)
+    Private Sub wait(ByVal seconds As Long, Optional ByVal verbose As Boolean = True)
 
-        Log.Info("CDB_Sync: process plugin sleeping " & seconds.ToString & " seconds.....")
+        If verbose Then Log.Info("CDB_Sync: process plugin sleeping " & seconds.ToString & " seconds.....")
 
         System.Threading.Thread.Sleep(seconds * 1000)
 
@@ -41,7 +41,10 @@ Public Class CDB_Sync_process
 
         Log.Info("CDB_Sync: process plugin initialisation.")
 
-        ' get default paths from XML configuration file
+        ' get configuratin from XML file
+
+        Dim sync As Integer
+        Dim sync_value, databases As String
 
         Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(file)
 
@@ -50,6 +53,10 @@ Public Class CDB_Sync_process
             _direction = XMLreader.GetValueAsInt("Path", "direction", 0)
             _sync_method = XMLreader.GetValueAsInt("Path", "method", 0)
 
+            sync = XMLreader.GetValueAsInt("Settings", "sync periodicity", 1)
+            sync_value = XMLreader.GetValueAsString("Settings", "sync periodicity value", "minutes")
+            databases = XMLreader.GetValueAsString("Settings", "databases", Nothing)
+
         End Using
 
         If _source = Nothing Or _target = Nothing Then
@@ -57,11 +64,31 @@ Public Class CDB_Sync_process
             Return
         End If
 
+        ' get list of databases to synchronise
+
+        If databases <> Nothing Then
+            _databases = Split(databases, "|")
+        Else
+            ReDim _databases(0)
+            _databases(0) = "ALL"
+        End If
+
+        ' calculate actual sync periodicity in seconds
+
+        If sync_value = "minutes" Then
+            sync = sync * 60
+        ElseIf sync_value = "hours" Then
+            sync = sync * 3600
+        End If
+
         ' check that both paths end with a "\"
         If InStrRev(_source, "\") <> Len(_source) Then _source = Trim(_source) & "\"
         If InStrRev(_target, "\") <> Len(_target) Then _target = Trim(_target) & "\"
 
         Do
+
+            _bw_sync_jobs = 0
+            Array.Resize(bw_sync, 0)
 
             If _direction = 1 Or _direction = 0 Then
                 Process_folder(_source, _target)
@@ -71,12 +98,7 @@ Public Class CDB_Sync_process
                 Process_folder(_target, _source)
             End If
 
-            Do While _bw_jobs <> 0
-
-                For x = 0 To _bw_jobs
-                    If bw_sync(x).IsBusy Then wait(60) Else _bw_jobs -= 1
-                Next
-            Loop
+            wait(sync)
 
         Loop
 
@@ -92,9 +114,15 @@ Public Class CDB_Sync_process
 
             For Each database As String In IO.Directory.GetFiles(source, "*.db3")
 
-                Process_tables(source, target, IO.Path.GetFileName(database))
+                If _databases.Contains(IO.Path.GetFileName(database)) Or _databases.Contains("ALL") Then
+                    Process_tables(source, target, IO.Path.GetFileName(database))
+                End If
 
             Next
+
+            Do While _bw_active_jobs > 0
+                wait(30, False)
+            Loop
 
         End If
 
@@ -127,16 +155,15 @@ Public Class CDB_Sync_process
         SQLconnect.Close()
 
         If parm <> "" Then
-            ReDim Preserve bw_sync(_bw_jobs)
-            bw_sync(_bw_jobs) = New BackgroundWorker
-            bw_sync(_bw_jobs).WorkerSupportsCancellation = True
-            AddHandler bw_sync(_bw_jobs).DoWork, AddressOf bw_sync_worker
+            ReDim Preserve bw_sync(_bw_sync_jobs)
+            bw_sync(_bw_sync_jobs) = New BackgroundWorker
+            bw_sync(_bw_sync_jobs).WorkerSupportsCancellation = True
+            AddHandler bw_sync(_bw_sync_jobs).DoWork, AddressOf bw_sync_worker
 
-            If Not bw_sync(_bw_jobs).IsBusy Then
-                bw_sync(_bw_jobs).RunWorkerAsync(parm)
-            End If
+            If Not bw_sync(_bw_sync_jobs).IsBusy Then bw_sync(_bw_sync_jobs).RunWorkerAsync(parm)
 
-            _bw_jobs += 1
+            _bw_sync_jobs += 1
+            _bw_active_jobs += 1
         End If
 
     End Sub
@@ -144,7 +171,7 @@ Public Class CDB_Sync_process
     Private Function LoadTable(ByVal path As String, ByVal database As String, ByVal table As String, Optional ByRef columns(,) As String = Nothing) As Array
 
         Dim x, y, records As Integer
-        Dim data(,) As String
+        Dim data(,) As String = Nothing
 
         Dim SQLconnect As New SQLite.SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
@@ -167,7 +194,12 @@ Public Class CDB_Sync_process
 
             For y = 0 To UBound(columns, 2)
                 If Not IsDBNull(SQLreader(y + 1)) Then
-                    data(1, x) &= SQLreader(y + 1) & Chr(255)
+                    Select Case UCase(columns(1, y))
+                        Case "INTEGER", "REAL", "BLOB"
+                            data(1, x) &= SQLreader(y + 1).ToString & Chr(255)
+                        Case Else
+                            data(1, x) &= SQLreader(y + 1) & Chr(255)
+                    End Select
                 Else
                     data(1, x) &= columns(2, y) & Chr(255)
                 End If
@@ -198,10 +230,11 @@ Public Class CDB_Sync_process
         SQLreader = SQLcommand.ExecuteReader()
 
         While SQLreader.Read()
-            ReDim Preserve columns(2, x)
+            ReDim Preserve columns(3, x)
             columns(0, x) = SQLreader(1)
             columns(1, x) = SQLreader(2)
             If Not IsDBNull(SQLreader(4)) Then columns(2, x) = SQLreader(4).ToString.Replace("'", "")
+            columns(3, x) = SQLreader(5)
             x += 1
         End While
 
@@ -235,28 +268,76 @@ Public Class CDB_Sync_process
 
         Dim parm() As String = Split(e.Argument, "¬")
         Dim args(3) As String
-        Dim columns(,), s_data(,), t_data(,) As String
-        Dim x As Integer
+        Dim x, bw_thread_jobs As Integer
+        Dim bw_thread() As BackgroundWorker
 
         For x = 0 To parm.Count - 1
 
             If parm(x) <> "" Then
 
-                args = Split(parm(x), "|")
+                If x = 0 Then
+                    args = Split(parm(x), "|")
+                    Log.Info("CDB_Sync: synchronization of " & args(2) & " database started.")
+                End If
 
-                If x = 0 Then Log.Info("CDB_Sync: synchronization of " & args(2) & " database started.")
+                ReDim Preserve bw_thread(bw_thread_jobs)
+                bw_thread(bw_thread_jobs) = New BackgroundWorker
+                bw_thread(bw_thread_jobs).WorkerSupportsCancellation = True
+                AddHandler bw_thread(bw_thread_jobs).DoWork, AddressOf bw_thread_worker
+                AddHandler bw_thread(bw_thread_jobs).RunWorkerCompleted, AddressOf bw_worker_completed
 
-                s_data = LoadTable(args(0), args(2), args(3), columns)
-                t_data = LoadTable(args(1), args(2), args(3))
+                If Not bw_thread(bw_thread_jobs).IsBusy Then bw_thread(bw_thread_jobs).RunWorkerAsync(parm(x))
 
-                Synchronize(args(1), args(2), args(3), columns, s_data, t_data, _sync_method)
+                bw_thread_jobs += 1
 
             End If
 
         Next
 
+        Dim busy As Boolean = True
+
+        Do While busy
+
+            For x = 0 To bw_thread_jobs - 1
+                If bw_thread(x).IsBusy Then
+                    busy = True
+                    Exit For
+                Else
+                    busy = False
+                End If
+            Next
+
+            wait(30, False)
+
+        Loop
+
         Log.Info("CDB_Sync: synchronization of " & args(2) & " database completed.")
 
+        _bw_active_jobs -= 1
+
+    End Sub
+
+    Private Sub bw_thread_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
+
+        Dim parm As String = e.Argument
+        Dim args(3) As String
+        Dim columns(,), s_data(,), t_data(,) As String
+
+        args = Split(parm, "|")
+
+        s_data = LoadTable(args(0), args(2), args(3), columns)
+        t_data = LoadTable(args(1), args(2), args(3))
+
+        Synchronize(args(1), args(2), args(3), columns, s_data, t_data, _sync_method)
+
+        e.Result = "CDB_Sync: synchronization of table " & args(3) & " in database " & args(2) & " complete."
+
+    End Sub
+
+    Private Sub bw_worker_completed(ByVal sender As Object, ByVal e As RunWorkerCompletedEventArgs)
+        If e.Result <> Nothing Then
+            Log.Info(e.Result)
+        End If
     End Sub
 
     Private Sub Synchronize(ByVal path As String, ByVal database As String, ByVal table As String, ByVal columns(,) As String, ByRef s_data(,) As String, ByRef t_data(,) As String, ByVal method As Integer)
