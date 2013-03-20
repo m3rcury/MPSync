@@ -174,13 +174,12 @@ SubExit:
     Private Sub CDB_Sync_settings_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
 
         ' check if debug enabled
-        Dim args() As String
+        Dim args() As String = Environment.GetCommandLineArgs()
 
-        args = Environment.GetCommandLineArgs()
-        If args(1) = "Debug" Then b_test.Visible = True
+        If UBound(args) = 1 Then If args(1) = "Debug" Then b_test.Visible = True
 
         ' initialize version
-        Me.Text = Me.Text & "0.0.0.3"
+        Me.Text = Me.Text & "0.0.0.4"
 
         ' initialize direction images
         i_direction(0) = My.Resources.sync_both
