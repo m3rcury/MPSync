@@ -27,7 +27,7 @@ Public Class CDB_Sync_settings
 
     End Function
 
-    Private Sub b_source_db_Click(sender As System.Object, e As System.EventArgs)
+    Private Sub b_source_db_Click(sender As System.Object, e As System.EventArgs) Handles b_source_db.Click
 
         Dim objShell As Object
         Dim objFolder As Object
@@ -46,7 +46,7 @@ Public Class CDB_Sync_settings
 SubExit:
     End Sub
 
-    Private Sub b_target_db_Click(sender As System.Object, e As System.EventArgs)
+    Private Sub b_target_db_Click(sender As System.Object, e As System.EventArgs) Handles b_target_db.Click
 
         Dim objShell As Object
         Dim objFolder As Object
@@ -65,7 +65,7 @@ SubExit:
 SubExit:
     End Sub
 
-    Private Sub b_direction_Click(sender As System.Object, e As System.EventArgs)
+    Private Sub b_direction_Click(sender As System.Object, e As System.EventArgs) Handles b_direction.Click
 
         _clicks += 1
 
@@ -179,7 +179,7 @@ SubExit:
         If UBound(args) = 1 Then If args(1) = "Debug" Then b_test.Visible = True
 
         ' initialize version
-        Me.Text = Me.Text & "0.0.0.4"
+        Me.Text = Me.Text & "0.0.0.5"
 
         ' initialize direction images
         i_direction(0) = My.Resources.sync_both

@@ -39,19 +39,19 @@ Partial Class CDB_Sync_settings
         Me.b_source_db = New System.Windows.Forms.Button()
         Me.tb_source_path = New System.Windows.Forms.TextBox()
         Me.tp_advancedsettings = New System.Windows.Forms.TabPage()
+        Me.GroupBox1 = New System.Windows.Forms.GroupBox()
+        Me.rb_specific = New System.Windows.Forms.RadioButton()
+        Me.rb_all = New System.Windows.Forms.RadioButton()
         Me.cb_sync = New System.Windows.Forms.ComboBox()
         Me.nud_sync = New System.Windows.Forms.NumericUpDown()
         Me.Label4 = New System.Windows.Forms.Label()
         Me.Label3 = New System.Windows.Forms.Label()
         Me.clb_databases = New System.Windows.Forms.CheckedListBox()
-        Me.GroupBox1 = New System.Windows.Forms.GroupBox()
-        Me.rb_specific = New System.Windows.Forms.RadioButton()
-        Me.rb_all = New System.Windows.Forms.RadioButton()
         Me.TabControl1.SuspendLayout()
         Me.tp_paths.SuspendLayout()
         Me.tp_advancedsettings.SuspendLayout()
-        CType(Me.nud_sync, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
+        CType(Me.nud_sync, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'b_save
@@ -213,6 +213,40 @@ Partial Class CDB_Sync_settings
         Me.tp_advancedsettings.TabIndex = 1
         Me.tp_advancedsettings.Text = "Advanced Settings"
         '
+        'GroupBox1
+        '
+        Me.GroupBox1.Controls.Add(Me.rb_specific)
+        Me.GroupBox1.Controls.Add(Me.rb_all)
+        Me.GroupBox1.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.GroupBox1.Location = New System.Drawing.Point(10, 63)
+        Me.GroupBox1.Name = "GroupBox1"
+        Me.GroupBox1.Size = New System.Drawing.Size(273, 76)
+        Me.GroupBox1.TabIndex = 14
+        Me.GroupBox1.TabStop = False
+        Me.GroupBox1.Text = " Synchronise Databases "
+        '
+        'rb_specific
+        '
+        Me.rb_specific.AutoSize = True
+        Me.rb_specific.Location = New System.Drawing.Point(11, 51)
+        Me.rb_specific.Name = "rb_specific"
+        Me.rb_specific.Size = New System.Drawing.Size(117, 17)
+        Me.rb_specific.TabIndex = 1
+        Me.rb_specific.TabStop = True
+        Me.rb_specific.Text = "Specific Databases"
+        Me.rb_specific.UseVisualStyleBackColor = True
+        '
+        'rb_all
+        '
+        Me.rb_all.AutoSize = True
+        Me.rb_all.Location = New System.Drawing.Point(11, 24)
+        Me.rb_all.Name = "rb_all"
+        Me.rb_all.Size = New System.Drawing.Size(90, 17)
+        Me.rb_all.TabIndex = 0
+        Me.rb_all.TabStop = True
+        Me.rb_all.Text = "All Databases"
+        Me.rb_all.UseVisualStyleBackColor = True
+        '
         'cb_sync
         '
         Me.cb_sync.FormattingEnabled = True
@@ -263,40 +297,6 @@ Partial Class CDB_Sync_settings
         Me.clb_databases.Size = New System.Drawing.Size(265, 124)
         Me.clb_databases.TabIndex = 0
         '
-        'GroupBox1
-        '
-        Me.GroupBox1.Controls.Add(Me.rb_specific)
-        Me.GroupBox1.Controls.Add(Me.rb_all)
-        Me.GroupBox1.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.GroupBox1.Location = New System.Drawing.Point(10, 63)
-        Me.GroupBox1.Name = "GroupBox1"
-        Me.GroupBox1.Size = New System.Drawing.Size(273, 76)
-        Me.GroupBox1.TabIndex = 14
-        Me.GroupBox1.TabStop = False
-        Me.GroupBox1.Text = " Synchronise Databases "
-        '
-        'rb_specific
-        '
-        Me.rb_specific.AutoSize = True
-        Me.rb_specific.Location = New System.Drawing.Point(11, 51)
-        Me.rb_specific.Name = "rb_specific"
-        Me.rb_specific.Size = New System.Drawing.Size(117, 17)
-        Me.rb_specific.TabIndex = 1
-        Me.rb_specific.TabStop = True
-        Me.rb_specific.Text = "Specific Databases"
-        Me.rb_specific.UseVisualStyleBackColor = True
-        '
-        'rb_all
-        '
-        Me.rb_all.AutoSize = True
-        Me.rb_all.Location = New System.Drawing.Point(11, 24)
-        Me.rb_all.Name = "rb_all"
-        Me.rb_all.Size = New System.Drawing.Size(90, 17)
-        Me.rb_all.TabIndex = 0
-        Me.rb_all.TabStop = True
-        Me.rb_all.Text = "All Databases"
-        Me.rb_all.UseVisualStyleBackColor = True
-        '
         'CDB_Sync_settings
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -315,9 +315,9 @@ Partial Class CDB_Sync_settings
         Me.tp_paths.PerformLayout()
         Me.tp_advancedsettings.ResumeLayout(False)
         Me.tp_advancedsettings.PerformLayout()
-        CType(Me.nud_sync, System.ComponentModel.ISupportInitialize).EndInit()
         Me.GroupBox1.ResumeLayout(False)
         Me.GroupBox1.PerformLayout()
+        CType(Me.nud_sync, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
