@@ -1,0 +1,36 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+MPSync
+</name>
+</assembly>
+<members>
+<member name="P:MPSync.My.Resources.Resources.ResourceManager">
+	<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member><member name="P:MPSync.My.Resources.Resources.Culture">
+	<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member><member name="T:MPSync.My.Resources.Resources">
+	<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
+</member><member name="M:MPSync.MPSync.MPSync.GetHome(System.String@,System.String@,System.String@,System.String@)">
+	<summary>
+ If the plugin should have it's own button on the main menu of MediaPortal then it
+ should return true to this method, otherwise if it should not be on home
+ it should return false
+ </summary>
+	<param name="strButtonText">text the button should have</param>
+	<param name="strButtonImage">image for the button, or empty for default</param>
+	<param name="strButtonImageFocus">image for the button, or empty for default</param>
+	<param name="strPictureImage">subpicture for the button or empty for none</param>
+	<returns>true : plugin needs it's own button on home
+ false : plugin does not need it's own button on home</returns>
+</member>
+</members>
+</doc>
