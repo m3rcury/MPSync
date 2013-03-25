@@ -278,7 +278,7 @@ SubExit:
     Private Sub MPSync_settings_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
 
         ' initialize version
-        _curversion = "0.0.0.5"
+        _curversion = "0.0.0.6"
         Me.Text = Me.Text & _curversion
 
         ' initialize direction images

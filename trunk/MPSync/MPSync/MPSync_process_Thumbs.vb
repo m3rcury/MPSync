@@ -13,15 +13,22 @@ Public Class MPSync_process_Thumbs
 
         Do
 
+            ' direction is client to server or both
             If MPSync_process._thumbs_direction <> 2 Then
                 cdb.Process_Thumbs_folder(MPSync_process._thumbs_client, MPSync_process._thumbs_server)
             End If
 
+            ' direction is server to client or both
             If MPSync_process._thumbs_direction <> 1 Then
                 cdb.Process_Thumbs_folder(MPSync_process._thumbs_server, MPSync_process._thumbs_client)
             End If
 
-            If Not MPSync_settings.syncnow Then MPSync_process.wait(MPSync_process._thumbs_sync) Else Exit Do
+            If Not MPSync_settings.syncnow Then
+                MPSync_process.wait(MPSync_process._thumbs_sync)
+            Else
+                MPSync_process.thumbs_complete = True
+                Exit Do
+            End If
 
         Loop
 
@@ -77,6 +84,7 @@ Public Class MPSync_process_Thumbs
             Dim _bw_active_thumbs_jobs, _bw_sync_thumbs_jobs As Integer
             Dim bw_sync_thumbs() As BackgroundWorker
 
+            ' propagate deletions or both
             If MPSync_process._thumbs_sync_method <> 1 Then
                 diff = t_thumbs.Except(s_thumbs)
 
@@ -93,6 +101,7 @@ Public Class MPSync_process_Thumbs
                 End If
             End If
 
+            ' propagate additions or both
             If MPSync_process._thumbs_sync_method <> 2 Then
                 diff = s_thumbs.Except(t_thumbs)
 
