@@ -275,8 +275,6 @@ Public Class MPSync_process_DB
         Dim diff As IEnumerable(Of String)
         Dim x, y As Integer
 
-        'On Error Resume Next
-
         Log.Info("MPSync: synchronization of table " & table & " in database " & database & " in progress...")
 
         SQLconnect.ConnectionString = "Data Source=" & path & database
@@ -306,6 +304,7 @@ Public Class MPSync_process_DB
             diff = t_temp.Except(s_temp)
 
             For y = 0 To UBound(diff.ToArray)
+                MPSync_process.CheckPlayerplaying("db", 300)
                 SQLcommand.CommandText = "DELETE FROM " & table & " WHERE rowid = " & t_data(0, Array.IndexOf(t_temp, diff.ToArray(y)))
                 SQLcommand.ExecuteNonQuery()
             Next
@@ -322,12 +321,14 @@ Public Class MPSync_process_DB
 
             For y = 0 To UBound(diff.ToArray)
 
+                MPSync_process.CheckPlayerplaying("db", 300)
+
                 values = Nothing
                 a_values = Split(diff.ToArray(y), Chr(240) & Chr(240))
 
                 For x = 0 To UBound(columns, 2)
 
-                    If a_values(x) = "" Or a_values(x) = "NULL" Then
+                    If a_values(x) = "NULL" Then
                         values &= "NULL,"
                     Else
                         Select Case columns(1, x)
@@ -352,7 +353,7 @@ Public Class MPSync_process_DB
             Next
 
             Log.Info("MPSync: " & y.ToString & " records added in " & table)
-        
+
         End If
 
         SQLconnect.Close()

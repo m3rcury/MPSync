@@ -36,6 +36,7 @@ Partial Class MPSync_settings
         Me.tc_database = New System.Windows.Forms.TabControl()
         Me.tp_db_paths = New System.Windows.Forms.TabPage()
         Me.cb_db_sync_method = New System.Windows.Forms.ComboBox()
+        Me.b_db_direction = New System.Windows.Forms.Button()
         Me.Label2 = New System.Windows.Forms.Label()
         Me.b_db_server = New System.Windows.Forms.Button()
         Me.tb_db_server_path = New System.Windows.Forms.TextBox()
@@ -55,6 +56,7 @@ Partial Class MPSync_settings
         Me.TabControl1 = New System.Windows.Forms.TabControl()
         Me.TabPage1 = New System.Windows.Forms.TabPage()
         Me.cb_thumbs_sync_method = New System.Windows.Forms.ComboBox()
+        Me.b_thumbs_direction = New System.Windows.Forms.Button()
         Me.Label5 = New System.Windows.Forms.Label()
         Me.b_thumbs_server = New System.Windows.Forms.Button()
         Me.tb_thumbs_server_path = New System.Windows.Forms.TextBox()
@@ -70,8 +72,8 @@ Partial Class MPSync_settings
         Me.cb_thumbs_sync = New System.Windows.Forms.ComboBox()
         Me.nud_thumbs_sync = New System.Windows.Forms.NumericUpDown()
         Me.Label7 = New System.Windows.Forms.Label()
-        Me.b_db_direction = New System.Windows.Forms.Button()
-        Me.b_thumbs_direction = New System.Windows.Forms.Button()
+        Me.cb_db_pause = New System.Windows.Forms.CheckBox()
+        Me.cb_thumbs_pause = New System.Windows.Forms.CheckBox()
         Me.tc_main.SuspendLayout()
         Me.tp_settings.SuspendLayout()
         Me.tp_database.SuspendLayout()
@@ -226,6 +228,15 @@ Partial Class MPSync_settings
         Me.cb_db_sync_method.Size = New System.Drawing.Size(215, 21)
         Me.cb_db_sync_method.TabIndex = 68
         '
+        'b_db_direction
+        '
+        Me.b_db_direction.Image = Global.MPSync.My.Resources.Resources.sync_both
+        Me.b_db_direction.Location = New System.Drawing.Point(252, 53)
+        Me.b_db_direction.Name = "b_db_direction"
+        Me.b_db_direction.Size = New System.Drawing.Size(64, 64)
+        Me.b_db_direction.TabIndex = 67
+        Me.b_db_direction.UseVisualStyleBackColor = True
+        '
         'Label2
         '
         Me.Label2.AutoSize = True
@@ -281,6 +292,7 @@ Partial Class MPSync_settings
         'tp_db_advancedsettings
         '
         Me.tp_db_advancedsettings.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tp_db_advancedsettings.Controls.Add(Me.cb_db_pause)
         Me.tp_db_advancedsettings.Controls.Add(Me.GroupBox1)
         Me.tp_db_advancedsettings.Controls.Add(Me.cb_db_sync)
         Me.tp_db_advancedsettings.Controls.Add(Me.nud_db_sync)
@@ -332,7 +344,7 @@ Partial Class MPSync_settings
         '
         Me.cb_db_sync.FormattingEnabled = True
         Me.cb_db_sync.Items.AddRange(New Object() {"minutes", "hours"})
-        Me.cb_db_sync.Location = New System.Drawing.Point(160, 26)
+        Me.cb_db_sync.Location = New System.Drawing.Point(160, 11)
         Me.cb_db_sync.Name = "cb_db_sync"
         Me.cb_db_sync.Size = New System.Drawing.Size(80, 21)
         Me.cb_db_sync.TabIndex = 13
@@ -340,7 +352,7 @@ Partial Class MPSync_settings
         '
         'nud_db_sync
         '
-        Me.nud_db_sync.Location = New System.Drawing.Point(120, 27)
+        Me.nud_db_sync.Location = New System.Drawing.Point(120, 12)
         Me.nud_db_sync.Maximum = New Decimal(New Integer() {99, 0, 0, 0})
         Me.nud_db_sync.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
         Me.nud_db_sync.Name = "nud_db_sync"
@@ -353,7 +365,7 @@ Partial Class MPSync_settings
         '
         Me.Label4.AutoSize = True
         Me.Label4.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label4.Location = New System.Drawing.Point(7, 29)
+        Me.Label4.Location = New System.Drawing.Point(7, 14)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(115, 13)
         Me.Label4.TabIndex = 11
@@ -424,6 +436,15 @@ Partial Class MPSync_settings
         Me.cb_thumbs_sync_method.Size = New System.Drawing.Size(215, 21)
         Me.cb_thumbs_sync_method.TabIndex = 68
         '
+        'b_thumbs_direction
+        '
+        Me.b_thumbs_direction.Image = Global.MPSync.My.Resources.Resources.sync_both
+        Me.b_thumbs_direction.Location = New System.Drawing.Point(252, 53)
+        Me.b_thumbs_direction.Name = "b_thumbs_direction"
+        Me.b_thumbs_direction.Size = New System.Drawing.Size(64, 64)
+        Me.b_thumbs_direction.TabIndex = 67
+        Me.b_thumbs_direction.UseVisualStyleBackColor = True
+        '
         'Label5
         '
         Me.Label5.AutoSize = True
@@ -479,6 +500,7 @@ Partial Class MPSync_settings
         'TabPage2
         '
         Me.TabPage2.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.TabPage2.Controls.Add(Me.cb_thumbs_pause)
         Me.TabPage2.Controls.Add(Me.GroupBox2)
         Me.TabPage2.Controls.Add(Me.Label8)
         Me.TabPage2.Controls.Add(Me.clb_thumbs)
@@ -497,7 +519,7 @@ Partial Class MPSync_settings
         Me.GroupBox2.Controls.Add(Me.rb_specific_thumbs)
         Me.GroupBox2.Controls.Add(Me.rb_all_thumbs)
         Me.GroupBox2.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.GroupBox2.Location = New System.Drawing.Point(10, 62)
+        Me.GroupBox2.Location = New System.Drawing.Point(10, 63)
         Me.GroupBox2.Name = "GroupBox2"
         Me.GroupBox2.Size = New System.Drawing.Size(273, 76)
         Me.GroupBox2.TabIndex = 17
@@ -530,7 +552,7 @@ Partial Class MPSync_settings
         '
         Me.Label8.AutoSize = True
         Me.Label8.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label8.Location = New System.Drawing.Point(286, 9)
+        Me.Label8.Location = New System.Drawing.Point(286, 10)
         Me.Label8.Name = "Label8"
         Me.Label8.Size = New System.Drawing.Size(179, 13)
         Me.Label8.TabIndex = 16
@@ -540,7 +562,7 @@ Partial Class MPSync_settings
         '
         Me.clb_thumbs.Enabled = False
         Me.clb_thumbs.FormattingEnabled = True
-        Me.clb_thumbs.Location = New System.Drawing.Point(289, 25)
+        Me.clb_thumbs.Location = New System.Drawing.Point(289, 26)
         Me.clb_thumbs.Name = "clb_thumbs"
         Me.clb_thumbs.Size = New System.Drawing.Size(265, 124)
         Me.clb_thumbs.TabIndex = 15
@@ -549,7 +571,7 @@ Partial Class MPSync_settings
         '
         Me.cb_thumbs_sync.FormattingEnabled = True
         Me.cb_thumbs_sync.Items.AddRange(New Object() {"minutes", "hours"})
-        Me.cb_thumbs_sync.Location = New System.Drawing.Point(160, 26)
+        Me.cb_thumbs_sync.Location = New System.Drawing.Point(160, 11)
         Me.cb_thumbs_sync.Name = "cb_thumbs_sync"
         Me.cb_thumbs_sync.Size = New System.Drawing.Size(80, 21)
         Me.cb_thumbs_sync.TabIndex = 13
@@ -557,7 +579,7 @@ Partial Class MPSync_settings
         '
         'nud_thumbs_sync
         '
-        Me.nud_thumbs_sync.Location = New System.Drawing.Point(120, 27)
+        Me.nud_thumbs_sync.Location = New System.Drawing.Point(120, 12)
         Me.nud_thumbs_sync.Maximum = New Decimal(New Integer() {99, 0, 0, 0})
         Me.nud_thumbs_sync.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
         Me.nud_thumbs_sync.Name = "nud_thumbs_sync"
@@ -570,29 +592,35 @@ Partial Class MPSync_settings
         '
         Me.Label7.AutoSize = True
         Me.Label7.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label7.Location = New System.Drawing.Point(7, 29)
+        Me.Label7.Location = New System.Drawing.Point(7, 14)
         Me.Label7.Name = "Label7"
         Me.Label7.Size = New System.Drawing.Size(115, 13)
         Me.Label7.TabIndex = 11
         Me.Label7.Text = "Synchronise every "
         '
-        'b_db_direction
+        'cb_db_pause
         '
-        Me.b_db_direction.Image = Global.MPSync.My.Resources.Resources.sync_both
-        Me.b_db_direction.Location = New System.Drawing.Point(252, 53)
-        Me.b_db_direction.Name = "b_db_direction"
-        Me.b_db_direction.Size = New System.Drawing.Size(64, 64)
-        Me.b_db_direction.TabIndex = 67
-        Me.b_db_direction.UseVisualStyleBackColor = True
+        Me.cb_db_pause.AutoSize = True
+        Me.cb_db_pause.CheckAlign = System.Drawing.ContentAlignment.MiddleRight
+        Me.cb_db_pause.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.cb_db_pause.Location = New System.Drawing.Point(6, 40)
+        Me.cb_db_pause.Name = "cb_db_pause"
+        Me.cb_db_pause.Size = New System.Drawing.Size(172, 17)
+        Me.cb_db_pause.TabIndex = 15
+        Me.cb_db_pause.Text = "Pause when player active"
+        Me.cb_db_pause.UseVisualStyleBackColor = True
         '
-        'b_thumbs_direction
+        'cb_thumbs_pause
         '
-        Me.b_thumbs_direction.Image = Global.MPSync.My.Resources.Resources.sync_both
-        Me.b_thumbs_direction.Location = New System.Drawing.Point(252, 53)
-        Me.b_thumbs_direction.Name = "b_thumbs_direction"
-        Me.b_thumbs_direction.Size = New System.Drawing.Size(64, 64)
-        Me.b_thumbs_direction.TabIndex = 67
-        Me.b_thumbs_direction.UseVisualStyleBackColor = True
+        Me.cb_thumbs_pause.AutoSize = True
+        Me.cb_thumbs_pause.CheckAlign = System.Drawing.ContentAlignment.MiddleRight
+        Me.cb_thumbs_pause.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.cb_thumbs_pause.Location = New System.Drawing.Point(6, 40)
+        Me.cb_thumbs_pause.Name = "cb_thumbs_pause"
+        Me.cb_thumbs_pause.Size = New System.Drawing.Size(172, 17)
+        Me.cb_thumbs_pause.TabIndex = 18
+        Me.cb_thumbs_pause.Text = "Pause when player active"
+        Me.cb_thumbs_pause.UseVisualStyleBackColor = True
         '
         'MPSync_settings
         '
@@ -680,5 +708,7 @@ Partial Class MPSync_settings
     Friend WithEvents rb_all_thumbs As System.Windows.Forms.RadioButton
     Friend WithEvents Label8 As System.Windows.Forms.Label
     Friend WithEvents clb_thumbs As System.Windows.Forms.CheckedListBox
+    Friend WithEvents cb_db_pause As System.Windows.Forms.CheckBox
+    Friend WithEvents cb_thumbs_pause As System.Windows.Forms.CheckBox
 
 End Class
