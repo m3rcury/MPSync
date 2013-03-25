@@ -19,15 +19,22 @@ Public Class MPSync_process_DB
             cdb.bw_sync_db_jobs = 0
             Array.Resize(cdb.bw_sync_db, 0)
 
-            If MPSync_process._db_direction = 1 Or MPSync_process._db_direction = 0 Then
+            ' direction is client to server or both
+            If MPSync_process._db_direction <> 2 Then
                 cdb.Process_DB_folder(MPSync_process._db_client, MPSync_process._db_server)
             End If
 
-            If MPSync_process._db_direction = 2 Or MPSync_process._db_direction = 0 Then
+            ' direction is server to client or both
+            If MPSync_process._db_direction <> 1 Then
                 cdb.Process_DB_folder(MPSync_process._db_server, MPSync_process._db_client)
             End If
 
-            If Not MPSync_settings.syncnow Then MPSync_process.wait(MPSync_process._db_sync) Else Exit Do
+            If Not MPSync_settings.syncnow Then
+                MPSync_process.wait(MPSync_process._db_sync)
+            Else
+                MPSync_process.db_complete = True
+                Exit Do
+            End If
 
         Loop
 
@@ -297,6 +304,7 @@ Public Class MPSync_process_DB
         Array.Copy(s_data.OfType(Of String)().ToArray(), s_data.GetLength(1), s_temp, 0, s_data.GetLength(1))
         Array.Copy(t_data.OfType(Of String)().ToArray(), t_data.GetLength(1), t_temp, 0, t_data.GetLength(1))
 
+        ' propagate deletions or both
         If method <> 1 Then
 
             'Log.Info("MPSync: deleting extra entries on target for table " & table & " in database " & database)
@@ -313,6 +321,7 @@ Public Class MPSync_process_DB
 
         End If
 
+        ' propagate additions or both
         If method <> 2 Then
 
             'Log.Info("MPSync: adding missing entries on target for table " & table & " in database " & database)

@@ -10,9 +10,8 @@ Public Class MPSync_process
 
     Public Shared _db_client, _db_server, _thumbs_client, _thumbs_server, _databases(), _thumbs() As String
     Public Shared _db_sync, _thumbs_sync, _db_direction, _db_sync_method, _thumbs_direction, _thumbs_sync_method As Integer
-    Public Shared _db_pause, _thumbs_pause As Boolean
+    Public Shared _db_pause, _thumbs_pause, db_complete, thumbs_complete As Boolean
     Dim checked_databases, checked_thumbs As Boolean
-    Dim complete As Boolean = False
 
     Public Shared Sub wait(ByVal seconds As Long, Optional ByVal verbose As Boolean = True)
 
@@ -142,7 +141,6 @@ Public Class MPSync_process
             Dim bw_db As New BackgroundWorker
             bw_db.WorkerSupportsCancellation = True
             AddHandler bw_db.DoWork, AddressOf MPSync_process_DB.bw_db_worker
-            AddHandler bw_db.RunWorkerCompleted, AddressOf bw_worker_completed
             bw_db.RunWorkerAsync()
         Else
             db = False
@@ -158,17 +156,15 @@ Public Class MPSync_process
         End If
 
         If MPSync_settings.syncnow Then
-            Do While Not complete
+            db_complete = False
+            thumbs_complete = False
+            Do While Not (db_complete And thumbs_complete)
                 wait(30, False)
             Loop
         End If
 
         If db = False And thumbs = False Then CType(stateInfo, AutoResetEvent).Set()
 
-    End Sub
-
-    Private Sub bw_worker_completed(ByVal sender As Object, ByVal e As RunWorkerCompletedEventArgs)
-        If Not e.Cancelled Then complete = True
     End Sub
 
 End Class
