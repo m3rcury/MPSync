@@ -10,6 +10,7 @@ Public Class MPSync_process
 
     Public Shared _db_client, _db_server, _thumbs_client, _thumbs_server, _databases(), _thumbs() As String
     Public Shared _db_sync, _thumbs_sync, _db_direction, _db_sync_method, _thumbs_direction, _thumbs_sync_method As Integer
+    Public Shared _db_pause, _thumbs_pause As Boolean
     Dim checked_databases, checked_thumbs As Boolean
     Dim complete As Boolean = False
 
@@ -19,6 +20,15 @@ Public Class MPSync_process
 
         System.Threading.Thread.Sleep(seconds * 1000)
 
+    End Sub
+
+    Public Shared Sub CheckPlayerplaying(ByVal thread As String, ByVal seconds As Long)
+        If (thread = "db" And _db_pause) Or (thread = "thumbs" And _thumbs_pause) Then
+            If MediaPortal.Player.g_Player.Playing Then Log.Info("MPSync: pausing " & thread & " thread as player is playing.")
+            Do While MediaPortal.Player.g_Player.Playing
+                MPSync_process.wait(seconds, False)
+            Loop
+        End If
     End Sub
 
     Public Sub MPSyncProcess()
@@ -46,6 +56,7 @@ Public Class MPSync_process
 
             _db_sync = XMLreader.GetValueAsInt("DB Settings", "sync periodicity", 15)
             db_sync_value = XMLreader.GetValueAsString("DB Settings", "sync periodicity value", "minutes")
+            _db_pause = XMLreader.GetValueAsString("DB Settings", "pause while playing", False)
             databases = XMLreader.GetValueAsString("DB Settings", "databases", Nothing)
 
             _thumbs_client = XMLreader.GetValueAsString("Thumbs Path", "client", Nothing)
@@ -55,6 +66,7 @@ Public Class MPSync_process
 
             _thumbs_sync = XMLreader.GetValueAsInt("Thumbs Settings", "sync periodicity", 15)
             thumbs_sync_value = XMLreader.GetValueAsString("Thumbs Settings", "sync periodicity value", "minutes")
+            _thumbs_pause = XMLreader.GetValueAsString("Thumbs Settings", "pause while playing", False)
             thumbs = XMLreader.GetValueAsString("Thumbs Settings", "thumbs", Nothing)
 
         End Using

@@ -37,6 +37,7 @@ Public Class MPSync_settings
                 _db_sync_method = XMLreader.GetValueAsInt("DB Path", "method", 0)
                 nud_db_sync.Value = XMLreader.GetValueAsInt("DB Settings", "sync periodicity", 15)
                 cb_db_sync.Text = XMLreader.GetValueAsString("DB Settings", "sync periodicity value", "minutes")
+                cb_db_pause.Checked = XMLreader.GetValueAsString("DB Settings", "pause while playing", False)
 
                 tb_thumbs_client_path.Text = XMLreader.GetValueAsString("Thumbs Path", "client", Nothing)
                 tb_thumbs_server_path.Text = XMLreader.GetValueAsString("Thumbs Path", "server", Nothing)
@@ -44,6 +45,7 @@ Public Class MPSync_settings
                 _thumbs_sync_method = XMLreader.GetValueAsInt("Thumbs Path", "method", 0)
                 nud_thumbs_sync.Value = XMLreader.GetValueAsInt("Thumbs Settings", "sync periodicity", 15)
                 cb_thumbs_sync.Text = XMLreader.GetValueAsString("Thumbs Settings", "sync periodicity value", "minutes")
+                cb_thumbs_pause.Checked = XMLreader.GetValueAsString("Thumbs Settings", "pause while playing", False)
 
             End Using
 
@@ -158,7 +160,7 @@ SubExit:
 
     Private Sub b_save_Click(sender As System.Object, e As System.EventArgs) Handles b_save.Click
 
-        FileIO.FileSystem.DeleteFile(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+        If FileIO.FileSystem.FileExists(Config.GetFile(Config.Dir.Config, "MPSync.xml")) Then FileIO.FileSystem.DeleteFile(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
 
         _databases = Nothing
 
@@ -189,6 +191,7 @@ SubExit:
 
             XMLwriter.SetValue("DB Settings", "sync periodicity", nud_db_sync.Value)
             XMLwriter.SetValue("DB Settings", "sync periodicity value", cb_db_sync.Text)
+            XMLwriter.SetValue("DB Settings", "pause while playing", cb_db_pause.Checked)
             XMLwriter.SetValue("DB Settings", "databases", _databases)
 
             XMLwriter.SetValue("Thumbs Path", "client", tb_thumbs_client_path.Text)
@@ -198,6 +201,7 @@ SubExit:
 
             XMLwriter.SetValue("Thumbs Settings", "sync periodicity", nud_thumbs_sync.Value)
             XMLwriter.SetValue("Thumbs Settings", "sync periodicity value", cb_thumbs_sync.Text)
+            XMLwriter.SetValue("Thumbs Settings", "pause while playing", cb_thumbs_pause.Checked)
             XMLwriter.SetValue("Thumbs Settings", "thumbs", _thumbs)
 
         End Using
@@ -274,7 +278,7 @@ SubExit:
     Private Sub MPSync_settings_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
 
         ' initialize version
-        _curversion = "0.0.0.3"
+        _curversion = "0.0.0.5"
         Me.Text = Me.Text & _curversion
 
         ' initialize direction images
