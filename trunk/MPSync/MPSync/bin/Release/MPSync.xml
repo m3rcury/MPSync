@@ -19,7 +19,7 @@ MPSync
 	<summary>
   A strongly-typed resource class, for looking up localized strings, etc.
 </summary>
-</member><member name="M:MPSync.MPSync.MPSync.GetHome(System.String@,System.String@,System.String@,System.String@)">
+</member><member name="M:MPSync.MPSync.MPSync.getHome(System.String@,System.String@,System.String@,System.String@)">
 	<summary>
  If the plugin should have it's own button on the main menu of MediaPortal then it
  should return true to this method, otherwise if it should not be on home
