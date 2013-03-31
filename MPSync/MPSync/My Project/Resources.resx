@@ -127,10 +127,6 @@
   <data name="sync_slave2master" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\sync_slave2master.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="System_Data_SQLite" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\system.data.sqlite.dll;System.Byte[], mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="MPSync_disabled" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\mpsync_disabled.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

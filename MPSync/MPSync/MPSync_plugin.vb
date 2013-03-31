@@ -79,7 +79,7 @@ Namespace MPSync
         ''' <returns>true : plugin needs it's own button on home
         ''' false : plugin does not need it's own button on home</returns>
 
-        Public Function GetHome(ByRef strButtonText As String, ByRef strButtonImage As String, ByRef strButtonImageFocus As String, ByRef strPictureImage As String) As Boolean Implements ISetupForm.GetHome
+        Public Function getHome(ByRef strButtonText As String, ByRef strButtonImage As String, ByRef strButtonImageFocus As String, ByRef strPictureImage As String) As Boolean Implements ISetupForm.GetHome
             strButtonText = String.Empty
             strButtonImage = String.Empty
             strButtonImageFocus = String.Empty
@@ -87,8 +87,8 @@ Namespace MPSync
             Return False
         End Function
 
-        ' Get Windows-ID
-        Public Function GetWindowId() As Integer Implements MediaPortal.GUI.Library.ISetupForm.GetWindowId
+        ' get Windows-ID
+        Public Function getWindowId() As Integer Implements MediaPortal.GUI.Library.ISetupForm.GetWindowId
             ' WindowID of windowplugin belonging to this setup
             ' enter your own unique code
             Return -1
