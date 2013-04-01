@@ -222,6 +222,10 @@ Public Class MPSync_process
                 SQL = "CREATE TABLE IF NOT EXISTS mpsync " & _
                       "(mps_id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, mps_lastupdated TEXT, CompositeID TEXT, id INTEGER, EpisodeFilename TEXT, " & _
                       "watched INTEGER, myRating TEXT, StopTime TEXT, DateWatched TEXT, WatchedFileTimeStamp INTEGER, UnwatchedItems INTEGER, EpisodesUnWatched INTEGER)"
+            Case mps.i_watched(3).database
+                SQL = "CREATE TABLE IF NOT EXISTS mpsync " & _
+                      "(mps_id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, mps_lastupdated TEXT, idMovie INTEGER, watched BOOL, timeswatched INTEGER, " & _
+                      "iwatchedPercent INTEGER, idResume INTEGER, idFile INTEGER, stoptime INTEGER, resumeData BLOOB, idBookmark INTEGER, fPercentage TEXT)"
         End Select
 
         If SQL <> Nothing Then
@@ -300,6 +304,31 @@ Public Class MPSync_process
                       "DELETE FROM mpsync WHERE tablename = 'season' AND ID = new.ID; " & _
                       "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, ID, UnwatchedItems, EpisodesUnWatched) " & _
                       "VALUES('season', datetime('now'), new.ID, new.UnwatchedItems, new.EpisodesUnWatched); " & _
+                      "END"
+            Case mps.i_watched(3).database
+                SQL = "DROP TRIGGER IF EXISTS mpsync_update1; " & _
+                      "CREATE TRIGGER mpsync_update1 " & _
+                      "AFTER UPDATE OF watched, timeswatched, iwatchedPercent ON movie " & _
+                      "BEGIN  " & _
+                      "DELETE FROM mpsync WHERE tablename = 'movie' AND idMovie = new.idMovie; " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, idMovie, watched, timeswatched, iwatchedPercent) " & _
+                      "VALUES('movie', datetime('now'), new.idMovie, new.watched, new.timeswatched, new.iwatchedPercent); " & _
+                      "END; " & _
+                      "DROP TRIGGER IF EXISTS mpsync_update2; " & _
+                      "CREATE TRIGGER mpsync_update2 " & _
+                      "AFTER UPDATE OF stoptime, resumeData ON resume " & _
+                      "BEGIN " & _
+                      "DELETE FROM mpsync WHERE tablename = 'resume' AND idResume = new.idResume; " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, idResume, idFile, stoptime, resumeData) " & _
+                      "VALUES('resume', datetime('now'), new.idResume, new.idFile, new.stoptime, new.resumeData); " & _
+                      "END; " & _
+                      "DROP TRIGGER IF EXISTS mpsync_update3; " & _
+                      "CREATE TRIGGER mpsync_update3 " & _
+                      "AFTER UPDATE OF fPercentage ON bookmark " & _
+                      "BEGIN " & _
+                      "DELETE FROM mpsync WHERE tablename = 'bookmark' AND idResume = new.idResume; " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, idBookMark, idFile, fPercentage) " & _
+                      "VALUES('bookmark', datetime('now'), new.idResume, new.idFile, new.fPercentage); " & _
                       "END"
         End Select
 
