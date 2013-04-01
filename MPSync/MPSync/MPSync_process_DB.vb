@@ -174,7 +174,7 @@ Public Class MPSync_process_DB
         Dim x, z As Integer
         Dim w_pk(), s_pk() As String
 
-        If w_values.Length = 0 Then Return s_data
+        If w_values.OfType(Of String)().ToArray().Length = 0 Then Return s_data
 
         w_pk = getPkValues(w_values, mps_columns, columns)
 
@@ -184,7 +184,7 @@ Public Class MPSync_process_DB
 
             x = Array.IndexOf(mps_columns.OfType(Of String)().ToArray(), "mps_lastupdated")
 
-            For y As Integer = 0 To (s_data.getLength(1) - 1)
+            For y As Integer = 0 To (s_data.GetLength(1) - 1)
 
                 z = w_pk.Contains(s_pk(y))
 
@@ -515,6 +515,7 @@ Public Class MPSync_process_DB
         s_data = LoadTable(args(0), args(2), args(3), columns)
         t_data = LoadTable(args(1), args(2), args(3))
 
+        ' check if master client
         If MPSync_process._db_direction <> 2 Then
             Update_Status(args(0), args(1), args(2), args(3))
         Else
@@ -692,6 +693,8 @@ Public Class MPSync_process_DB
         Dim SQLconnect As New SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
 
+        If w_values.OfType(Of String)().ToArray().Length = 0 Then Exit Sub
+
         SQLconnect.ConnectionString = "Data Source=" & path & database
         SQLconnect.Open()
         SQLcommand = SQLconnect.CreateCommand
@@ -732,22 +735,24 @@ Public Class MPSync_process_DB
 
             curvalues = getCurrentTableValues(path, database, table, columns, updcols, pkey, fields, where)
 
-            ' construct update clause
-            updvalues = getUpdateValues(update, curvalues)
+            If curvalues IsNot Nothing Then
 
-            If updvalues <> Nothing Then
+                ' construct update clause
+                updvalues = getUpdateValues(update, curvalues)
 
-                Try
-                    If MPSync_process.p_Debug Then Log.Debug("MPSync: UPDATE " & table & " SET " & updvalues & " WHERE " & where)
-                    SQLcommand.CommandText = "UPDATE " & table & " SET " & updvalues & " WHERE " & where
-                    SQLcommand.ExecuteNonQuery()
-                Catch ex As Exception
-                    If MPSync_process.p_Debug Then Log.Debug("MPSync: Error using SQL """ & (SQLcommand.CommandText).Replace("""", "'") & """ in " & path & database & " with exception: " & ex.Message)
-                    Log.Error("MPSync: Error synchronizing table " & table & " in database " & path & database)
-                End Try
+                If updvalues <> Nothing Then
 
+                    Try
+                        If MPSync_process.p_Debug Then Log.Debug("MPSync: UPDATE " & table & " SET " & updvalues & " WHERE " & where)
+                        SQLcommand.CommandText = "UPDATE " & table & " SET " & updvalues & " WHERE " & where
+                        SQLcommand.ExecuteNonQuery()
+                    Catch ex As Exception
+                        If MPSync_process.p_Debug Then Log.Debug("MPSync: Error using SQL """ & (SQLcommand.CommandText).Replace("""", "'") & """ in " & path & database & " with exception: " & ex.Message)
+                        Log.Error("MPSync: Error synchronizing table " & table & " in database " & path & database)
+                    End Try
+
+                End If
             End If
-
         Next
 
         SQLconnect.Close()
@@ -785,7 +790,7 @@ Public Class MPSync_process_DB
 
     Private Sub Cleanup_mpsync(ByVal path As String, ByVal database As String, ByVal data As Array)
 
-        If data.Length > 0 Then
+        If data.OfType(Of String)().ToArray().Length > 0 Then
 
             Dim SQLconnect As New SQLiteConnection()
             Dim SQLcommand As SQLiteCommand

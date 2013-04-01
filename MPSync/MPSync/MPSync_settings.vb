@@ -17,7 +17,7 @@ Public Class MPSync_settings
         Dim tables As Array
     End Structure
 
-    Public i_watched(2) As Watched
+    Public i_watched(3) As Watched
 
     Public WriteOnly Property SetWatched
         Set(value)
@@ -27,6 +27,8 @@ Public Class MPSync_settings
             i_watched(1).tables = {"tracks"}
             i_watched(2).database = "TVSeriesDatabase4.db3"
             i_watched(2).tables = {"local_episodes", "online_episodes", "online_series", "season"}
+            i_watched(3).database = "VideoDatabaseV5.db3"
+            i_watched(3).tables = {"bookmark", "movie", "resume"}
         End Set
     End Property
 
@@ -431,7 +433,7 @@ Public Class MPSync_settings
     Private Sub MPSync_settings_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
 
         ' initialize version
-        _curversion = "0.0.0.10"
+        _curversion = "0.0.0.11"
         Me.Text = Me.Text & _curversion
 
         ' initialize direction images
