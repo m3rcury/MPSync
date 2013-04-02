@@ -246,6 +246,22 @@ Public Class MPSync_process
 
     End Function
 
+    Private Function FieldList(ByVal path As String, ByVal database As String, ByVal table As String, ByVal fields As Array, Optional ByVal prefix As String = Nothing) As String
+
+        Dim f_list As String = Nothing
+
+        For x As Integer = 0 To UBound(fields)
+
+            If FieldExist(path, database, table, fields(x)) Then
+                f_list &= prefix & fields(x) & ","
+            End If
+
+        Next
+
+        Return Left(f_list, Len(f_list) - 1)
+
+    End Function
+
     Private Sub Create_Work_Tables(ByVal path As String, ByVal database As String)
 
         If p_Debug Then Log.Debug("MPSync: Creating work table mpsync in database " & database)
@@ -312,85 +328,118 @@ Public Class MPSync_process
         SQLcommand = SQLconnect.CreateCommand
 
         Dim SQL As String = Nothing
+        Dim fields1, fields2, fields3, fields4 As Array
+        Dim tblflds1, tblflds2, tblflds3, tblflds4 As String
+        Dim newflds1, newflds2, newflds3, newflds4 As String
 
         Select Case database
 
             Case mps.i_watched(0).database
+                fields1 = {"user", "user_rating", "watched", "resume_part", "resume_time", "resume_data"}
+                tblflds1 = FieldList(path, database, "user_movie_settings", fields1)
+                newflds1 = FieldList(path, database, "user_movie_settings", fields1, "new.")
+
                 SQL = "DROP TRIGGER IF EXISTS mpsync_update; " & _
                       "CREATE TRIGGER mpsync_update " & _
-                      "AFTER UPDATE OF user_rating, watched, resume_part, resume_time, resume_data ON user_movie_settings " & _
+                      "AFTER UPDATE OF " & tblflds1 & " ON user_movie_settings " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE id = new.id; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, id, user, user_rating, watched, resume_part, resume_time, resume_data) " & _
-                      "VALUES('user_movie_settings', datetime('now'), '" & session & "', new.id, new.user, new.user_rating, new.watched, new.resume_part, new.resume_time, " & _
-                      "new.resume_data); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
+                      "VALUES('user_movie_settings',datetime('now'),'" & session & "'," & newflds1 & "); " & _
                       "END"
             Case mps.i_watched(1).database
+                fields1 = {"idTrack", "iResumeAt", "dateLastPlayed"}
+                tblflds1 = FieldList(path, database, "tracks", fields1)
+                newflds1 = FieldList(path, database, "tracks", fields1, "new.")
+
                 SQL = "DROP TRIGGER IF EXISTS mpsync_update; " & _
                       "CREATE TRIGGER mpsync_update " & _
-                      "AFTER UPDATE OF uResumeAt, dateLastPlayed ON tracks " & _
+                      "AFTER UPDATE OF " & tblflds1 & " ON tracks " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE idTrack = new.idTrack; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, idTrack, dateLastPlayed) " & _
-                      "VALUES('tracks', datetime('now'), '" & session & "', new.idTrack, new.dateLastPlayed); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
+                      "VALUES('tracks',datetime('now'),'" & session & "'," & newflds1 & "); " & _
                       "END"
             Case mps.i_watched(2).database
+                fields1 = {"EpisodeFilename", "CompositeID", "DateWatched", "StopTime"}
+                tblflds1 = FieldList(path, database, "local_episodes", fields1)
+                newflds1 = FieldList(path, database, "local_episodes", fields1, "new.")
+                fields2 = {"CompositeID", "watched", "myRating"}
+                tblflds2 = FieldList(path, database, "online_episodes", fields2)
+                newflds2 = FieldList(path, database, "online_episodes", fields2, "new.")
+                fields3 = {"ID", "WatchedFileTimeStamp", "UnwatchedItems", "EpisodesUnWatched"}
+                tblflds3 = FieldList(path, database, "online_series", fields3)
+                newflds3 = FieldList(path, database, "online_series", fields3, "new.")
+                fields4 = {"ID", "UnwatchedItems", "EpisodesUnWatched"}
+                tblflds4 = FieldList(path, database, "season", fields4)
+                newflds4 = FieldList(path, database, "season", fields4, "new.")
+
                 SQL = "DROP TRIGGER IF EXISTS mpsync_update1; " & _
                       "CREATE TRIGGER mpsync_update1 " & _
-                      "AFTER UPDATE OF DateWatched, StopTime ON local_episodes " & _
+                      "AFTER UPDATE OF " & tblflds1 & " ON local_episodes " & _
                       "BEGIN  " & _
                       "DELETE FROM mpsync WHERE tablename = 'local_episodes' AND EpisodeFilename = new.EpisodeFilename; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, EpisodeFilename, CompositeID, DateWatched, StopTime) " & _
-                      "VALUES('local_episodes', datetime('now'), '" & session & "', new.EpisodeFilename, new.CompositeID, new.DateWatched, new.StopTime); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
+                      "VALUES('local_episodes',datetime('now'),'" & session & "'," & newflds1 & "); " & _
                       "END; " & _
                       "DROP TRIGGER IF EXISTS mpsync_update2; " & _
                       "CREATE TRIGGER mpsync_update2 " & _
-                      "AFTER UPDATE OF watched, myRating ON online_episodes " & _
+                      "AFTER UPDATE OF " & tblflds2 & " ON online_episodes " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE tablename = 'online_episodes' AND CompositeID = new.CompositeID; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, CompositeID, watched, myRating) " & _
-                      "VALUES('online_episodes', datetime('now'), '" & session & "', new.CompositeID, new.watched, new.myRating); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds2 & ") " & _
+                      "VALUES('online_episodes',datetime('now'),'" & session & "'," & newflds2 & "); " & _
                       "END; " & _
                       "DROP TRIGGER IF EXISTS mpsync_update3; " & _
                       "CREATE TRIGGER mpsync_update3 " & _
-                      "AFTER UPDATE OF WatchedFileTimeStamp, UnwatchedItems, EpisodesUnWatched ON online_series " & _
+                      "AFTER UPDATE OF " & tblflds3 & " ON online_series " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE tablename = 'online_series' AND ID = new.ID; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, ID, WatchedFileTimeStamp, UnwatchedItems, EpisodesUnWatched) " & _
-                      "VALUES('online_series', datetime('now'), '" & session & "', new.ID, new.WatchedFileTimeStamp, new.UnwatchedItems, new.EpisodesUnWatched); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds3 & ") " & _
+                      "VALUES('online_series',datetime('now'),'" & session & "'," & newflds3 & "); " & _
                       "END; " & _
                       "DROP TRIGGER IF EXISTS mpsync_update4; " & _
                       "CREATE TRIGGER mpsync_update4 " & _
-                      "AFTER UPDATE OF UnwatchedItems, EpisodesUnWatched ON season " & _
+                      "AFTER UPDATE OF " & tblflds4 & " ON season " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE tablename = 'season' AND ID = new.ID; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, ID, UnwatchedItems, EpisodesUnWatched) " & _
-                      "VALUES('season', datetime('now'), '" & session & "', new.ID, new.UnwatchedItems, new.EpisodesUnWatched); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds4 & ") " & _
+                      "VALUES('season',datetime('now'),'" & session & "'," & newflds4 & "); " & _
                       "END"
             Case mps.i_watched(3).database
+                fields1 = {"idMovie", "watched", "timeswatched", "iwatchedPercent"}
+                tblflds1 = FieldList(path, database, "movie", fields1)
+                newflds1 = FieldList(path, database, "movie", fields1, "new.")
+                fields2 = {"idResume", "idFile", "stoptime", "resumeData"}
+                tblflds2 = FieldList(path, database, "resume", fields2)
+                newflds2 = FieldList(path, database, "resume", fields2, "new.")
+                fields3 = {"idBookMark", "idFile", "fPercentage"}
+                tblflds3 = FieldList(path, database, "bookmark", fields3)
+                newflds3 = FieldList(path, database, "bookmark", fields3, "new.")
+
                 SQL = "DROP TRIGGER IF EXISTS mpsync_update1; " & _
                       "CREATE TRIGGER mpsync_update1 " & _
-                      "AFTER UPDATE OF watched, timeswatched, iwatchedPercent ON movie " & _
+                      "AFTER UPDATE OF " & tblflds1 & " ON movie " & _
                       "BEGIN  " & _
                       "DELETE FROM mpsync WHERE tablename = 'movie' AND idMovie = new.idMovie; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, idMovie, watched, timeswatched, iwatchedPercent) " & _
-                      "VALUES('movie', datetime('now'), '" & session & "', new.idMovie, new.watched, new.timeswatched, new.iwatchedPercent); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
+                      "VALUES('movie',datetime('now'),'" & session & "'," & newflds1 & "); " & _
                       "END; " & _
                       "DROP TRIGGER IF EXISTS mpsync_update2; " & _
                       "CREATE TRIGGER mpsync_update2 " & _
-                      "AFTER UPDATE OF stoptime, resumeData ON resume " & _
+                      "AFTER UPDATE OF " & tblflds2 & " ON resume " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE tablename = 'resume' AND idResume = new.idResume; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, idResume, idFile, stoptime, resumeData) " & _
-                      "VALUES('resume', datetime('now'), '" & session & "', new.idResume, new.idFile, new.stoptime, new.resumeData); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds2 & ") " & _
+                      "VALUES('resume',datetime('now'),'" & session & "'," & newflds2 & "); " & _
                       "END; " & _
                       "DROP TRIGGER IF EXISTS mpsync_update3; " & _
                       "CREATE TRIGGER mpsync_update3 " & _
-                      "AFTER UPDATE OF fPercentage ON bookmark " & _
+                      "AFTER UPDATE OF " & tblflds3 & " ON bookmark " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE tablename = 'bookmark' AND idResume = new.idResume; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, idBookMark, idFile, fPercentage) " & _
-                      "VALUES('bookmark', datetime('now'), '" & session & "', new.idResume, new.idFile, new.fPercentage); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds3 & ") " & _
+                      "VALUES('bookmark',datetime('now'),'" & session & "'," & newflds3 & "); " & _
                       "END"
         End Select
 
