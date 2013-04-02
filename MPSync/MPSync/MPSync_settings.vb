@@ -6,7 +6,7 @@ Imports System.Data.SQLite
 Public Class MPSync_settings
 
     Dim i_direction(2) As Image
-    Dim i_method(2), _databases, _thumbs, _watched_dbs, _curversion, _version As String
+    Dim i_method(2), _databases, _thumbs, _watched_dbs, _curversion, _version, _session As String
     Dim _clicks_db, _clicks_thumbs, _db_sync_method, _thumbs_sync_method As Integer
 
     Public Shared syncnow As Boolean = False
@@ -69,11 +69,11 @@ Public Class MPSync_settings
 
                 Dim all_checked As Boolean = (_databases = Nothing)
 
-                For Each database As String In IO.Directory.getFiles(path, searchpattern)
+                For Each database As String In IO.Directory.GetFiles(path, searchpattern)
                     If all_checked Then
-                        clb.Items.Add(IO.Path.getFileName(database), True)
+                        clb.Items.Add(IO.Path.GetFileName(database), True)
                     Else
-                        clb.Items.Add(IO.Path.getFileName(database), _databases.Contains(IO.Path.getFileName(database)))
+                        clb.Items.Add(IO.Path.GetFileName(database), _databases.Contains(IO.Path.GetFileName(database)))
                     End If
                 Next
 
@@ -81,11 +81,11 @@ Public Class MPSync_settings
 
                 Dim all_checked As Boolean = (_thumbs = Nothing)
 
-                For Each folder As String In IO.Directory.getDirectories(path)
+                For Each folder As String In IO.Directory.GetDirectories(path)
                     If all_checked Then
-                        clb.Items.Add(IO.Path.getFileName(folder), True)
+                        clb.Items.Add(IO.Path.GetFileName(folder), True)
                     Else
-                        clb.Items.Add(IO.Path.getFileName(folder), _thumbs.Contains(IO.Path.getFileName(folder)))
+                        clb.Items.Add(IO.Path.GetFileName(folder), _thumbs.Contains(IO.Path.GetFileName(folder)))
                     End If
                 Next
 
@@ -102,7 +102,7 @@ Public Class MPSync_settings
         Dim all_checked As Boolean = (_watched_dbs = Nothing)
 
         For x As Integer = 0 To (clb_databases.CheckedItems.Count - 1)
-            Dim y As Integer = Array.IndexOf(getDatabase, clb_databases.getItemText(clb_databases.CheckedItems(x)))
+            Dim y As Integer = Array.IndexOf(getDatabase, clb_databases.GetItemText(clb_databases.CheckedItems(x)))
             If y >= 0 Then
                 If all_checked Then
                     clb.Items.Add(i_watched(y).database, True)
@@ -116,39 +116,40 @@ Public Class MPSync_settings
 
     Private Sub getSettings()
 
-        If IO.File.Exists(Config.getFile(Config.Dir.Config, "CDB_Sync.xml")) Then IO.File.Delete(Config.getFile(Config.Dir.Config, "CDB_Sync.xml"))
+        If IO.File.Exists(Config.GetFile(Config.Dir.Config, "CDB_Sync.xml")) Then IO.File.Delete(Config.GetFile(Config.Dir.Config, "CDB_Sync.xml"))
 
-        If IO.File.Exists(Config.getFile(Config.Dir.Config, "MPSync.xml")) Then
+        If IO.File.Exists(Config.GetFile(Config.Dir.Config, "MPSync.xml")) Then
 
             '  get settings from XML configuration file
 
-            Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.getFile(Config.Dir.Config, "MPSync.xml"))
+            Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
 
-                _version = XMLreader.getValueAsString("Plugin", "version", "0")
-                cb_databases.Checked = XMLreader.getValueAsString("Plugin", "databases", True)
-                cb_thumbs.Checked = XMLreader.getValueAsString("Plugin", "thumbs", True)
-                cb_debug.Checked = XMLreader.getValueAsString("Plugin", "debug", False)
+                _version = XMLreader.GetValueAsString("Plugin", "version", "0")
+                cb_databases.Checked = XMLreader.GetValueAsString("Plugin", "databases", True)
+                cb_thumbs.Checked = XMLreader.GetValueAsString("Plugin", "thumbs", True)
+                cb_debug.Checked = XMLreader.GetValueAsString("Plugin", "debug", False)
+                _session = XMLreader.GetValueAsString("Plugin", "session ID", System.Guid.NewGuid.ToString())
 
-                _databases = XMLreader.getValueAsString("DB Settings", "databases", Nothing)
-                _watched_dbs = XMLreader.getValueAsString("DB Settings", "watched databases", Nothing)
-                _thumbs = XMLreader.getValueAsString("Thumbs Settings", "thumbs", Nothing)
+                _databases = XMLreader.GetValueAsString("DB Settings", "databases", Nothing)
+                _watched_dbs = XMLreader.GetValueAsString("DB Settings", "watched databases", Nothing)
+                _thumbs = XMLreader.GetValueAsString("Thumbs Settings", "thumbs", Nothing)
 
-                _clicks_db = XMLreader.getValueAsInt("DB Path", "direction", 1)
-                tb_db_client_path.Text = XMLreader.getValueAsString("DB Path", "client", Nothing)
-                tb_db_server_path.Text = XMLreader.getValueAsString("DB Path", "server", Nothing)
-                _db_sync_method = XMLreader.getValueAsInt("DB Path", "method", 0)
-                nud_db_sync.Value = XMLreader.getValueAsInt("DB Settings", "sync periodicity", 15)
-                cb_db_sync.Text = XMLreader.getValueAsString("DB Settings", "sync periodicity value", "minutes")
-                cb_db_pause.Checked = XMLreader.getValueAsString("DB Settings", "pause while playing", False)
-                cb_watched.Checked = XMLreader.getValueAsString("DB Settings", "watched", False)
+                _clicks_db = XMLreader.GetValueAsInt("DB Path", "direction", 1)
+                tb_db_client_path.Text = XMLreader.GetValueAsString("DB Path", "client", Nothing)
+                tb_db_server_path.Text = XMLreader.GetValueAsString("DB Path", "server", Nothing)
+                _db_sync_method = XMLreader.GetValueAsInt("DB Path", "method", 0)
+                nud_db_sync.Value = XMLreader.GetValueAsInt("DB Settings", "sync periodicity", 15)
+                cb_db_sync.Text = XMLreader.GetValueAsString("DB Settings", "sync periodicity value", "minutes")
+                cb_db_pause.Checked = XMLreader.GetValueAsString("DB Settings", "pause while playing", False)
+                cb_watched.Checked = XMLreader.GetValueAsString("DB Settings", "watched", False)
 
-                _clicks_thumbs = XMLreader.getValueAsInt("Thumbs Path", "direction", 1)
-                tb_thumbs_client_path.Text = XMLreader.getValueAsString("Thumbs Path", "client", Nothing)
-                tb_thumbs_server_path.Text = XMLreader.getValueAsString("Thumbs Path", "server", Nothing)
-                _thumbs_sync_method = XMLreader.getValueAsInt("Thumbs Path", "method", 0)
-                nud_thumbs_sync.Value = XMLreader.getValueAsInt("Thumbs Settings", "sync periodicity", 15)
-                cb_thumbs_sync.Text = XMLreader.getValueAsString("Thumbs Settings", "sync periodicity value", "minutes")
-                cb_thumbs_pause.Checked = XMLreader.getValueAsString("Thumbs Settings", "pause while playing", False)
+                _clicks_thumbs = XMLreader.GetValueAsInt("Thumbs Path", "direction", 1)
+                tb_thumbs_client_path.Text = XMLreader.GetValueAsString("Thumbs Path", "client", Nothing)
+                tb_thumbs_server_path.Text = XMLreader.GetValueAsString("Thumbs Path", "server", Nothing)
+                _thumbs_sync_method = XMLreader.GetValueAsInt("Thumbs Path", "method", 0)
+                nud_thumbs_sync.Value = XMLreader.GetValueAsInt("Thumbs Settings", "sync periodicity", 15)
+                cb_thumbs_sync.Text = XMLreader.GetValueAsString("Thumbs Settings", "sync periodicity value", "minutes")
+                cb_thumbs_pause.Checked = XMLreader.GetValueAsString("Thumbs Settings", "pause while playing", False)
 
             End Using
 
@@ -203,6 +204,7 @@ Public Class MPSync_settings
             XMLwriter.SetValue("Plugin", "databases", cb_databases.Checked)
             XMLwriter.SetValue("Plugin", "thumbs", cb_thumbs.Checked)
             XMLwriter.SetValue("Plugin", "debug", cb_debug.Checked)
+            XMLwriter.SetValue("Plugin", "session ID", _session)
 
             XMLwriter.SetValue("DB Path", "client", tb_db_client_path.Text)
             XMLwriter.SetValue("DB Path", "server", tb_db_server_path.Text)
@@ -433,7 +435,7 @@ Public Class MPSync_settings
     Private Sub MPSync_settings_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
 
         ' initialize version
-        _curversion = "0.0.0.11"
+        _curversion = "0.0.0.13"
         Me.Text = Me.Text & _curversion
 
         ' initialize direction images

@@ -13,6 +13,7 @@ Public Class MPSync_process_DB
     Private Function LoadTable(ByVal path As String, ByVal database As String, ByVal table As String, Optional ByRef columns As Array = Nothing, Optional ByVal where As String = Nothing, Optional ByVal order As String = Nothing) As Array
 
         Dim x, y, z, records As Integer
+        Dim fields As String = "*"
         Dim data(,) As String = Nothing
 
         Dim SQLconnect As New SQLite.SQLiteConnection()
@@ -21,17 +22,22 @@ Public Class MPSync_process_DB
 
         Try
 
-            columns = getFields(path, database, table)
-            records = RecordCount(path, database, table, where)
+            If columns Is Nothing Then
+                columns = getFields(path, database, table)
+            Else
+                fields = getSelectFields(columns)
+            End If
+
             z = getPK(columns)
+            records = RecordCount(path, database, table, where)
 
             If records > 0 Then
 
-                SQLconnect.ConnectionString = "Data Source=" + path + database
+                SQLconnect.ConnectionString = "Data Source=" & path & database
                 SQLconnect.Open()
                 SQLcommand = SQLconnect.CreateCommand
 
-                SQLcommand.CommandText = "SELECT rowid, * FROM " & table
+                SQLcommand.CommandText = "SELECT rowid, " & fields & " FROM " & table
 
                 If where <> Nothing Then
                     SQLcommand.CommandText &= " WHERE " & where
@@ -68,7 +74,6 @@ Public Class MPSync_process_DB
                         End If
                     Next
 
-                    data(1, x) = data(1, x).Replace("'", "''")
                     x += 1
 
                 End While
@@ -80,7 +85,7 @@ Public Class MPSync_process_DB
             End If
 
         Catch ex As Exception
-            If MPSync_process.p_Debug Then Log.Debug("MPSync: Error reading table " & table & " rowid """ & SQLreader(0) & """ in " & database & " with exception: " & ex.Message)
+            If debug Then Log.Debug("MPSync: Error reading table " & table & " rowid """ & SQLreader(0) & """ in " & database & " with exception: " & ex.Message)
             Log.Error("MPSync: Error reading data from table " & table & " in database " & database)
 
             data = Nothing
@@ -88,6 +93,103 @@ Public Class MPSync_process_DB
         End Try
 
         Return data
+
+    End Function
+
+    Private Function FormatValue(ByVal value As Object, ByVal type As String) As String
+
+        Dim fmtvalue As String
+
+        If value.ToString = "NULL" Then
+            fmtvalue = "NULL,"
+        Else
+            Select Case type
+
+                Case "INTEGER", "REAL"
+                    fmtvalue = value.ToString & ","
+                Case "BOOL"
+                    If value.ToString = "True" Then fmtvalue = "'1'," Else fmtvalue = "'0',"
+                Case Else
+                    fmtvalue = "'" & value.ToString.Replace("'", "''") & "',"
+
+            End Select
+        End If
+
+        Return fmtvalue
+
+    End Function
+
+    Private Function BuildUpdateArray_mpsync(ByVal w_values(,) As String, ByVal s_data As Array, ByVal mps_columns As Array, ByVal columns As Array) As Array
+
+        Dim x, z As Integer
+        Dim w_pk(), s_pk() As String
+
+        If w_values.OfType(Of String)().ToArray().Length = 0 Then Return s_data
+
+        w_pk = getPkValues(w_values, mps_columns, columns)
+
+        If s_data.OfType(Of String)().ToArray().Length > 0 Then
+
+            s_pk = getPkValues(s_data, mps_columns, columns)
+
+            x = Array.IndexOf(mps_columns.OfType(Of String)().ToArray(), "mps_lastupdated")
+
+            For y As Integer = 0 To (s_data.GetLength(1) - 1)
+
+                z = w_pk.Contains(s_pk(y))
+
+                If z <> -1 Then
+
+                    If getLastUpdateDate(s_data(1, y), x) > getLastUpdateDate(w_values(1, z), x) Then
+                        w_values(1, z) = s_data(1, y)
+                    End If
+
+                End If
+
+            Next
+
+        End If
+
+        Return w_values
+
+    End Function
+
+    Private Function BuildUpdateArray(ByVal s_data As Array, ByVal t_data As Array, ByVal columns As Array) As Array
+
+        Dim x As Integer = getPK(columns)
+
+        If x = -1 Then Return Nothing
+
+        Dim w_values(,) As String = Nothing
+        Dim s_temp(), t_temp() As String
+        Dim same As IEnumerable(Of String)
+
+        If x <> -1 Then
+            s_temp = getArray(s_data, 2)
+            t_temp = getArray(t_data, 2)
+        Else
+            s_temp = getArray(s_data, 1)
+            t_temp = getArray(t_data, 1)
+        End If
+
+        If s_temp(0) <> Nothing Then
+
+            Dim y As Integer
+
+            same = s_temp.Intersect(t_temp)
+
+            ReDim w_values(2, UBound(same.ToArray))
+
+            For x = 0 To UBound(same.ToArray)
+                y = Array.IndexOf(s_temp, same.ToArray(x))
+                w_values(0, x) = s_data(0, y)
+                w_values(1, x) = s_data(1, y)
+                w_values(2, x) = s_data(2, y)
+            Next
+
+        End If
+
+        Return w_values
 
     End Function
 
@@ -120,6 +222,18 @@ Public Class MPSync_process_DB
 
     End Function
 
+    Private Function getSelectFields(ByVal columns As Array) As String
+
+        Dim fields As String = Nothing
+
+        For x = 0 To UBound(columns, 2)
+            fields &= columns(0, x) & ","
+        Next
+
+        Return Left(fields, Len(fields) - 1)
+
+    End Function
+
     Private Function RecordCount(ByVal path As String, ByVal database As String, ByVal table As String, Optional ByVal where As String = Nothing) As Integer
 
         Dim SQLconnect As New SQLiteConnection()
@@ -146,64 +260,6 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Function FormatValue(ByVal value As String, ByVal type As String) As String
-
-        Dim fmtvalue As String
-
-        If value = "NULL" Then
-            fmtvalue = "NULL,"
-        Else
-            Select Case type
-
-                Case "INTEGER", "REAL"
-                    fmtvalue = value & ","
-                Case "BOOL"
-                    If value = "True" Then fmtvalue = "'1'," Else fmtvalue = "'0',"
-                Case Else
-                    fmtvalue = "'" & value & "',"
-
-            End Select
-        End If
-
-        Return fmtvalue
-
-    End Function
-
-    Private Function BuildUpdateArray(ByVal w_values(,) As String, ByVal s_data As Array, ByVal mps_columns As Array, ByVal columns As Array) As Array
-
-        Dim x, z As Integer
-        Dim w_pk(), s_pk() As String
-
-        If w_values.OfType(Of String)().ToArray().Length = 0 Then Return s_data
-
-        w_pk = getPkValues(w_values, mps_columns, columns)
-
-        If s_data.Length > 0 Then
-
-            s_pk = getPkValues(s_data, mps_columns, columns)
-
-            x = Array.IndexOf(mps_columns.OfType(Of String)().ToArray(), "mps_lastupdated")
-
-            For y As Integer = 0 To (s_data.GetLength(1) - 1)
-
-                z = w_pk.Contains(s_pk(y))
-
-                If z <> -1 Then
-
-                    If getLastUpdateDate(s_data(1, y), x) > getLastUpdateDate(w_values(1, z), x) Then
-                        w_values(1, z) = s_data(1, y)
-                    End If
-
-                End If
-
-            Next
-
-        End If
-
-        Return w_values
-
-    End Function
-
     Private Function getPkValues(ByVal values As Array, ByVal mps_columns As Array, ByVal columns As Array) As Array
 
         Dim x, y As Integer
@@ -211,6 +267,8 @@ Public Class MPSync_process_DB
         Dim PKs() As String = Nothing
 
         x = getPK(columns)
+
+        If x = -1 Then Return Nothing
 
         Dim mps_cols As Array = getArray(mps_columns, 0)
 
@@ -341,25 +399,26 @@ Public Class MPSync_process_DB
 
     Public Shared Sub bw_db_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
 
-        Dim cdb As New MPSync_process_DB
+        Dim mps_db As New MPSync_process_DB
 
         Do
 
-            cdb.bw_sync_db_jobs = 0
-            Array.Resize(cdb.bw_sync_db, 0)
+            mps_db.bw_sync_db_jobs = 0
+            Array.Resize(mps_db.bw_sync_db, 0)
+            mps_db.debug = MPSync_process.p_Debug
 
             ' direction is client to server or both
             If MPSync_process._db_direction <> 2 Then
-                cdb.Process_DB_folder(MPSync_process._db_client, MPSync_process._db_server)
+                mps_db.Process_DB_folder(MPSync_process._db_client, MPSync_process._db_server)
             End If
 
             ' direction is server to client or both
             If MPSync_process._db_direction <> 1 Then
-                cdb.Process_DB_folder(MPSync_process._db_server, MPSync_process._db_client)
+                mps_db.Process_DB_folder(MPSync_process._db_server, MPSync_process._db_client)
             End If
 
             If Not MPSync_settings.syncnow Then
-                MPSync_process.wait(MPSync_process._db_sync)
+                MPSync_process.wait(MPSync_process._db_sync, , "DB")
             Else
                 MPSync_process.db_complete = True
                 Exit Do
@@ -376,7 +435,7 @@ Public Class MPSync_process_DB
             Exit Sub
         End If
 
-        If MPSync_process.p_Debug Then Log.Debug("MPSync: synchronizing from " & source & " to " & target)
+        If debug Then Log.Debug("MPSync: synchronizing from " & source & " to " & target)
 
         If Not IO.Directory.Exists(target) Then IO.Directory.CreateDirectory(target)
 
@@ -513,13 +572,14 @@ Public Class MPSync_process_DB
         args = Split(parm, Chr(254))
 
         s_data = LoadTable(args(0), args(2), args(3), columns)
-        t_data = LoadTable(args(1), args(2), args(3))
+        t_data = LoadTable(args(1), args(2), args(3), columns)
 
         ' check if master client
         If MPSync_process._db_direction <> 2 Then
-            Update_Status(args(0), args(1), args(2), args(3))
+            UpdateLocalStatus(args(0), args(1), args(2), args(3), True)
         Else
             Update_mpsync(args(0), args(1), args(2), args(3))
+            UpdateLocalStatus(args(1), args(0), args(2), args(3))
         End If
 
         Synchronize_DB(args(1), args(2), args(3), columns, s_data, t_data, MPSync_process._db_sync_method)
@@ -541,110 +601,46 @@ Public Class MPSync_process_DB
 
     Private Sub Synchronize_DB(ByVal path As String, ByVal database As String, ByVal table As String, ByVal columns As Array, ByRef s_data As Array, ByRef t_data As Array, ByVal method As Integer)
 
-        Dim SQLconnect As New SQLiteConnection()
-        Dim SQLcommand As SQLiteCommand
-        Dim fields, values, a_values(), s_temp(), t_temp() As String
-        Dim diff As IEnumerable(Of String)
-        Dim x, y, pk As Integer
-
         Log.Info("MPSync: synchronization of table " & table & " in database " & path & database & " in progress...")
 
-        SQLconnect.ConnectionString = "Data Source=" & path & database
-        SQLconnect.Open()
-        SQLcommand = SQLconnect.CreateCommand
-        SQLcommand.CommandText = "PRAGMA temp_store=2;PRAGMA journal_mode=memory;PRAGMA synchronous=0;"
-        SQLcommand.ExecuteNonQuery()
+        DeleteRecords(path, database, table, s_data, t_data, columns, method)
+        InsertRecords(path, database, table, s_data, t_data, columns, method)
 
-        fields = Nothing
-
-        For x = 0 To UBound(columns, 2)
-            fields &= columns(0, x) & ","
-        Next
-
-        fields = Left(fields, Len(fields) - 1)
-
-        pk = getPK(columns)
-
-        If pk <> -1 Then
-            s_temp = getArray(s_data, 2)
-            t_temp = getArray(t_data, 2)
-        Else
-            s_temp = getArray(s_data, 1)
-            t_temp = getArray(t_data, 1)
-        End If
-
-        ' propagate deletions
-        If method <> 1 And table <> "mpsync" Then
-
-            If MPSync_process.p_Debug Then Log.Debug("MPSync: deleting extra entries on target for table " & table & " in database " & path & database)
-
-            diff = t_temp.Except(s_temp)
-
-            For y = 0 To UBound(diff.ToArray)
-                MPSync_process.CheckPlayerplaying("db", 30)
-                Try
-                    If MPSync_process.p_Debug Then Log.Debug("MPSync: DELETE FROM " & table & " WHERE rowid = " & t_data(0, Array.IndexOf(t_temp, diff.ToArray(y))))
-                    SQLcommand.CommandText = "DELETE FROM " & table & " WHERE rowid = " & t_data(0, Array.IndexOf(t_temp, diff.ToArray(y)))
-                    SQLcommand.ExecuteNonQuery()
-                Catch ex As Exception
-                    If MPSync_process.p_Debug Then Log.Debug("MPSync: Error using SQL """ & (SQLcommand.CommandText).Replace("""", "'") & """ in " & path & database & " with exception: " & ex.Message)
-                    Log.Error("MPSync: Error deleting record from table " & table & " in database " & path & database)
-                End Try
-            Next
-
-            If MPSync_process.p_Debug Then Log.Debug("MPSync: " & y.ToString & " record deleted from " & table & " in database " & path & database)
-
-        End If
-
-        ' propagate additions
-        If method <> 2 Then
-
-            If MPSync_process.p_Debug Then Log.Debug("MPSync: adding missing entries on target for table " & table & " in database " & path & database)
-
-            If pk <> -1 Then
-                s_temp = getArray(s_data, 1)
-                t_temp = getArray(t_data, 1)
-            End If
-
-            If s_temp(0) <> Nothing Then
-
-                diff = s_temp.Except(t_temp)
-
-                For y = 0 To UBound(diff.ToArray)
-
-                    MPSync_process.CheckPlayerplaying("db", 30)
-
-                    values = Nothing
-                    a_values = Split(diff.ToArray(y), Chr(240) & Chr(240))
-
-                    For x = 0 To UBound(columns, 2)
-                        values &= FormatValue(a_values(x), columns(1, x))
-                    Next
-
-                    values = Left(values, Len(values) - 1)
-
-                    Try
-                        If MPSync_process.p_Debug Then Log.Debug("MPSync: INSERT OR REPLACE INTO " & table & " (" & fields & ") VALUES(" & values & ")")
-                        SQLcommand.CommandText = "INSERT OR REPLACE INTO " & table & " (" & fields & ") VALUES(" & values & ")"
-                        SQLcommand.ExecuteNonQuery()
-                    Catch ex As Exception
-                        If MPSync_process.p_Debug Then Log.Debug("MPSync: Error using SQL """ & (SQLcommand.CommandText).Replace("""", "'") & """ in " & path & database & " with exception: " & ex.Message)
-                        Log.Error("MPSync: Error adding record to table " & table & " in database " & path & database)
-                    End Try
-
-                Next
-
-            End If
-
-            If MPSync_process.p_Debug Then Log.Debug("MPSync: " & y.ToString & " records added in " & table & " in database " & path & database)
-
-        End If
-
-        SQLconnect.Close()
+        'Dim w_values As Array = BuildUpdateArray(t_data, s_data, columns)
+        'If w_values IsNot Nothing Then UpdateRecords(path, database, table, w_values, columns, columns)
 
     End Sub
 
-    Private Sub Update_Status(ByVal source As String, ByVal target As String, ByVal database As String, ByVal table As String)
+    Private Sub Update_mpsync(ByVal source As String, ByVal target As String, ByVal database As String, ByVal table As String)
+
+        Dim mps As New MPSync_settings
+
+        Dim x As Integer = Array.IndexOf(mps.getDatabase, database)
+
+        If x <> -1 Then
+            If Array.IndexOf(mps.getTables(database), table) <> -1 Then
+
+                Log.Info("MPSync: synchronization of mpsync for table " & table & " in database " & source & database & " in progress...")
+
+                Dim columns As Array = Nothing
+                Dim s_data, t_data As Array
+
+                s_data = LoadTable(target, database, "mpsync", columns, "tablename = '" & table & "'", "mps_lastupdated")
+                t_data = LoadTable(source, database, "mpsync", columns, "tablename = '" & table & "'", "mps_lastupdated")
+
+                Synchronize_DB(source, database, "mpsync", columns, s_data, t_data, 1)
+
+                ' cleanup mpsync on client
+                Cleanup_mpsync(target, database, s_data)
+
+                Log.Info("MPSync: synchronization of mpsync for table " & table & " in database " & source & database & " complete.")
+
+            End If
+        End If
+
+    End Sub
+
+    Private Sub UpdateLocalStatus(ByVal source As String, ByVal target As String, ByVal database As String, ByVal table As String, Optional ByVal housekeep As Boolean = True)
 
         Dim mps As New MPSync_settings
 
@@ -659,7 +655,7 @@ Public Class MPSync_process_DB
                 Dim columns, s_data, t_data, w_values As Array
 
                 s_data = LoadTable(source, database, "mpsync", mps_columns, "tablename = '" & table & "'", "mps_lastupdated")
-                t_data = LoadTable(target, database, "mpsync", , "tablename = '" & table & "'", "mps_lastupdated")
+                t_data = LoadTable(target, database, "mpsync", mps_columns, "tablename = '" & table & "'", "mps_lastupdated")
 
                 If s_data Is Nothing And t_data Is Nothing Then
                     Log.Info("MPSync: synchronization of watched for table " & table & " in database " & source & database & " nothing to update.")
@@ -667,16 +663,15 @@ Public Class MPSync_process_DB
                 End If
 
                 columns = getFields(source, database, table)
+                w_values = BuildUpdateArray_mpsync(t_data, s_data, mps_columns, columns)
 
-                w_values = BuildUpdateArray(t_data, s_data, mps_columns, columns)
+                UpdateRecords(source, database, table, w_values, mps_columns, columns)
 
-                Dim mps_cols As Array = getArray(mps_columns, 0)
-
-                UpdateTable(source, database, table, w_values, columns, mps_cols)
-
-                ' cleanup mpsync on local and server since client is master
-                Cleanup_mpsync(source, database, s_data)
-                Cleanup_mpsync(target, database, t_data)
+                If housekeep Then
+                    ' cleanup mpsync on local and server since client is master
+                    Cleanup_mpsync(source, database, s_data)
+                    Cleanup_mpsync(target, database, t_data)
+                End If
 
                 Log.Info("MPSync: synchronization of watched for table " & table & " in database " & source & database & " complete.")
 
@@ -685,15 +680,16 @@ Public Class MPSync_process_DB
 
     End Sub
 
-    Private Sub UpdateTable(ByVal path As String, ByVal database As String, ByVal table As String, ByVal w_values As Array, ByVal columns As Array, ByVal updcols As Array)
+    Private Sub UpdateRecords(ByVal path As String, ByVal database As String, ByVal table As String, ByVal w_values As Array, ByVal table_columns As Array, ByVal columns As Array)
+
+        If w_values.OfType(Of String)().ToArray().Length = 0 Then Exit Sub
 
         Dim i, x, z As Integer
         Dim pkey As String = Nothing
+        Dim updcols As Array = getArray(table_columns, 0)
         Dim fields, updvalues, where, update(), a_values() As String
         Dim SQLconnect As New SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
-
-        If w_values.OfType(Of String)().ToArray().Length = 0 Then Exit Sub
 
         SQLconnect.ConnectionString = "Data Source=" & path & database
         SQLconnect.Open()
@@ -743,11 +739,11 @@ Public Class MPSync_process_DB
                 If updvalues <> Nothing Then
 
                     Try
-                        If MPSync_process.p_Debug Then Log.Debug("MPSync: UPDATE " & table & " SET " & updvalues & " WHERE " & where)
+                        If debug Then Log.Debug("MPSync: UPDATE " & table & " SET " & updvalues & " WHERE " & where)
                         SQLcommand.CommandText = "UPDATE " & table & " SET " & updvalues & " WHERE " & where
                         SQLcommand.ExecuteNonQuery()
                     Catch ex As Exception
-                        If MPSync_process.p_Debug Then Log.Debug("MPSync: Error using SQL """ & (SQLcommand.CommandText).Replace("""", "'") & """ in " & path & database & " with exception: " & ex.Message)
+                        If debug Then Log.Debug("MPSync: Error imports SQL """ & (SQLcommand.CommandText).Replace("""", "'") & """ in " & path & database & " with exception: " & ex.Message)
                         Log.Error("MPSync: Error synchronizing table " & table & " in database " & path & database)
                     End Try
 
@@ -759,62 +755,147 @@ Public Class MPSync_process_DB
 
     End Sub
 
-    Private Sub Update_mpsync(ByVal source As String, ByVal target As String, ByVal database As String, ByVal table As String)
+    Private Sub InsertRecords(ByVal path As String, ByVal database As String, ByVal table As String, ByVal s_data As Array, ByVal t_data As Array, ByVal columns As Array, ByVal method As Integer)
 
-        Dim mps As New MPSync_settings
+        ' propagate additions
+        If method = 2 Then Exit Sub
 
-        Dim x As Integer = Array.IndexOf(mps.getDatabase, database)
+        If s_data.OfType(Of String)().ToArray().Length = 0 Then Exit Sub
 
-        If x <> -1 Then
-            If Array.IndexOf(mps.getTables(database), table) <> -1 Then
+        If debug Then Log.Debug("MPSync: adding missing entries on target for table " & table & " in database " & path & database)
 
-                Log.Info("MPSync: synchronization of mpsync for table " & table & " in database " & source & database & " in progress...")
+        Dim s_temp(), t_temp() As String
 
-                Dim columns As Array = Nothing
-                Dim s_data, t_data As Array
+        'If getPK(columns) <> -1 Then
+        's_temp = getArray(s_data, 2)
+        't_temp = getArray(t_data, 2)
+        'Else
+        s_temp = getArray(s_data, 1)
+        t_temp = getArray(t_data, 1)
+        'End If
 
-                s_data = LoadTable(target, database, "mpsync", columns, "tablename = '" & table & "'", "mps_lastupdated")
-                t_data = LoadTable(source, database, "mpsync", , "tablename = '" & table & "'", "mps_lastupdated")
+        Dim fields, values, a_values() As String
+        Dim diff As IEnumerable(Of String)
+        Dim y As Integer
+        Dim SQLconnect As New SQLiteConnection()
+        Dim SQLcommand As SQLiteCommand
 
-                Synchronize_DB(source, database, "mpsync", columns, s_data, t_data, 1)
+        SQLconnect.ConnectionString = "Data Source=" & path & database
+        SQLconnect.Open()
+        SQLcommand = SQLconnect.CreateCommand
+        SQLcommand.CommandText = "PRAGMA temp_store=2;PRAGMA journal_mode=memory;PRAGMA synchronous=0;"
+        SQLcommand.ExecuteNonQuery()
 
-                ' cleanup mpsync on client
-                Cleanup_mpsync(target, database, s_data)
+        fields = getSelectFields(columns)
 
-                Log.Info("MPSync: synchronization of mpsync for table " & table & " in database " & source & database & " complete.")
+        diff = s_temp.Except(t_temp)
 
-            End If
+        For y = 0 To UBound(diff.ToArray)
+
+            MPSync_process.CheckPlayerplaying("db", 30)
+
+            values = Nothing
+            'a_values = Split(s_data(1, Array.IndexOf(s_temp, diff.ToArray(y))), Chr(240) & Chr(240))
+            a_values = Split(diff.ToArray(y), Chr(240) & Chr(240))
+
+            For x = 0 To UBound(columns, 2)
+                values &= FormatValue(a_values(x), columns(1, x))
+            Next
+
+            values = Left(values, Len(values) - 1)
+
+            Try
+                If debug Then Log.Debug("MPSync: INSERT OR REPLACE INTO " & table & " (" & fields & ") VALUES(" & values & ")")
+                SQLcommand.CommandText = "INSERT OR REPLACE INTO " & table & " (" & fields & ") VALUES(" & values & ")"
+                SQLcommand.ExecuteNonQuery()
+            Catch ex As Exception
+                If debug Then Log.Debug("MPSync: Error imports SQL """ & (SQLcommand.CommandText).Replace("""", "'") & """ in " & path & database & " with exception: " & ex.Message)
+                Log.Error("MPSync: Error adding record to table " & table & " in database " & path & database)
+            End Try
+
+        Next
+
+        SQLconnect.Close()
+
+        If debug Then Log.Debug("MPSync: " & y.ToString & " records added in " & table & " in database " & path & database)
+
+    End Sub
+
+    Private Sub DeleteRecords(ByVal path As String, ByVal database As String, ByVal table As String, ByVal s_data As Array, ByVal t_data As Array, ByVal columns As Array, ByVal method As Integer)
+
+        ' propagate deletions
+        If method = 1 And table <> "mpsync" Then Exit Sub
+
+        If t_data.OfType(Of String)().ToArray().Length = 0 Then Exit Sub
+
+        If debug Then Log.Debug("MPSync: deleting extra entries on target for table " & table & " in database " & path & database)
+
+        Dim s_temp(), t_temp() As String
+
+        If getPK(columns) <> -1 Then
+            s_temp = getArray(s_data, 2)
+            t_temp = getArray(t_data, 2)
+        Else
+            s_temp = getArray(s_data, 1)
+            t_temp = getArray(t_data, 1)
         End If
+
+        Dim diff As IEnumerable(Of String)
+        Dim y As Integer
+        Dim SQLconnect As New SQLiteConnection()
+        Dim SQLcommand As SQLiteCommand
+
+        SQLconnect.ConnectionString = "Data Source=" & path & database
+        SQLconnect.Open()
+        SQLcommand = SQLconnect.CreateCommand
+        SQLcommand.CommandText = "PRAGMA temp_store=2;PRAGMA journal_mode=memory;PRAGMA synchronous=0;"
+        SQLcommand.ExecuteNonQuery()
+
+        diff = t_temp.Except(s_temp)
+
+        For y = 0 To UBound(diff.ToArray)
+            MPSync_process.CheckPlayerplaying("db", 30)
+            Try
+                If debug Then Log.Debug("MPSync: DELETE FROM " & table & " WHERE rowid = " & t_data(0, Array.IndexOf(t_temp, diff.ToArray(y))))
+                SQLcommand.CommandText = "DELETE FROM " & table & " WHERE rowid = " & t_data(0, Array.IndexOf(t_temp, diff.ToArray(y)))
+                SQLcommand.ExecuteNonQuery()
+            Catch ex As Exception
+                If debug Then Log.Debug("MPSync: Error imports SQL """ & (SQLcommand.CommandText).Replace("""", "'") & """ in " & path & database & " with exception: " & ex.Message)
+                Log.Error("MPSync: Error deleting record from table " & table & " in database " & path & database)
+            End Try
+        Next
+
+        SQLconnect.Close()
+
+        If debug Then Log.Debug("MPSync: " & y.ToString & " record deleted from " & table & " in database " & path & database)
 
     End Sub
 
     Private Sub Cleanup_mpsync(ByVal path As String, ByVal database As String, ByVal data As Array)
 
-        If data.OfType(Of String)().ToArray().Length > 0 Then
+        If data.OfType(Of String)().ToArray().Length > 0 Then Exit Sub
 
-            Dim SQLconnect As New SQLiteConnection()
-            Dim SQLcommand As SQLiteCommand
+        Dim SQLconnect As New SQLiteConnection()
+        Dim SQLcommand As SQLiteCommand
 
-            SQLconnect.ConnectionString = "Data Source=" & path & database
-            SQLconnect.Open()
-            SQLcommand = SQLconnect.CreateCommand
+        SQLconnect.ConnectionString = "Data Source=" & path & database
+        SQLconnect.Open()
+        SQLcommand = SQLconnect.CreateCommand
 
-            For y = 0 To UBound(data, 2)
+        For y = 0 To UBound(data, 2)
 
-                Try
-                    If MPSync_process.p_Debug Then Log.Debug("MPSync: DELETE FROM mpsync WHERE rowid = " & data(0, y))
-                    SQLcommand.CommandText = "DELETE FROM mpsync WHERE rowid = " & data(0, y)
-                    SQLcommand.ExecuteNonQuery()
-                Catch ex As Exception
-                    If MPSync_process.p_Debug Then Log.Debug("MPSync: Error using SQL """ & (SQLcommand.CommandText).Replace("""", "'") & """ with exception: " & ex.Data.ToString)
-                    Log.Error("MPSync: Error deleting record from table mpsync in database " & path & database)
-                End Try
+            Try
+                If debug Then Log.Debug("MPSync: DELETE FROM mpsync WHERE rowid = " & data(0, y))
+                SQLcommand.CommandText = "DELETE FROM mpsync WHERE rowid = " & data(0, y)
+                SQLcommand.ExecuteNonQuery()
+            Catch ex As Exception
+                If debug Then Log.Debug("MPSync: Error imports SQL """ & (SQLcommand.CommandText).Replace("""", "'") & """ with exception: " & ex.Data.ToString)
+                Log.Error("MPSync: Error deleting record from table mpsync in database " & path & database)
+            End Try
 
-            Next
+        Next
 
-            SQLconnect.Close()
-
-        End If
+        SQLconnect.Close()
 
     End Sub
 
