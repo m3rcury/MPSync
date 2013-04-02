@@ -11,10 +11,15 @@ Public Class MPSync_process
     Public Shared _db_client, _db_server, _thumbs_client, _thumbs_server, _databases(), _thumbs(), _watched_dbs() As String
     Public Shared _db_sync, _thumbs_sync, _db_direction, _db_sync_method, _thumbs_direction, _thumbs_sync_method As Integer
     Public Shared _db_pause, _thumbs_pause, db_complete, thumbs_complete, debug As Boolean
+    Dim session As String
     Dim checked_databases, checked_thumbs, checked_watched As Boolean
 
     Public Shared Property p_Debug As Boolean
         Get
+            Dim debug As Boolean
+            Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+                debug = XMLreader.GetValueAsString("Plugin", "debug", False)
+            End Using
             Return debug
         End Get
         Set(value As Boolean)
@@ -22,9 +27,10 @@ Public Class MPSync_process
         End Set
     End Property
 
-    Public Shared Sub wait(ByVal seconds As Long, Optional ByVal verbose As Boolean = True)
+    Public Shared Sub wait(ByVal seconds As Long, Optional ByVal verbose As Boolean = True, Optional ByVal thread As String = Nothing)
 
-        If verbose Then Log.Info("MPSync: process plugin sleeping " & seconds.ToString & " seconds.....")
+        If thread <> Nothing Then thread = thread & " "
+        If verbose Then Log.Info("MPSync: " & thread & "process sleeping " & seconds.ToString & " seconds.....")
 
         System.Threading.Thread.Sleep(seconds * 1000)
 
@@ -32,7 +38,7 @@ Public Class MPSync_process
 
     Public Shared Sub CheckPlayerplaying(ByVal thread As String, ByVal seconds As Long)
         If (thread = "db" And _db_pause) Or (thread = "thumbs" And _thumbs_pause) Then
-            If MediaPortal.Player.g_Player.Playing Then Log.Info("MPSync: pausing " & thread & " thread as player is playing.")
+            If MediaPortal.Player.g_Player.Playing Then Log.Info("MPSync: paimports " & thread & " thread as player is playing.")
             Do While MediaPortal.Player.g_Player.Playing
                 MPSync_process.wait(seconds, False)
             Loop
@@ -53,34 +59,42 @@ Public Class MPSync_process
 
         Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(file)
 
-            version = XMLreader.getValueAsString("Plugin", "version", "0")
-            checked_databases = XMLreader.getValueAsString("Plugin", "databases", True)
-            checked_thumbs = XMLreader.getValueAsString("Plugin", "thumbs", True)
+            version = XMLreader.GetValueAsString("Plugin", "version", "0")
+            checked_databases = XMLreader.GetValueAsString("Plugin", "databases", True)
+            checked_thumbs = XMLreader.GetValueAsString("Plugin", "thumbs", True)
             p_Debug = XMLreader.GetValueAsString("Plugin", "debug", False)
+            session = XMLreader.GetValueAsString("Plugin", "session ID", Nothing)
             checked_watched = XMLreader.GetValueAsString("DB Settings", "watched", False)
 
-            _db_client = XMLreader.getValueAsString("DB Path", "client", Nothing)
-            _db_server = XMLreader.getValueAsString("DB Path", "server", Nothing)
-            _db_direction = XMLreader.getValueAsInt("DB Path", "direction", 0)
-            _db_sync_method = XMLreader.getValueAsInt("DB Path", "method", 0)
+            _db_client = XMLreader.GetValueAsString("DB Path", "client", Nothing)
+            _db_server = XMLreader.GetValueAsString("DB Path", "server", Nothing)
+            _db_direction = XMLreader.GetValueAsInt("DB Path", "direction", 0)
+            _db_sync_method = XMLreader.GetValueAsInt("DB Path", "method", 0)
 
-            _db_sync = XMLreader.getValueAsInt("DB Settings", "sync periodicity", 15)
-            db_sync_value = XMLreader.getValueAsString("DB Settings", "sync periodicity value", "minutes")
-            _db_pause = XMLreader.getValueAsString("DB Settings", "pause while playing", False)
-            databases = XMLreader.getValueAsString("DB Settings", "databases", Nothing)
-            watched_dbs = XMLreader.getValueAsString("DB Settings", "watched databases", Nothing)
+            _db_sync = XMLreader.GetValueAsInt("DB Settings", "sync periodicity", 15)
+            db_sync_value = XMLreader.GetValueAsString("DB Settings", "sync periodicity value", "minutes")
+            _db_pause = XMLreader.GetValueAsString("DB Settings", "pause while playing", False)
+            databases = XMLreader.GetValueAsString("DB Settings", "databases", Nothing)
+            watched_dbs = XMLreader.GetValueAsString("DB Settings", "watched databases", Nothing)
 
-            _thumbs_client = XMLreader.getValueAsString("Thumbs Path", "client", Nothing)
-            _thumbs_server = XMLreader.getValueAsString("Thumbs Path", "server", Nothing)
-            _thumbs_direction = XMLreader.getValueAsInt("Thumbs Path", "direction", 0)
-            _thumbs_sync_method = XMLreader.getValueAsInt("Thumbs Path", "method", 0)
+            _thumbs_client = XMLreader.GetValueAsString("Thumbs Path", "client", Nothing)
+            _thumbs_server = XMLreader.GetValueAsString("Thumbs Path", "server", Nothing)
+            _thumbs_direction = XMLreader.GetValueAsInt("Thumbs Path", "direction", 0)
+            _thumbs_sync_method = XMLreader.GetValueAsInt("Thumbs Path", "method", 0)
 
-            _thumbs_sync = XMLreader.getValueAsInt("Thumbs Settings", "sync periodicity", 15)
-            thumbs_sync_value = XMLreader.getValueAsString("Thumbs Settings", "sync periodicity value", "minutes")
-            _thumbs_pause = XMLreader.getValueAsString("Thumbs Settings", "pause while playing", False)
-            thumbs = XMLreader.getValueAsString("Thumbs Settings", "thumbs", Nothing)
+            _thumbs_sync = XMLreader.GetValueAsInt("Thumbs Settings", "sync periodicity", 15)
+            thumbs_sync_value = XMLreader.GetValueAsString("Thumbs Settings", "sync periodicity value", "minutes")
+            _thumbs_pause = XMLreader.GetValueAsString("Thumbs Settings", "pause while playing", False)
+            thumbs = XMLreader.GetValueAsString("Thumbs Settings", "thumbs", Nothing)
 
         End Using
+
+        If session = Nothing Then
+            session = System.Guid.NewGuid.ToString()
+            Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+                XMLwriter.SetValue("Plugin", "session ID", session)
+            End Using
+        End If
 
         If _db_client <> Nothing And _db_server <> Nothing And checked_databases Then
 
@@ -161,13 +175,55 @@ Public Class MPSync_process
 
     End Sub
 
-    Private Shared Function FieldExist(ByVal path As String, ByVal database As String, ByVal table As String, ByVal fields() As String) As Array
+    Private Function TableExist(ByVal path As String, ByVal database As String, ByVal table As String, Optional ByVal dropifempty As Boolean = False) As Boolean
+
+        Dim SQLconnect As New SQLite.SQLiteConnection()
+        Dim SQLcommand As SQLiteCommand
+        Dim SQLreader As SQLiteDataReader
+        Dim exist As Boolean = False
+
+        SQLconnect.ConnectionString = "Data Source=" + path + database
+        SQLconnect.Open()
+        SQLcommand = SQLconnect.CreateCommand
+        SQLcommand.CommandText = "SELECT name FROM sqlite_master WHERE type=""table"""
+        SQLreader = SQLcommand.ExecuteReader()
+
+        While SQLreader.Read()
+
+            If SQLreader(0) = table Then
+                exist = True
+                Exit While
+            End If
+
+        End While
+
+        SQLreader.Close()
+
+        If exist And dropifempty Then
+            SQLcommand.CommandText = "SELECT COUNT(*) FROM " & table
+            SQLreader = SQLcommand.ExecuteReader()
+            SQLreader.Read()
+
+            If Int(SQLreader(0)) = 0 Then
+                SQLreader.Close()
+                SQLcommand.CommandText = "DROP TABLE " & table
+                SQLcommand.ExecuteNonQuery()
+                exist = False
+            End If
+        End If
+
+        SQLconnect.Close()
+
+        Return exist
+
+    End Function
+
+    Private Function FieldExist(ByVal path As String, ByVal database As String, ByVal table As String, ByVal field As String) As Boolean
 
         Dim SQLconnect As New SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
         Dim SQLreader As SQLiteDataReader
         Dim columns() As String = Nothing
-        Dim exists() As Boolean
         Dim x As Integer = 0
 
         SQLconnect.ConnectionString = "Data Source=" & path & database
@@ -186,13 +242,7 @@ Public Class MPSync_process
 
         If x = 0 Then ReDim Preserve columns(0)
 
-        ReDim exists(fields.Count - 1)
-
-        For x = 0 To fields.Count - 1
-            exists(x) = columns.Contains(fields(x))
-        Next
-
-        Return exists
+        Return columns.Contains(field)
 
     End Function
 
@@ -209,24 +259,35 @@ Public Class MPSync_process
 
         Dim SQL As String = Nothing
 
-        Select Case database
+        If TableExist(path, database, "mpsync", True) = False Then
 
-            Case mps.i_watched(0).database
-                SQL = "CREATE TABLE IF NOT EXISTS mpsync " & _
-                      "(mps_id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, mps_lastupdated TEXT, id INTEGER, user TEXT, user_rating TEXT, watched INTEGER, " & _
-                      "resume_part INTEGER, resume_time INTEGER, resume_data TEXT)"
-            Case mps.i_watched(1).database
-                SQL = "CREATE TABLE IF NOT EXISTS mpsync (mps_id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, mps_lastupdated TEXT, idTrack INTEGER, " & _
-                      "iResumeAt INTEGER, dateLastPlayed TEXT)"
-            Case mps.i_watched(2).database
-                SQL = "CREATE TABLE IF NOT EXISTS mpsync " & _
-                      "(mps_id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, mps_lastupdated TEXT, CompositeID TEXT, id INTEGER, EpisodeFilename TEXT, " & _
-                      "watched INTEGER, myRating TEXT, StopTime TEXT, DateWatched TEXT, WatchedFileTimeStamp INTEGER, UnwatchedItems INTEGER, EpisodesUnWatched INTEGER)"
-            Case mps.i_watched(3).database
-                SQL = "CREATE TABLE IF NOT EXISTS mpsync " & _
-                      "(mps_id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, mps_lastupdated TEXT, idMovie INTEGER, watched BOOL, timeswatched INTEGER, " & _
-                      "iwatchedPercent INTEGER, idResume INTEGER, idFile INTEGER, stoptime INTEGER, resumeData BLOOB, idBookmark INTEGER, fPercentage TEXT)"
-        End Select
+            Select Case database
+
+                Case mps.i_watched(0).database
+                    SQL = "CREATE TABLE IF NOT EXISTS mpsync " & _
+                          "(mps_id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, mps_lastupdated TEXT, mps_session TEXT, id INTEGER, user TEXT, " & _
+                          "user_rating TEXT, watched INTEGER, resume_part INTEGER, resume_time INTEGER, resume_data TEXT)"
+                Case mps.i_watched(1).database
+                    SQL = "CREATE TABLE IF NOT EXISTS mpsync (mps_id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, mps_lastupdated TEXT, mps_session TEXT" & _
+                          "idTrack INTEGER, iResumeAt INTEGER, dateLastPlayed TEXT)"
+                Case mps.i_watched(2).database
+                    SQL = "CREATE TABLE IF NOT EXISTS mpsync " & _
+                          "(mps_id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, mps_lastupdated TEXT, mps_session TEXT, CompositeID TEXT, id INTEGER, " & _
+                          "EpisodeFilename TEXT, watched INTEGER, myRating TEXT, StopTime TEXT, DateWatched TEXT, WatchedFileTimeStamp INTEGER, " & _
+                          "UnwatchedItems INTEGER, EpisodesUnWatched INTEGER)"
+                Case mps.i_watched(3).database
+                    SQL = "CREATE TABLE IF NOT EXISTS mpsync " & _
+                          "(mps_id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, mps_lastupdated TEXT, mps_session TEXT, idMovie INTEGER, watched BOOL, " & _
+                          "timeswatched INTEGER, iwatchedPercent INTEGER, idResume INTEGER, idFile INTEGER, stoptime INTEGER, resumeData BLOOB, idBookmark INTEGER, " & _
+                          "fPercentage TEXT)"
+
+            End Select
+
+        Else
+            If FieldExist(path, database, "mpsync", "mps_session") = False Then
+                SQL = "ALTER TABLE mpsync ADD COLUMN mps_session TEXT"
+            End If
+        End If
 
         If SQL <> Nothing Then
             Try
@@ -260,8 +321,9 @@ Public Class MPSync_process
                       "AFTER UPDATE OF user_rating, watched, resume_part, resume_time, resume_data ON user_movie_settings " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE id = new.id; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, id, user, user_rating, watched, resume_part, resume_time, resume_data) " & _
-                      "VALUES('user_movie_settings', datetime('now'), new.id, new.user, new.user_rating, new.watched, new.resume_part, new.resume_time, new.resume_data); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, id, user, user_rating, watched, resume_part, resume_time, resume_data) " & _
+                      "VALUES('user_movie_settings', datetime('now'), '" & session & "', new.id, new.user, new.user_rating, new.watched, new.resume_part, new.resume_time, " & _
+                      "new.resume_data); " & _
                       "END"
             Case mps.i_watched(1).database
                 SQL = "DROP TRIGGER IF EXISTS mpsync_update; " & _
@@ -269,8 +331,8 @@ Public Class MPSync_process
                       "AFTER UPDATE OF uResumeAt, dateLastPlayed ON tracks " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE idTrack = new.idTrack; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, idTrack, dateLastPlayed) " & _
-                      "VALUES('tracks', datetime('now'), new.idTrack, new.dateLastPlayed); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, idTrack, dateLastPlayed) " & _
+                      "VALUES('tracks', datetime('now'), '" & session & "', new.idTrack, new.dateLastPlayed); " & _
                       "END"
             Case mps.i_watched(2).database
                 SQL = "DROP TRIGGER IF EXISTS mpsync_update1; " & _
@@ -278,32 +340,32 @@ Public Class MPSync_process
                       "AFTER UPDATE OF DateWatched, StopTime ON local_episodes " & _
                       "BEGIN  " & _
                       "DELETE FROM mpsync WHERE tablename = 'local_episodes' AND EpisodeFilename = new.EpisodeFilename; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, EpisodeFolename, CompositeID, DateWatched, StopTime) " & _
-                      "VALUES('local_episodes', datetime('now'), new.EpisodeFilename, new.CompositeID, new.DateWatched, new.StopTime); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, EpisodeFilename, CompositeID, DateWatched, StopTime) " & _
+                      "VALUES('local_episodes', datetime('now'), '" & session & "', new.EpisodeFilename, new.CompositeID, new.DateWatched, new.StopTime); " & _
                       "END; " & _
                       "DROP TRIGGER IF EXISTS mpsync_update2; " & _
                       "CREATE TRIGGER mpsync_update2 " & _
                       "AFTER UPDATE OF watched, myRating ON online_episodes " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE tablename = 'online_episodes' AND CompositeID = new.CompositeID; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, CompositeID, watched, myRating) " & _
-                      "VALUES('online_episodes', datetime('now'), new.CompositeID, new.watched, new.myRating); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, CompositeID, watched, myRating) " & _
+                      "VALUES('online_episodes', datetime('now'), '" & session & "', new.CompositeID, new.watched, new.myRating); " & _
                       "END; " & _
                       "DROP TRIGGER IF EXISTS mpsync_update3; " & _
                       "CREATE TRIGGER mpsync_update3 " & _
                       "AFTER UPDATE OF WatchedFileTimeStamp, UnwatchedItems, EpisodesUnWatched ON online_series " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE tablename = 'online_series' AND ID = new.ID; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, ID, WatchedFileTimeStamp, UnwatchedItems, EpisodesUnWatched) " & _
-                      "VALUES('online_series', datetime('now'), new.ID, new.WatchedFileTimeStamp, new.UnwatchedItems, new.EpisodesUnWatched); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, ID, WatchedFileTimeStamp, UnwatchedItems, EpisodesUnWatched) " & _
+                      "VALUES('online_series', datetime('now'), '" & session & "', new.ID, new.WatchedFileTimeStamp, new.UnwatchedItems, new.EpisodesUnWatched); " & _
                       "END; " & _
                       "DROP TRIGGER IF EXISTS mpsync_update4; " & _
                       "CREATE TRIGGER mpsync_update4 " & _
                       "AFTER UPDATE OF UnwatchedItems, EpisodesUnWatched ON season " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE tablename = 'season' AND ID = new.ID; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, ID, UnwatchedItems, EpisodesUnWatched) " & _
-                      "VALUES('season', datetime('now'), new.ID, new.UnwatchedItems, new.EpisodesUnWatched); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, ID, UnwatchedItems, EpisodesUnWatched) " & _
+                      "VALUES('season', datetime('now'), '" & session & "', new.ID, new.UnwatchedItems, new.EpisodesUnWatched); " & _
                       "END"
             Case mps.i_watched(3).database
                 SQL = "DROP TRIGGER IF EXISTS mpsync_update1; " & _
@@ -311,24 +373,24 @@ Public Class MPSync_process
                       "AFTER UPDATE OF watched, timeswatched, iwatchedPercent ON movie " & _
                       "BEGIN  " & _
                       "DELETE FROM mpsync WHERE tablename = 'movie' AND idMovie = new.idMovie; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, idMovie, watched, timeswatched, iwatchedPercent) " & _
-                      "VALUES('movie', datetime('now'), new.idMovie, new.watched, new.timeswatched, new.iwatchedPercent); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, idMovie, watched, timeswatched, iwatchedPercent) " & _
+                      "VALUES('movie', datetime('now'), '" & session & "', new.idMovie, new.watched, new.timeswatched, new.iwatchedPercent); " & _
                       "END; " & _
                       "DROP TRIGGER IF EXISTS mpsync_update2; " & _
                       "CREATE TRIGGER mpsync_update2 " & _
                       "AFTER UPDATE OF stoptime, resumeData ON resume " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE tablename = 'resume' AND idResume = new.idResume; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, idResume, idFile, stoptime, resumeData) " & _
-                      "VALUES('resume', datetime('now'), new.idResume, new.idFile, new.stoptime, new.resumeData); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, idResume, idFile, stoptime, resumeData) " & _
+                      "VALUES('resume', datetime('now'), '" & session & "', new.idResume, new.idFile, new.stoptime, new.resumeData); " & _
                       "END; " & _
                       "DROP TRIGGER IF EXISTS mpsync_update3; " & _
                       "CREATE TRIGGER mpsync_update3 " & _
                       "AFTER UPDATE OF fPercentage ON bookmark " & _
                       "BEGIN " & _
                       "DELETE FROM mpsync WHERE tablename = 'bookmark' AND idResume = new.idResume; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, idBookMark, idFile, fPercentage) " & _
-                      "VALUES('bookmark', datetime('now'), new.idResume, new.idFile, new.fPercentage); " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename, mps_lastupdated, mps_session, idBookMark, idFile, fPercentage) " & _
+                      "VALUES('bookmark', datetime('now'), '" & session & "', new.idResume, new.idFile, new.fPercentage); " & _
                       "END"
         End Select
 

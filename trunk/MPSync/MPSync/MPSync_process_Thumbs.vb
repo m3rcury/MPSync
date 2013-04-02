@@ -4,26 +4,29 @@ Imports System.ComponentModel
 
 Public Class MPSync_process_Thumbs
 
+    Dim debug As Boolean
     Dim s_path, t_path As String
 
     Public Shared Sub bw_thumbs_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
 
-        Dim cdb As New MPSync_process_Thumbs
+        Dim mps_thumbs As New MPSync_process_Thumbs
 
         Do
 
+            mps_thumbs.debug = MPSync_process.p_Debug
+
             ' direction is client to server or both
             If MPSync_process._thumbs_direction <> 2 Then
-                cdb.Process_Thumbs_folder(MPSync_process._thumbs_client, MPSync_process._thumbs_server)
+                mps_thumbs.Process_Thumbs_folder(MPSync_process._thumbs_client, MPSync_process._thumbs_server)
             End If
 
             ' direction is server to client or both
             If MPSync_process._thumbs_direction <> 1 Then
-                cdb.Process_Thumbs_folder(MPSync_process._thumbs_server, MPSync_process._thumbs_client)
+                mps_thumbs.Process_Thumbs_folder(MPSync_process._thumbs_server, MPSync_process._thumbs_client)
             End If
 
             If Not MPSync_settings.syncnow Then
-                MPSync_process.wait(MPSync_process._thumbs_sync)
+                MPSync_process.wait(MPSync_process._thumbs_sync, , "THUMBS")
             Else
                 MPSync_process.thumbs_complete = True
                 Exit Do
@@ -61,7 +64,7 @@ Public Class MPSync_process_Thumbs
 
         x = -1
 
-        If MPSync_process.p_Debug Then Log.Debug("MPSync: Scanning folder " & source & " for thumbs")
+        If debug Then Log.Debug("MPSync: Scanning folder " & source & " for thumbs")
 
         For Each file As String In IO.Directory.GetFiles(source, "*.*", IO.SearchOption.AllDirectories)
             If InStr(Len(source) + 1, file, "\") > 0 Then
@@ -81,9 +84,9 @@ Public Class MPSync_process_Thumbs
 
         x = -1
 
-        If MPSync_process.p_Debug Then Log.Debug("MPSync: Scanning folder " & target & " for thumbs")
+        If debug Then Log.Debug("MPSync: Scanning folder " & target & " for thumbs")
 
-        For Each file As String In IO.Directory.getFiles(target, "*.*", IO.SearchOption.AllDirectories)
+        For Each file As String In IO.Directory.GetFiles(target, "*.*", IO.SearchOption.AllDirectories)
             If InStr(Len(target) + 1, file, "\") > 0 Then
                 folder = Mid(file, Len(target) + 1, InStr(Len(target) + 1, file, "\") - Len(target) - 1)
                 If (MPSync_process._thumbs.Contains(folder) Or MPSync_process._thumbs.Contains("ALL")) And IO.Path.GetFileName(file) <> "Thumbs.db" Then
@@ -106,7 +109,7 @@ Public Class MPSync_process_Thumbs
         If MPSync_process._thumbs_sync_method <> 1 And t_thumbs(0) <> "" Then
             diff = t_thumbs.Except(s_thumbs)
 
-            If MPSync_process.p_Debug Then Log.Debug("MPSync: found " & (UBound(diff.ToArray) + 1).ToString & " differences for deletion")
+            If debug Then Log.Debug("MPSync: found " & (UBound(diff.ToArray) + 1).ToString & " differences for deletion")
 
             If UBound(diff.ToArray) >= 0 Then
                 ReDim Preserve bw_sync_thumbs(_bw_sync_thumbs_jobs)
@@ -125,7 +128,7 @@ Public Class MPSync_process_Thumbs
         If MPSync_process._thumbs_sync_method <> 2 And s_thumbs(0) <> "" Then
             diff = s_thumbs.Except(t_thumbs)
 
-            If MPSync_process.p_Debug Then Log.Debug("MPSync: found " & (UBound(diff.ToArray) + 1).ToString & " differences for addition")
+            If debug Then Log.Debug("MPSync: found " & (UBound(diff.ToArray) + 1).ToString & " differences for addition")
 
             If UBound(diff.ToArray) >= 0 Then
                 ReDim Preserve bw_sync_thumbs(_bw_sync_thumbs_jobs)
@@ -176,7 +179,7 @@ Public Class MPSync_process_Thumbs
 
             If Not IO.Directory.Exists(directory) Then
                 IO.Directory.CreateDirectory(directory)
-                If MPSync_process.p_Debug Then Log.Debug("MPSync: directory missing, creating " & directory)
+                If debug Then Log.Debug("MPSync: directory missing, creating " & directory)
             End If
 
             IO.File.Copy(s_path & parm(x), t_path & parm(x), True)
@@ -196,7 +199,7 @@ Public Class MPSync_process_Thumbs
             Try
                 IO.File.Delete(t_path & parm(x))
             Catch ex As Exception
-                If MPSync_process.p_Debug Then Log.Error("MPSync: Error deleting " & t_path & parm(x))
+                If debug Then Log.Error("MPSync: Error deleting " & t_path & parm(x))
             End Try
         Next
 
