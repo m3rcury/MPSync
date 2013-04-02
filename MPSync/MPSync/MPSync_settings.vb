@@ -435,7 +435,7 @@ Public Class MPSync_settings
     Private Sub MPSync_settings_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
 
         ' initialize version
-        _curversion = "0.0.0.13"
+        _curversion = "0.0.0.14"
         Me.Text = Me.Text & _curversion
 
         ' initialize direction images
