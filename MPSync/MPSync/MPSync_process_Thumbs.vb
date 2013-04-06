@@ -5,6 +5,7 @@ Imports System.ComponentModel
 Public Class MPSync_process_Thumbs
 
     Dim debug As Boolean
+    Dim checkplayer As Integer = 30
     Dim s_path, t_path As String
 
     Public Shared Sub bw_thumbs_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
@@ -28,7 +29,8 @@ Public Class MPSync_process_Thumbs
             If Not MPSync_settings.syncnow Then
                 MPSync_process.wait(MPSync_process._thumbs_sync, , "THUMBS")
             Else
-                MPSync_process.thumbs_complete = True
+                MPSync_settings.thumbs_complete = True
+                MPSync_process.logStats("MPSync: THUMBS synchronization complete.", "INFO")
                 Exit Do
             End If
 
@@ -39,7 +41,7 @@ Public Class MPSync_process_Thumbs
     Private Sub Process_Thumbs_folder(ByVal source As String, ByVal target As String)
 
         If Not IO.Directory.Exists(source) Then
-            Log.Error("MPSync: folder " & source & " does not exist")
+            MPSync_process.logStats("MPSync: folder " & source & " does not exist", "ERROR")
             Exit Sub
         End If
 
@@ -64,7 +66,7 @@ Public Class MPSync_process_Thumbs
 
         x = -1
 
-        If debug Then Log.Debug("MPSync: Scanning folder " & source & " for thumbs")
+        If debug Then MPSync_process.logStats("MPSync: Scanning folder " & source & " for thumbs", "DEBUG")
 
         For Each file As String In IO.Directory.GetFiles(source, "*.*", IO.SearchOption.AllDirectories)
             If InStr(Len(source) + 1, file, "\") > 0 Then
@@ -84,7 +86,7 @@ Public Class MPSync_process_Thumbs
 
         x = -1
 
-        If debug Then Log.Debug("MPSync: Scanning folder " & target & " for thumbs")
+        If debug Then MPSync_process.logStats("MPSync: Scanning folder " & target & " for thumbs", "DEBUG")
 
         For Each file As String In IO.Directory.GetFiles(target, "*.*", IO.SearchOption.AllDirectories)
             If InStr(Len(target) + 1, file, "\") > 0 Then
@@ -109,7 +111,7 @@ Public Class MPSync_process_Thumbs
         If MPSync_process._thumbs_sync_method <> 1 And t_thumbs(0) <> "" Then
             diff = t_thumbs.Except(s_thumbs)
 
-            If debug Then Log.Debug("MPSync: found " & (UBound(diff.ToArray) + 1).ToString & " differences for deletion")
+            If debug Then MPSync_process.logStats("MPSync: found " & (UBound(diff.ToArray) + 1).ToString & " differences for deletion", "DEBUG")
 
             If UBound(diff.ToArray) >= 0 Then
                 ReDim Preserve bw_sync_thumbs(_bw_sync_thumbs_jobs)
@@ -128,7 +130,7 @@ Public Class MPSync_process_Thumbs
         If MPSync_process._thumbs_sync_method <> 2 And s_thumbs(0) <> "" Then
             diff = s_thumbs.Except(t_thumbs)
 
-            If debug Then Log.Debug("MPSync: found " & (UBound(diff.ToArray) + 1).ToString & " differences for addition")
+            If debug Then MPSync_process.logStats("MPSync: found " & (UBound(diff.ToArray) + 1).ToString & " differences for addition", "DEBUG")
 
             If UBound(diff.ToArray) >= 0 Then
                 ReDim Preserve bw_sync_thumbs(_bw_sync_thumbs_jobs)
@@ -174,12 +176,12 @@ Public Class MPSync_process_Thumbs
         Dim directory As String
 
         For x = 0 To UBound(parm)
-            MPSync_process.CheckPlayerplaying("thumbs", 30)
+            MPSync_process.CheckPlayerplaying("thumbs", checkplayer)
             directory = IO.Path.GetDirectoryName(t_path & parm(x))
 
             If Not IO.Directory.Exists(directory) Then
                 IO.Directory.CreateDirectory(directory)
-                If debug Then Log.Debug("MPSync: directory missing, creating " & directory)
+                If debug Then MPSync_process.logStats("MPSync: directory missing, creating " & directory, "DEBUG")
             End If
 
             IO.File.Copy(s_path & parm(x), t_path & parm(x), True)
@@ -195,11 +197,11 @@ Public Class MPSync_process_Thumbs
         Dim x As Integer
 
         For x = 0 To UBound(parm)
-            MPSync_process.CheckPlayerplaying("thumbs", 30)
+            MPSync_process.CheckPlayerplaying("thumbs", checkplayer)
             Try
                 IO.File.Delete(t_path & parm(x))
             Catch ex As Exception
-                If debug Then Log.Error("MPSync: Error deleting " & t_path & parm(x))
+                MPSync_process.logStats("MPSync: Error deleting " & t_path & parm(x), "ERROR")
             End Try
         Next
 
@@ -209,7 +211,7 @@ Public Class MPSync_process_Thumbs
 
     Private Sub bw_worker_completed(ByVal sender As Object, ByVal e As RunWorkerCompletedEventArgs)
         If e.Result <> Nothing Then
-            Log.Info(e.Result)
+            MPSync_process.logStats(e.Result, "INFO")
         End If
     End Sub
 
