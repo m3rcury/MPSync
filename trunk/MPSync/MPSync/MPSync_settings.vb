@@ -7,9 +7,13 @@ Public Class MPSync_settings
 
     Dim i_direction(2) As Image
     Dim i_method(2), _databases, _thumbs, _watched_dbs, _curversion, _version, _session As String
-    Dim _clicks_db, _clicks_thumbs, _db_sync_method, _thumbs_sync_method As Integer
+    Dim _db_sync_method, _thumbs_sync_method As Integer
+    Dim _clicks_db As Integer = 1
+    Dim _clicks_thumbs As Integer = 1
+    Dim lb_status_timer As New System.Timers.Timer()
 
     Public Shared syncnow As Boolean = False
+    Public Shared db_complete, thumbs_complete As Boolean
     Public Delegate Sub lb_statusItemsAddInvoker(ByVal text As String)
 
     Public Structure Watched
@@ -311,7 +315,7 @@ Public Class MPSync_settings
 
             _clicks_db += 1
 
-            If _clicks_db > 2 Then _clicks_db = 0
+            If _clicks_db > 2 Then _clicks_db = 1
 
             If _clicks_db = 0 Then
                 cb_db_sync_method.Items.RemoveAt(0)
@@ -334,7 +338,7 @@ Public Class MPSync_settings
 
             _clicks_thumbs += 1
 
-            If _clicks_thumbs > 2 Then _clicks_thumbs = 0
+            If _clicks_thumbs > 2 Then _clicks_thumbs = 1
 
             If _clicks_thumbs = 0 Then
                 cb_thumbs_sync_method.Items.RemoveAt(0)
@@ -415,27 +419,72 @@ Public Class MPSync_settings
 
         syncnow = True
 
-        'tc_main.TabPages.Add(tp_syncnow)
-        'tc_main.SelectedTab = tp_syncnow
-        'lb_status.Items.Add("Synchronization started")
+        tc_main.TabPages.Add(tp_syncnow)
+        tc_main.SelectedTab = tp_syncnow
+        lb_status.Items.Add("Synchronization started")
+
+        ' create log file
+        Dim file As String = Config.GetFile(Config.Dir.Log, "mpsync.log")
+
+        If IO.File.Exists(Config.GetFile(Config.Dir.Log, "mpsync.bak")) Then IO.File.Delete(Config.GetFile(Config.Dir.Log, "mpsync.bak"))
+        If IO.File.Exists(file) Then FileIO.FileSystem.RenameFile(file, "mpsync.bak")
+        Dim fhandle As System.IO.FileStream = IO.File.Open(file, IO.FileMode.OpenOrCreate)
+        fhandle.Close()
+
+        'initialize timer
+        AddHandler lb_status_timer.Elapsed, AddressOf lb_status_timer_update
+        lb_status_timer.Interval = 1000
+        lb_status_timer.Enabled = True
+        lb_status_timer.Start()
+
+        b_save.Enabled = False
 
         Dim cdb As New MPSync_process
         cdb.MPSyncProcess()
 
     End Sub
 
-    Public Sub lb_statusItemsAdd(ByVal text As String)
-        If lb_status.InvokeRequired = True Then
-            lb_status.Invoke(New lb_statusItemsAddInvoker(AddressOf lb_statusItemsAdd), text)
-        Else
-            lb_status.Items.Add(text)
+    Private Sub lb_status_timer_update()
+
+        CheckForIllegalCrossThreadCalls = False
+
+        ' read log file
+        Dim file As String = Config.GetFile(Config.Dir.Log, "mpsync.log")
+        Dim lines() As String = IO.File.ReadAllLines(file)
+        Dim status As String
+
+        For Each status In lines
+            If lb_status.Items.Contains(status) = False Then
+                lb_status.Items.Add(status)
+                lb_status.TopIndex = lb_status.Items.Count - 1
+                lb_status.Refresh()
+            End If
+        Next
+
+        If db_complete And thumbs_complete Then
+            lb_status_timer.Stop()
+            MsgBox("Synchronization complete", MsgBoxStyle.Information)
+            b_save.Enabled = True
         End If
+
+    End Sub
+
+    Private Sub MPSync_settings_FormClosed(sender As System.Object, e As System.EventArgs) Handles MyBase.FormClosed
+
+        Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+            XMLwriter.SetValue("Plugin", "version", _curversion)
+        End Using
+
+        MediaPortal.Profile.Settings.SaveCache()
+
+        Return
+
     End Sub
 
     Private Sub MPSync_settings_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
 
         ' initialize version
-        _curversion = "0.0.0.14"
+        _curversion = "1.0.0.0"
         Me.Text = Me.Text & _curversion
 
         ' initialize direction images

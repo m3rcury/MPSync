@@ -147,7 +147,6 @@ Partial Class MPSync_settings
         '
         'b_sync_now
         '
-        Me.b_sync_now.DialogResult = System.Windows.Forms.DialogResult.Cancel
         Me.b_sync_now.Location = New System.Drawing.Point(227, 152)
         Me.b_sync_now.Name = "b_sync_now"
         Me.b_sync_now.Size = New System.Drawing.Size(128, 23)
@@ -420,12 +419,12 @@ Partial Class MPSync_settings
         'cb_db_sync
         '
         Me.cb_db_sync.FormattingEnabled = True
-        Me.cb_db_sync.Items.AddRange(New Object() {"minutes", "hours"})
+        Me.cb_db_sync.Items.AddRange(New Object() {"seconds", "minutes"})
         Me.cb_db_sync.Location = New System.Drawing.Point(160, 10)
         Me.cb_db_sync.Name = "cb_db_sync"
         Me.cb_db_sync.Size = New System.Drawing.Size(80, 21)
         Me.cb_db_sync.TabIndex = 13
-        Me.cb_db_sync.Text = "minutes"
+        Me.cb_db_sync.Text = "seconds"
         '
         'nud_db_sync
         '
@@ -750,7 +749,7 @@ Partial Class MPSync_settings
         'cb_thumbs_sync
         '
         Me.cb_thumbs_sync.FormattingEnabled = True
-        Me.cb_thumbs_sync.Items.AddRange(New Object() {"minutes", "hours"})
+        Me.cb_thumbs_sync.Items.AddRange(New Object() {"seconds", "minutes"})
         Me.cb_thumbs_sync.Location = New System.Drawing.Point(160, 10)
         Me.cb_thumbs_sync.Name = "cb_thumbs_sync"
         Me.cb_thumbs_sync.Size = New System.Drawing.Size(80, 21)
@@ -794,8 +793,10 @@ Partial Class MPSync_settings
         Me.lb_status.CausesValidation = False
         Me.lb_status.ForeColor = System.Drawing.SystemColors.InfoText
         Me.lb_status.FormattingEnabled = True
+        Me.lb_status.HorizontalScrollbar = True
         Me.lb_status.Location = New System.Drawing.Point(7, 7)
         Me.lb_status.Name = "lb_status"
+        Me.lb_status.SelectionMode = System.Windows.Forms.SelectionMode.None
         Me.lb_status.Size = New System.Drawing.Size(569, 186)
         Me.lb_status.TabIndex = 0
         '
@@ -807,7 +808,7 @@ Partial Class MPSync_settings
         Me.Controls.Add(Me.tc_main)
         Me.Controls.Add(Me.l_copyright)
         Me.Controls.Add(Me.b_save)
-        Me.Icon = CType(resources.getObject("$this.Icon"), System.Drawing.Icon)
+        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Name = "MPSync_settings"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
         Me.Text = "MediaPortal Sync settings v"
