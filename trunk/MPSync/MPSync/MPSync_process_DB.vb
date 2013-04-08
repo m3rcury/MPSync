@@ -454,7 +454,7 @@ Public Class MPSync_process_DB
         On Error Resume Next
 
         Dim x As Integer
-        Dim lastwrite As Date
+        Dim s_lastwrite, t_lastwrite As Date
 
         For Each database As String In IO.Directory.GetFiles(source, "*.db3")
 
@@ -464,22 +464,18 @@ Public Class MPSync_process_DB
 
                 x = Array.IndexOf(MPSync_process.dbname, db)
 
-                lastwrite = My.Computer.FileSystem.GetFileInfo(database).LastWriteTimeUtc
+                s_lastwrite = My.Computer.FileSystem.GetFileInfo(database).LastWriteTimeUtc
+                t_lastwrite = My.Computer.FileSystem.GetFileInfo(target & db).LastWriteTimeUtc
 
-                If lastwrite < My.Computer.FileSystem.GetFileInfo(target & db).LastWriteTimeUtc Then
-                    lastwrite = My.Computer.FileSystem.GetFileInfo(target & db).LastWriteTimeUtc
+                If s_lastwrite < t_lastwrite Then
+                    s_lastwrite = t_lastwrite
+                ElseIf s_lastwrite > t_lastwrite Then
+                    IO.File.SetLastWriteTime(target & db, s_lastwrite)
                 End If
 
-                If MPSync_process.dbinfo(x).LastWriteTimeUtc < lastwrite Then
-
-                    MPSync_process.dbinfo(x).LastWriteTimeUtc = lastwrite
-
-                    If IO.File.Exists(target & db) Then
-                        ProcessTables(source, target, db)
-                    Else
-                        IO.File.Copy(database, target & db, True)
-                    End If
-
+                If MPSync_process.dbinfo(x).LastWriteTimeUtc < s_lastwrite Then
+                    MPSync_process.dbinfo(x).LastWriteTimeUtc = s_lastwrite
+                    ProcessTables(source, target, db)
                 Else
                     If debug Then MPSync_process.logStats("MPSync: no changes detected in " & database & ". Skipping synchronization.", "DEBUG")
                 End If
@@ -665,6 +661,19 @@ Public Class MPSync_process_DB
 
         Loop
 
+        Dim t_lastwrite As Date = My.Computer.FileSystem.GetFileInfo(args(1) & args(2)).LastWriteTimeUtc
+        Dim s_lastwrite As Date = My.Computer.FileSystem.GetFileInfo(args(0) & args(2)).LastWriteTimeUtc
+
+        If t_lastwrite > s_lastwrite Then
+            IO.File.SetLastWriteTime(args(0) & args(2), t_lastwrite)
+        ElseIf s_lastwrite > t_lastwrite Then
+            t_lastwrite = s_lastwrite
+            IO.File.SetLastWriteTime(args(1) & args(2), t_lastwrite)
+        End If
+
+        x = Array.IndexOf(MPSync_process.dbname, args(2))
+        MPSync_process.dbinfo(x).LastWriteTimeUtc = t_lastwrite
+
         MPSync_process.logStats("MPSync: synchronization of " & args(2) & " database completed.", "INFO")
 
         _bw_active_db_jobs -= 1
@@ -693,14 +702,6 @@ Public Class MPSync_process_DB
         End If
 
         Synchronize_DB(args(1), args(2), args(3), columns, s_data, t_data, MPSync_process._db_sync_method)
-
-        Dim lastwrite As Date = My.Computer.FileSystem.GetFileInfo(args(2) & args(3)).LastWriteTimeUtc
-
-        If lastwrite > My.Computer.FileSystem.GetFileInfo(args(1) & args(3)).LastWriteTimeUtc Then
-            IO.File.SetLastWriteTime(args(1) & args(3), lastwrite)
-            Dim x As Integer = Array.IndexOf(MPSync_process.dbname, args(3))
-            MPSync_process.dbinfo(x).LastWriteTimeUtc = lastwrite
-        End If
 
         e.Result = "MPSync: synchronization of table " & args(3) & " in database " & args(2) & " complete."
 
