@@ -419,7 +419,7 @@ Partial Class MPSync_settings
         'cb_db_sync
         '
         Me.cb_db_sync.FormattingEnabled = True
-        Me.cb_db_sync.Items.AddRange(New Object() {"seconds", "minutes"})
+        Me.cb_db_sync.Items.AddRange(New Object() {"seconds", "minutes", "hours"})
         Me.cb_db_sync.Location = New System.Drawing.Point(160, 10)
         Me.cb_db_sync.Name = "cb_db_sync"
         Me.cb_db_sync.Size = New System.Drawing.Size(80, 21)
@@ -749,7 +749,7 @@ Partial Class MPSync_settings
         'cb_thumbs_sync
         '
         Me.cb_thumbs_sync.FormattingEnabled = True
-        Me.cb_thumbs_sync.Items.AddRange(New Object() {"seconds", "minutes"})
+        Me.cb_thumbs_sync.Items.AddRange(New Object() {"seconds", "minutes", "hours"})
         Me.cb_thumbs_sync.Location = New System.Drawing.Point(160, 10)
         Me.cb_thumbs_sync.Name = "cb_thumbs_sync"
         Me.cb_thumbs_sync.Size = New System.Drawing.Size(80, 21)

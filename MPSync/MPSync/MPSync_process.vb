@@ -62,8 +62,6 @@ Public Class MPSync_process
         Select Case msgtype
             Case "INFO"
                 Log.Info(message)
-            Case "DEBUG"
-                Log.Debug(message)
             Case "ERROR"
                 Log.Error(message)
         End Select
@@ -157,7 +155,11 @@ Public Class MPSync_process
                 For x As Integer = 0 To UBound(_watched_dbs)
                     Create_Work_Tables(_db_client, _watched_dbs(x))
                     Create_Work_Tables(_db_server, _watched_dbs(x))
-                    Create_Triggers(_db_client, _watched_dbs(x))
+                    If _db_direction <> 1 Then
+                        Create_Triggers(_db_client, _watched_dbs(x))
+                    Else
+                        Drop_Triggers(_db_client, _watched_dbs(x))
+                    End If
                 Next
             Else
                 For x As Integer = 0 To UBound(_watched_dbs)
@@ -349,8 +351,13 @@ Public Class MPSync_process
             dbname(x) = IO.Path.GetFileName(database)
             dbinfo(x) = My.Computer.FileSystem.GetFileInfo(database)
 
-            If dbinfo(x).LastWriteTimeUtc < My.Computer.FileSystem.GetFileInfo(server & dbname(x)).LastWriteTimeUtc Then
-                dbinfo(x).LastWriteTimeUtc = My.Computer.FileSystem.GetFileInfo(server & dbname(x)).LastWriteTimeUtc
+            If Not IO.File.Exists(server & dbname(x)) Then
+                IO.File.Copy(database, server & dbname(x), True)
+                Drop_Triggers(server, dbname(x))
+            Else
+                If dbinfo(x).LastWriteTimeUtc < My.Computer.FileSystem.GetFileInfo(server & dbname(x)).LastWriteTimeUtc Then
+                    dbinfo(x).LastWriteTimeUtc = My.Computer.FileSystem.GetFileInfo(server & dbname(x)).LastWriteTimeUtc
+                End If
             End If
 
             x += 1
@@ -361,7 +368,7 @@ Public Class MPSync_process
 
     Private Sub Create_Work_Tables(ByVal path As String, ByVal database As String)
 
-        If p_Debug Then Log.Debug("MPSync: Creating work table mpsync in database " & database)
+        If p_Debug Then logStats("MPSync: Creating work table mpsync in database " & database, "DEBUG")
 
         Dim SQLconnect As New SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
@@ -407,7 +414,7 @@ Public Class MPSync_process
                 SQLcommand.CommandText = SQL
                 SQLcommand.ExecuteNonQuery()
             Catch ex As Exception
-                Log.Error("MPSync: Error executing " & SQL)
+                logStats("MPSync: Error executing " & SQL, "ERROR")
             End Try
         End If
 
@@ -417,7 +424,7 @@ Public Class MPSync_process
 
     Private Sub Drop_Work_Tables(ByVal path As String, ByVal database As String)
 
-        If p_Debug Then Log.Debug("MPSync: Dropping work table mpsync in database " & database)
+        If p_Debug Then logStats("MPSync: Dropping work table mpsync in database " & database, "DEBUG")
 
         Dim SQLconnect As New SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
@@ -430,7 +437,7 @@ Public Class MPSync_process
             SQLcommand.CommandText = "DROP TABLE IF EXISTS mpsync"
             SQLcommand.ExecuteNonQuery()
         Catch ex As Exception
-            Log.Error("MPSync: Error executing 'DROP TABLE IF EXISTS mpsync'")
+            logStats("MPSync: Error executing 'DROP TABLE IF EXISTS mpsync'", "ERROR")
         End Try
 
         SQLconnect.Close()
@@ -439,7 +446,7 @@ Public Class MPSync_process
 
     Private Sub Create_Triggers(ByVal path As String, ByVal database As String)
 
-        If p_Debug Then Log.Debug("MPSync: Creating triggers in database " & database)
+        If p_Debug Then logStats("MPSync: Creating triggers in database " & database, "DEBUG")
 
         Dim SQLconnect As New SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
@@ -464,6 +471,7 @@ Public Class MPSync_process
                       "CREATE TRIGGER mpsync_update " & _
                       "AFTER UPDATE OF " & tblflds1 & " ON user_movie_settings " & _
                       "BEGIN " & _
+                      "DELETE FROM mpsync WHERE tablename='user_movie_settings' AND mps_session='" & session & "' AND id=new.id; " & _
                       "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
                       "VALUES('user_movie_settings',datetime('now','localtime'),'" & session & "'," & newflds1 & "); " & _
                       "END"
@@ -476,6 +484,7 @@ Public Class MPSync_process
                       "CREATE TRIGGER mpsync_update " & _
                       "AFTER UPDATE OF " & tblflds1 & " ON tracks " & _
                       "BEGIN " & _
+                      "DELETE FROM mpsync WHERE tablename='tracks' AND mps_session='" & session & "' AND idTrack=new.idTrack; " & _
                       "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
                       "VALUES('tracks',datetime('now','localtime'),'" & session & "'," & newflds1 & "); " & _
                       "END"
@@ -497,6 +506,7 @@ Public Class MPSync_process
                       "CREATE TRIGGER mpsync_update1 " & _
                       "AFTER UPDATE OF " & tblflds1 & " ON local_episodes " & _
                       "BEGIN  " & _
+                      "DELETE FROM mpsync WHERE tablename='local_episodes' AND mps_session='" & session & "' AND EpisodeFilename=new.EpisodeFilename; " & _
                       "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
                       "VALUES('local_episodes',datetime('now','localtime'),'" & session & "'," & newflds1 & "); " & _
                       "END; " & _
@@ -504,6 +514,7 @@ Public Class MPSync_process
                       "CREATE TRIGGER mpsync_update2 " & _
                       "AFTER UPDATE OF " & tblflds2 & " ON online_episodes " & _
                       "BEGIN " & _
+                      "DELETE FROM mpsync WHERE tablename='online_episodes' AND mps_session='" & session & "' AND CompositeID=new.CompositeID; " & _
                       "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds2 & ") " & _
                       "VALUES('online_episodes',datetime('now','localtime'),'" & session & "'," & newflds2 & "); " & _
                       "END; " & _
@@ -511,6 +522,7 @@ Public Class MPSync_process
                       "CREATE TRIGGER mpsync_update3 " & _
                       "AFTER UPDATE OF " & tblflds3 & " ON online_series " & _
                       "BEGIN " & _
+                      "DELETE FROM mpsync WHERE tablename='online_series' AND mps_session='" & session & "' AND ID=new.ID; " & _
                       "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds3 & ") " & _
                       "VALUES('online_series',datetime('now','localtime'),'" & session & "'," & newflds3 & "); " & _
                       "END; " & _
@@ -518,6 +530,7 @@ Public Class MPSync_process
                       "CREATE TRIGGER mpsync_update4 " & _
                       "AFTER UPDATE OF " & tblflds4 & " ON season " & _
                       "BEGIN " & _
+                      "DELETE FROM mpsync WHERE tablename='season' AND mps_session='" & session & "' AND ID=new.ID; " & _
                       "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds4 & ") " & _
                       "VALUES('season',datetime('now','localtime'),'" & session & "'," & newflds4 & "); " & _
                       "END"
@@ -536,7 +549,7 @@ Public Class MPSync_process
                       "CREATE TRIGGER mpsync_update1 " & _
                       "AFTER UPDATE OF " & tblflds1 & " ON movie " & _
                       "BEGIN  " & _
-                      "DELETE FROM mpsync WHERE tablename = 'movie' AND idMovie = new.idMovie; " & _
+                      "DELETE FROM mpsync WHERE tablename='movie' AND mps_session='" & session & "' AND idMovie=new.idMovie; " & _
                       "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
                       "VALUES('movie',datetime('now','localtime'),'" & session & "'," & newflds1 & "); " & _
                       "END; " & _
@@ -544,7 +557,7 @@ Public Class MPSync_process
                       "CREATE TRIGGER mpsync_update2 " & _
                       "AFTER UPDATE OF " & tblflds2 & " ON resume " & _
                       "BEGIN " & _
-                      "DELETE FROM mpsync WHERE tablename = 'resume' AND idResume = new.idResume; " & _
+                      "DELETE FROM mpsync WHERE tablename='resume' AND mps_session='" & session & "' AND idResume=new.idResume; " & _
                       "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds2 & ") " & _
                       "VALUES('resume',datetime('now','localtime'),'" & session & "'," & newflds2 & "); " & _
                       "END; " & _
@@ -552,7 +565,7 @@ Public Class MPSync_process
                       "CREATE TRIGGER mpsync_update3 " & _
                       "AFTER UPDATE OF " & tblflds3 & " ON bookmark " & _
                       "BEGIN " & _
-                      "DELETE FROM mpsync WHERE tablename = 'bookmark' AND idResume = new.idResume; " & _
+                      "DELETE FROM mpsync WHERE tablename='bookmark' AND mps_session='" & session & "' AND idResume=new.idResume; " & _
                       "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds3 & ") " & _
                       "VALUES('bookmark',datetime('now','localtime'),'" & session & "'," & newflds3 & "); " & _
                       "END"
@@ -563,7 +576,7 @@ Public Class MPSync_process
                 SQLcommand.CommandText = SQL
                 SQLcommand.ExecuteNonQuery()
             Catch ex As Exception
-                Log.Error("MPSync: Error executing " & SQL)
+                logStats("MPSync: Error executing " & SQL, "ERROR")
             End Try
         End If
 
@@ -573,7 +586,7 @@ Public Class MPSync_process
 
     Private Sub Drop_Triggers(ByVal path As String, ByVal database As String)
 
-        If p_Debug Then Log.Debug("MPSync: Dropping triggers in database " & database)
+        If p_Debug Then logStats("MPSync: Dropping triggers in database " & database, "DEBUG")
 
         Dim SQLconnect As New SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
@@ -606,7 +619,7 @@ Public Class MPSync_process
                 SQLcommand.CommandText = SQL
                 SQLcommand.ExecuteNonQuery()
             Catch ex As Exception
-                Log.Error("MPSync: Error executing " & SQL)
+                logStats("MPSync: Error executing " & SQL, "ERROR")
             End Try
         End If
 

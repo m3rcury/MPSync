@@ -419,9 +419,14 @@ Public Class MPSync_settings
 
         syncnow = True
 
+        If tc_main.TabPages.Contains(tp_syncnow) Then tc_main.TabPages.Remove(tp_syncnow)
         tc_main.TabPages.Add(tp_syncnow)
         tc_main.SelectedTab = tp_syncnow
-        lb_status.Items.Add("Synchronization started")
+        lb_status.Items.Clear()
+        lb_status.Items.Add("Synchronization started.")
+
+        db_complete = Not cb_databases.Checked
+        thumbs_complete = Not cb_thumbs.Checked
 
         ' create log file
         Dim file As String = Config.GetFile(Config.Dir.Log, "mpsync.log")
@@ -438,6 +443,7 @@ Public Class MPSync_settings
         lb_status_timer.Start()
 
         b_save.Enabled = False
+        b_sync_now.Enabled = False
 
         Dim cdb As New MPSync_process
         cdb.MPSyncProcess()
@@ -448,23 +454,30 @@ Public Class MPSync_settings
 
         CheckForIllegalCrossThreadCalls = False
 
-        ' read log file
-        Dim file As String = Config.GetFile(Config.Dir.Log, "mpsync.log")
-        Dim lines() As String = IO.File.ReadAllLines(file)
-        Dim status As String
+        Try
+            ' read log file
+            Dim file As String = Config.GetFile(Config.Dir.Log, "mpsync.log")
+            Dim lines() As String = IO.File.ReadAllLines(file)
+            Dim status As String
 
-        For Each status In lines
-            If lb_status.Items.Contains(status) = False Then
-                lb_status.Items.Add(status)
-                lb_status.TopIndex = lb_status.Items.Count - 1
-                lb_status.Refresh()
-            End If
-        Next
+            For Each status In lines
+                If lb_status.Items.Contains(status) = False Then
+                    lb_status.Items.Add(status)
+                    lb_status.TopIndex = lb_status.Items.Count - 1
+                    lb_status.Refresh()
+                End If
+            Next
+        Catch ex As Exception
+        End Try
 
         If db_complete And thumbs_complete Then
             lb_status_timer.Stop()
-            MsgBox("Synchronization complete", MsgBoxStyle.Information)
+            If lb_status.Items.Contains("Synchronization complete.") = False Then
+                lb_status.Items.Add("Synchronization complete.")
+                MsgBox("Synchronization complete", MsgBoxStyle.Information)
+            End If
             b_save.Enabled = True
+            b_sync_now.Enabled = True
         End If
 
     End Sub
@@ -484,7 +497,7 @@ Public Class MPSync_settings
     Private Sub MPSync_settings_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
 
         ' initialize version
-        _curversion = "1.0.0.0"
+        _curversion = "1.0.0.1"
         Me.Text = Me.Text & _curversion
 
         ' initialize direction images
