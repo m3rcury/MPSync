@@ -312,7 +312,7 @@ Public Class MPSync_process
 
         While SQLreader.Read()
             ReDim Preserve columns(x)
-            columns(x) = SQLreader(1)
+            columns(x) = LCase(SQLreader(1))
             x += 1
         End While
 
@@ -320,7 +320,7 @@ Public Class MPSync_process
 
         If x = 0 Then ReDim Preserve columns(0)
 
-        Return columns.Contains(field)
+        Return columns.Contains(LCase(field))
 
     End Function
 
@@ -354,10 +354,6 @@ Public Class MPSync_process
             If Not IO.File.Exists(server & dbname(x)) Then
                 IO.File.Copy(database, server & dbname(x), True)
                 Drop_Triggers(server, dbname(x))
-            Else
-                If dbinfo(x).LastWriteTimeUtc < My.Computer.FileSystem.GetFileInfo(server & dbname(x)).LastWriteTimeUtc Then
-                    dbinfo(x).LastWriteTimeUtc = My.Computer.FileSystem.GetFileInfo(server & dbname(x)).LastWriteTimeUtc
-                End If
             End If
 
             x += 1
