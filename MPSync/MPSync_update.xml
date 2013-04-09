@@ -323,5 +323,166 @@
       </ProjectSettings>
       <IsSkin>false</IsSkin>
     </PackageClass>
+    <PackageClass>
+      <Version>2.0</Version>
+      <Groups>
+        <Items>
+          <GroupItem Name="Default">
+            <DisplayName>Default</DisplayName>
+            <DefaulChecked>true</DefaulChecked>
+            <Description>Default</Description>
+            <Files>
+              <Items />
+            </Files>
+          </GroupItem>
+          <GroupItem Name="SQLite">
+            <DisplayName>SQLite</DisplayName>
+            <DefaulChecked>true</DefaulChecked>
+            <Description>SQLite</Description>
+            <Files>
+              <Items />
+            </Files>
+          </GroupItem>
+        </Items>
+      </Groups>
+      <Sections>
+        <Items />
+      </Sections>
+      <Dependencies>
+        <Items>
+          <DependencyItem>
+            <Type>MediaPortal</Type>
+            <Id />
+            <MinVersion>
+              <Major>1</Major>
+              <Minor>1</Minor>
+              <Build>6</Build>
+              <Revision>27644</Revision>
+            </MinVersion>
+            <MaxVersion>
+              <Major>1</Major>
+              <Minor>1</Minor>
+              <Build>6</Build>
+              <Revision>27644</Revision>
+            </MaxVersion>
+            <WarnOnly>false</WarnOnly>
+            <Message>requires MediaPortal version 1.1.6.27644 to 1.1.6.27644.</Message>
+            <Name>MediaPortal</Name>
+          </DependencyItem>
+          <DependencyItem>
+            <Type>Extension</Type>
+            <Id>284fc21c-86e3-4346-bf31-9e38c75e0242</Id>
+            <MinVersion>
+              <Major>1</Major>
+              <Minor>5</Minor>
+              <Build>1</Build>
+              <Revision>1487</Revision>
+            </MinVersion>
+            <MaxVersion>
+              <Major>1</Major>
+              <Minor>5</Minor>
+              <Build>1</Build>
+              <Revision>1487</Revision>
+            </MaxVersion>
+            <WarnOnly>true</WarnOnly>
+            <Message>requires Moving Pictures version 1.5.1.1487</Message>
+            <Name>Moving Pictures</Name>
+          </DependencyItem>
+          <DependencyItem>
+            <Type>Extension</Type>
+            <Id>5e2777c3-966c-407f-b5a9-e51205b70b3e</Id>
+            <MinVersion>
+              <Major>3</Major>
+              <Minor>4</Minor>
+              <Build>2</Build>
+              <Revision>2018</Revision>
+            </MinVersion>
+            <MaxVersion>
+              <Major>3</Major>
+              <Minor>4</Minor>
+              <Build>2</Build>
+              <Revision>2018</Revision>
+            </MaxVersion>
+            <WarnOnly>true</WarnOnly>
+            <Message>requires MP-TVSeries version 3.4.2.2018</Message>
+            <Name>MP-TVSeries</Name>
+          </DependencyItem>
+        </Items>
+      </Dependencies>
+      <PluginDependencies>
+        <Items>
+          <PluginDependencyItem AssemblyName="MPSync.dll">
+            <CompatibleVersion>
+              <Items>
+                <CompatibleVersionItem>
+                  <MinRequiredVersion>1.1.6.27644</MinRequiredVersion>
+                  <DesignedForVersion>1.2.100.0</DesignedForVersion>
+                </CompatibleVersionItem>
+              </Items>
+            </CompatibleVersion>
+            <SubSystemsUsed>
+              <Items>
+                <SubSystemItem Name="MP.Config" />
+                <SubSystemItem Name="MP.SkinEngine" />
+              </Items>
+            </SubSystemsUsed>
+          </PluginDependencyItem>
+        </Items>
+      </PluginDependencies>
+      <GeneralInfo>
+        <Name>MPSync</Name>
+        <Id>8ddbfb53-7222-41fd-a139-407eacd78464</Id>
+        <Author>m3rcury</Author>
+        <HomePage>http://www.team-mediaportal.com/extensions/utilities/cdb-sync?lang=en</HomePage>
+        <ForumPage>http://forum.team-mediaportal.com/threads/plugin-mpsync-mediaportal-synchronization.117417/#post-975411</ForumPage>
+        <UpdateUrl>https://cdbsync-plugin.googlecode.com/svn/trunk/MPSync/MPSync_update.xml</UpdateUrl>
+        <Version>
+          <Major>1</Major>
+          <Minor>0</Minor>
+          <Build>0</Build>
+          <Revision>2</Revision>
+        </Version>
+        <ExtensionDescription>This plugin synchronizes your MediaPortal databases with a central database as well as thumbs folder, so that any additons can by automatically applied to any other MP seat you might have in your household.</ExtensionDescription>
+        <VersionDescription>Stable release</VersionDescription>
+        <DevelopmentStatus>Stable</DevelopmentStatus>
+        <OnlineLocation>https://cdbsync-plugin.googlecode.com/files/MPSync-v1.0.0.2.mpe1</OnlineLocation>
+        <ReleaseDate>2013-04-09T23:39:41</ReleaseDate>
+        <Tags>synchronization, database, thumbs</Tags>
+        <Location>E:\Software\MediaPortal\MPSync\[Name]-v[Version].mpe1</Location>
+        <Params>
+          <Items>
+            <SectionParam Name="Online Icon">
+              <Value />
+              <ValueType>String</ValueType>
+              <Description>The icon file of the package stored online (jpg,png,bmp)</Description>
+            </SectionParam>
+            <SectionParam Name="Configuration file">
+              <Value />
+              <ValueType>Template</ValueType>
+              <Description>The file used to configure the extension.
+ If have .exe extension the will be executed
+ If have .dll extension used like MP plugin configuration</Description>
+            </SectionParam>
+            <SectionParam Name="Online Screenshots">
+              <Value>http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1889.jpg,http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1900.jpg,http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1901.jpg,http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1902.jpg,http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1895.jpg,http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1898.jpg,http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1914.jpg,http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1886.jpg</Value>
+              <ValueType>String</ValueType>
+              <Description>Online stored screenshot urls separated by ; </Description>
+            </SectionParam>
+            <SectionParam Name="Force to uninstall on update">
+              <Value>YES</Value>
+              <ValueType>Bool</ValueType>
+              <Description>Show dialog and force to uninstall previous version when updating an extension. Should only be disabled if you are using an NSIS/MSI installer.</Description>
+            </SectionParam>
+          </Items>
+        </Params>
+      </GeneralInfo>
+      <UniqueFileList>
+        <Items />
+      </UniqueFileList>
+      <ProjectSettings>
+        <FolderGroups />
+      </ProjectSettings>
+      <IsSkin>false</IsSkin>
+    </PackageClass>
   </Items>
 </ExtensionCollection>

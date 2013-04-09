@@ -689,9 +689,6 @@ Public Class MPSync_process_DB
 
         args = Split(parm, Chr(254))
 
-        s_data = LoadTable(args(0), args(2), args(3), columns)
-        t_data = LoadTable(args(1), args(2), args(3), columns)
-
         If MPSync_process.check_watched Then
             ' check if master client
             If MPSync_process._db_direction <> 2 Then
@@ -700,6 +697,9 @@ Public Class MPSync_process_DB
                 UpdateSlave(args(0), args(1), args(2), args(3))
             End If
         End If
+
+        s_data = LoadTable(args(0), args(2), args(3), columns)
+        t_data = LoadTable(args(1), args(2), args(3), columns)
 
         Synchronize_DB(args(1), args(2), args(3), columns, s_data, t_data, MPSync_process._db_sync_method)
 
