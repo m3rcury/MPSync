@@ -42,11 +42,11 @@ Public Class MPSync_process_DB
             z = getPK(columns)
             records = RecordCount(path, database, table, where)
 
-            If records > 0 Then
+            SQLconnect.ConnectionString = "Data Source=" & path & database
+            SQLconnect.Open()
+            SQLcommand = SQLconnect.CreateCommand
 
-                SQLconnect.ConnectionString = "Data Source=" & path & database
-                SQLconnect.Open()
-                SQLcommand = SQLconnect.CreateCommand
+            If records > 0 Then
 
                 SQLcommand.CommandText = "SELECT rowid, " & fields & " FROM " & table
 
@@ -89,8 +89,6 @@ Public Class MPSync_process_DB
 
                 End While
 
-                SQLconnect.Close()
-
             Else
                 ReDim data(2, 0)
             End If
@@ -98,10 +96,11 @@ Public Class MPSync_process_DB
         Catch ex As Exception
             If debug Then MPSync_process.logStats("MPSync: Error reading table " & table & " rowid """ & SQLreader(0) & """ in " & database & " with exception: " & ex.Message, "DEBUG")
             MPSync_process.logStats("MPSync: Error reading data from table " & table & " in database " & database, "ERROR")
-
             data = Nothing
 
         End Try
+
+        SQLconnect.Close()
 
         Return data
 
@@ -449,8 +448,6 @@ Public Class MPSync_process_DB
 
         If debug Then MPSync_process.logStats("MPSync: synchronizing from " & source & " to " & target, "DEBUG")
 
-        If Not IO.Directory.Exists(target) Then IO.Directory.CreateDirectory(target)
-
         On Error Resume Next
 
         Dim x As Integer
@@ -467,14 +464,7 @@ Public Class MPSync_process_DB
                 s_lastwrite = My.Computer.FileSystem.GetFileInfo(database).LastWriteTimeUtc
                 t_lastwrite = My.Computer.FileSystem.GetFileInfo(target & db).LastWriteTimeUtc
 
-                If s_lastwrite < t_lastwrite Then
-                    s_lastwrite = t_lastwrite
-                ElseIf s_lastwrite > t_lastwrite Then
-                    IO.File.SetLastWriteTime(target & db, s_lastwrite)
-                End If
-
-                If MPSync_process.dbinfo(x).LastWriteTimeUtc < s_lastwrite Then
-                    MPSync_process.dbinfo(x).LastWriteTimeUtc = s_lastwrite
+                If MPSync_process.dbinfo(x).LastWriteTimeUtc < s_lastwrite Or MPSync_process.dbinfo(x).LastWriteTimeUtc <> t_lastwrite Then
                     ProcessTables(source, target, db)
                 Else
                     If debug Then MPSync_process.logStats("MPSync: no changes detected in " & database & ". Skipping synchronization.", "DEBUG")
@@ -661,18 +651,16 @@ Public Class MPSync_process_DB
 
         Loop
 
-        Dim t_lastwrite As Date = My.Computer.FileSystem.GetFileInfo(args(1) & args(2)).LastWriteTimeUtc
         Dim s_lastwrite As Date = My.Computer.FileSystem.GetFileInfo(args(0) & args(2)).LastWriteTimeUtc
-
-        If t_lastwrite > s_lastwrite Then
-            IO.File.SetLastWriteTime(args(0) & args(2), t_lastwrite)
-        ElseIf s_lastwrite > t_lastwrite Then
-            t_lastwrite = s_lastwrite
-            IO.File.SetLastWriteTime(args(1) & args(2), t_lastwrite)
-        End If
+        Dim t_lastwrite As Date = My.Computer.FileSystem.GetFileInfo(args(1) & args(2)).LastWriteTimeUtc
 
         x = Array.IndexOf(MPSync_process.dbname, args(2))
-        MPSync_process.dbinfo(x).LastWriteTimeUtc = t_lastwrite
+
+        If s_lastwrite > t_lastwrite Then
+            MPSync_process.dbinfo(x).LastWriteTimeUtc = s_lastwrite
+        ElseIf s_lastwrite < t_lastwrite Then
+            MPSync_process.dbinfo(x).LastWriteTimeUtc = t_lastwrite
+        End If
 
         MPSync_process.logStats("MPSync: synchronization of " & args(2) & " database completed.", "INFO")
 
@@ -803,7 +791,7 @@ Public Class MPSync_process_DB
         SQLconnect.ConnectionString = "Data Source=" & path & database
         SQLconnect.Open()
         SQLcommand = SQLconnect.CreateCommand
-        SQLcommand.CommandText = "PRAGMA temp_store=2;PRAGMA journal_mode=memory;PRAGMA synchronous=0;"
+        SQLcommand.CommandText = "PRAGMA temp_store=2;PRAGMA journal_mode=memory;"
         SQLcommand.ExecuteNonQuery()
 
         x = getPK(columns, pkey)
@@ -887,7 +875,7 @@ Public Class MPSync_process_DB
         SQLconnect.ConnectionString = "Data Source=" & path & database
         SQLconnect.Open()
         SQLcommand = SQLconnect.CreateCommand
-        SQLcommand.CommandText = "PRAGMA temp_store=2;PRAGMA journal_mode=memory;PRAGMA synchronous=0;"
+        SQLcommand.CommandText = "PRAGMA temp_store=2;PRAGMA journal_mode=memory;"
         SQLcommand.ExecuteNonQuery()
 
         fields = getSelectFields(columns)
@@ -955,7 +943,7 @@ Public Class MPSync_process_DB
         SQLconnect.ConnectionString = "Data Source=" & path & database
         SQLconnect.Open()
         SQLcommand = SQLconnect.CreateCommand
-        SQLcommand.CommandText = "PRAGMA temp_store=2;PRAGMA journal_mode=memory;PRAGMA synchronous=0;"
+        SQLcommand.CommandText = "PRAGMA temp_store=2;PRAGMA journal_mode=memory;"
         SQLcommand.ExecuteNonQuery()
 
         diff = t_temp.Except(s_temp)

@@ -26,7 +26,7 @@ Public Class MPSync_settings
     Public WriteOnly Property SetWatched
         Set(value)
             i_watched(0).database = "movingpictures.db3"
-            i_watched(0).tables = {"user_movie_settings"}
+            i_watched(0).tables = {"user_movie_settings", "movie_info"}
             i_watched(1).database = "MusicDatabaseV12.db3"
             i_watched(1).tables = {"tracks"}
             i_watched(2).database = "TVSeriesDatabase4.db3"
@@ -497,7 +497,7 @@ Public Class MPSync_settings
     Private Sub MPSync_settings_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
 
         ' initialize version
-        _curversion = "1.0.0.2"
+        _curversion = "1.0.0.3"
         Me.Text = Me.Text & _curversion
 
         ' initialize direction images
