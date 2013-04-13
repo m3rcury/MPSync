@@ -147,8 +147,14 @@ Public Class MPSync_process
             If InStrRev(_db_client, "\") <> Len(_db_client) Then _db_client = Trim(_db_client) & "\"
             If InStrRev(_db_server, "\") <> Len(_db_server) Then _db_server = Trim(_db_server) & "\"
 
+            If Not IO.Directory.Exists(_db_server) Then IO.Directory.CreateDirectory(_db_server)
+
             ' get last write time for all db3s
-            getDBInfo(_db_client, _db_server)
+            If _db_direction = 1 Then
+                getDBInfo(_db_client, _db_server)
+            ElseIf _db_direction = 2 Then
+                getDBInfo(_db_server, _db_client)
+            End If
 
             ' create the required work files and triggers to handle watched status synchronization
             If check_watched Then
@@ -170,86 +176,86 @@ Public Class MPSync_process
 
         End If
 
-        If _thumbs_client <> Nothing And _thumbs_server <> Nothing And checked_thumbs Then
+            If _thumbs_client <> Nothing And _thumbs_server <> Nothing And checked_thumbs Then
 
-            ' get list of thumbs to synchronise
-            If thumbs <> Nothing Then
-                _thumbs = Split(thumbs, "|")
-            Else
-                ReDim _thumbs(0)
-                _thumbs(0) = "ALL"
-            End If
-
-            ' calculate actual sync periodicity in seconds
-            If thumbs_sync_value = "minutes" Then
-                _thumbs_sync = _thumbs_sync * 60
-            ElseIf thumbs_sync_value = "hours" Then
-                _thumbs_sync = _thumbs_sync * 3600
-            End If
-
-            ' check that both paths end with a "\"
-            If InStrRev(_thumbs_client, "\") <> Len(_thumbs_client) Then _thumbs_client = Trim(_thumbs_client) & "\"
-            If InStrRev(_thumbs_server, "\") <> Len(_thumbs_server) Then _thumbs_server = Trim(_thumbs_server) & "\"
-
-        End If
-
-        ' write settings to log file
-        If checked_databases Then
-            Select Case _db_direction
-                Case 0
-                    logStats("MPSync: DB - " & _db_client & " <-> " & _db_server, "INFO")
-                Case 1
-                    logStats("MPSync: DB - " & _db_client & " --> " & _db_server, "INFO")
-                Case 2
-                    logStats("MPSync: DB - " & _db_client & " <-- " & _db_server, "INFO")
-            End Select
-            logStats("MPSync: DB synchronization method - " & i_method(_db_sync_method), "INFO")
-            If databases = Nothing Then
-                logStats("MPSync: DBs selected - ALL", "INFO")
-            Else
-                logStats("MPSync: DBs selected - " & databases, "INFO")
-            End If
-            If check_watched Then
-                If watched_dbs = Nothing Then
-                    logStats("MPSync: watched/resume selected for ALL", "INFO")
+                ' get list of thumbs to synchronise
+                If thumbs <> Nothing Then
+                    _thumbs = Split(thumbs, "|")
                 Else
-                    logStats("MPSync: watched/resume selected for " & watched_dbs, "INFO")
+                    ReDim _thumbs(0)
+                    _thumbs(0) = "ALL"
                 End If
-            Else
-                logStats("MPSync: watched/resume not selected", "INFO")
+
+                ' calculate actual sync periodicity in seconds
+                If thumbs_sync_value = "minutes" Then
+                    _thumbs_sync = _thumbs_sync * 60
+                ElseIf thumbs_sync_value = "hours" Then
+                    _thumbs_sync = _thumbs_sync * 3600
+                End If
+
+                ' check that both paths end with a "\"
+                If InStrRev(_thumbs_client, "\") <> Len(_thumbs_client) Then _thumbs_client = Trim(_thumbs_client) & "\"
+                If InStrRev(_thumbs_server, "\") <> Len(_thumbs_server) Then _thumbs_server = Trim(_thumbs_server) & "\"
+
             End If
-        End If
 
-        If checked_thumbs Then
-            Select Case _thumbs_direction
-                Case 0
-                    logStats("MPSync: THUMBS - " & _thumbs_client & " <-> " & _thumbs_server, "INFO")
-                Case 1
-                    logStats("MPSync: THUMBS - " & _thumbs_client & " --> " & _thumbs_server, "INFO")
-                Case 2
-                    logStats("MPSync: THUMBS - " & _thumbs_client & " <-- " & _thumbs_server, "INFO")
-            End Select
-            logStats("MPSync: THUMBS synchronization method - " & i_method(_thumbs_sync_method), "INFO")
-            If thumbs = Nothing Then
-                logStats("MPSync: THUMBS selected - ALL", "INFO")
-            Else
-                logStats("MPSync: THUMBS selected - " & thumbs, "INFO")
+            ' write settings to log file
+            If checked_databases Then
+                Select Case _db_direction
+                    Case 0
+                        logStats("MPSync: DB - " & _db_client & " <-> " & _db_server, "INFO")
+                    Case 1
+                        logStats("MPSync: DB - " & _db_client & " --> " & _db_server, "INFO")
+                    Case 2
+                        logStats("MPSync: DB - " & _db_client & " <-- " & _db_server, "INFO")
+                End Select
+                logStats("MPSync: DB synchronization method - " & i_method(_db_sync_method), "INFO")
+                If databases = Nothing Then
+                    logStats("MPSync: DBs selected - ALL", "INFO")
+                Else
+                    logStats("MPSync: DBs selected - " & databases, "INFO")
+                End If
+                If check_watched Then
+                    If watched_dbs = Nothing Then
+                        logStats("MPSync: watched/resume selected for ALL", "INFO")
+                    Else
+                        logStats("MPSync: watched/resume selected for " & watched_dbs, "INFO")
+                    End If
+                Else
+                    logStats("MPSync: watched/resume not selected", "INFO")
+                End If
             End If
-        End If
 
-        If Not MPSync_settings.syncnow Then
+            If checked_thumbs Then
+                Select Case _thumbs_direction
+                    Case 0
+                        logStats("MPSync: THUMBS - " & _thumbs_client & " <-> " & _thumbs_server, "INFO")
+                    Case 1
+                        logStats("MPSync: THUMBS - " & _thumbs_client & " --> " & _thumbs_server, "INFO")
+                    Case 2
+                        logStats("MPSync: THUMBS - " & _thumbs_client & " <-- " & _thumbs_server, "INFO")
+                End Select
+                logStats("MPSync: THUMBS synchronization method - " & i_method(_thumbs_sync_method), "INFO")
+                If thumbs = Nothing Then
+                    logStats("MPSync: THUMBS selected - ALL", "INFO")
+                Else
+                    logStats("MPSync: THUMBS selected - " & thumbs, "INFO")
+                End If
+            End If
 
-            If p_Debug Then logStats("MPSync: Immediate Synchronization started", "DEBUG")
+            If Not MPSync_settings.syncnow Then
 
-            Dim autoEvent As New AutoResetEvent(False)
+                If p_Debug Then logStats("MPSync: Immediate Synchronization started", "DEBUG")
 
-            ThreadPool.QueueUserWorkItem(AddressOf WorkMethod, autoEvent)
+                Dim autoEvent As New AutoResetEvent(False)
 
-            autoEvent.WaitOne()
+                ThreadPool.QueueUserWorkItem(AddressOf WorkMethod, autoEvent)
 
-        Else
-            WorkMethod(Nothing)
-        End If
+                autoEvent.WaitOne()
+
+            Else
+                WorkMethod(Nothing)
+            End If
 
     End Sub
 
@@ -340,20 +346,20 @@ Public Class MPSync_process
 
     End Function
 
-    Private Sub getDBInfo(ByVal client As String, ByVal server As String)
+    Private Sub getDBInfo(ByVal source As String, ByVal target As String)
 
         Dim x As Integer = 0
 
-        For Each database As String In IO.Directory.GetFiles(client, "*.db3")
+        For Each database As String In IO.Directory.GetFiles(source, "*.db3")
 
             ReDim Preserve dbname(x)
             ReDim Preserve dbinfo(x)
             dbname(x) = IO.Path.GetFileName(database)
             dbinfo(x) = My.Computer.FileSystem.GetFileInfo(database)
 
-            If Not IO.File.Exists(server & dbname(x)) Then
-                IO.File.Copy(database, server & dbname(x), True)
-                Drop_Triggers(server, dbname(x))
+            If Not IO.File.Exists(target & dbname(x)) Then
+                IO.File.Copy(database, target & dbname(x), True)
+                Drop_Triggers(target, dbname(x))
             End If
 
             x += 1
@@ -382,7 +388,8 @@ Public Class MPSync_process
                 Case mps.i_watched(0).database
                     SQL = "CREATE TABLE IF NOT EXISTS mpsync " & _
                           "(mps_id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, mps_lastupdated TEXT, mps_session TEXT, id INTEGER, user TEXT, " & _
-                          "user_rating TEXT, watched INTEGER, resume_part INTEGER, resume_time INTEGER, resume_data TEXT)"
+                          "user_rating TEXT, watched INTEGER, resume_part INTEGER, resume_time INTEGER, resume_data TEXT, alternatecovers TEXT, coverfullpath TEXT, " & _
+                          "coverthumbfullpath TEXT)"
                 Case mps.i_watched(1).database
                     SQL = "CREATE TABLE IF NOT EXISTS mpsync (mps_id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, mps_lastupdated TEXT, mps_session TEXT, " & _
                           "idTrack INTEGER, iResumeAt INTEGER, dateLastPlayed TEXT)"
@@ -400,8 +407,12 @@ Public Class MPSync_process
             End Select
 
         Else
-            If FieldExist(path, database, "mpsync", "mps_session") = False Then
-                SQL = "ALTER TABLE mpsync ADD COLUMN mps_session TEXT"
+            If FieldExist(path, database, "mpsync", "mps_session") = False Then SQL = "ALTER TABLE mpsync ADD COLUMN mps_session TEXT"
+
+            If database = mps.i_watched(0).database Then
+                If FieldExist(path, database, "mpsync", "alternatecovers") = False Then SQL = "ALTER TABLE mpsync ADD COLUMN alternatecovers TEXT"
+                If FieldExist(path, database, "mpsync", "coverfullpath") = False Then SQL = "ALTER TABLE mpsync ADD COLUMN coverfullpath TEXT"
+                If FieldExist(path, database, "mpsync", "coverthumbfullpath") = False Then SQL = "ALTER TABLE mpsync ADD COLUMN coverthumbfullpath TEXT"
             End If
         End If
 
@@ -462,6 +473,9 @@ Public Class MPSync_process
                 fields1 = {"id", "user", "user_rating", "watched", "resume_part", "resume_time", "resume_data"}
                 tblflds1 = FieldList(path, database, "user_movie_settings", fields1)
                 newflds1 = FieldList(path, database, "user_movie_settings", fields1, "new.")
+                fields2 = {"id", "alternatecovers", "coverfullpath", "coverthumbfullpath"}
+                tblflds2 = FieldList(path, database, "movie_info", fields2)
+                newflds2 = FieldList(path, database, "movie_info", fields2, "new.")
 
                 SQL = "DROP TRIGGER IF EXISTS mpsync_update; " & _
                       "CREATE TRIGGER mpsync_update " & _
@@ -470,6 +484,14 @@ Public Class MPSync_process
                       "DELETE FROM mpsync WHERE tablename='user_movie_settings' AND mps_session='" & session & "' AND id=new.id; " & _
                       "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
                       "VALUES('user_movie_settings',datetime('now','localtime'),'" & session & "'," & newflds1 & "); " & _
+                      "END; " & _
+                      "DROP TRIGGER IF EXISTS mpsync_update2; " & _
+                      "CREATE TRIGGER mpsync_update2 " & _
+                      "AFTER UPDATE OF " & tblflds2 & " ON movie_info " & _
+                      "BEGIN " & _
+                      "DELETE FROM mpsync WHERE tablename='movie_info' AND mps_session='" & session & "' AND id=new.id; " & _
+                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds2 & ") " & _
+                      "VALUES('movie_info',datetime('now','localtime'),'" & session & "'," & newflds2 & "); " & _
                       "END"
             Case mps.i_watched(1).database
                 fields1 = {"idTrack", "iResumeAt", "dateLastPlayed"}
@@ -596,7 +618,8 @@ Public Class MPSync_process
         Select Case database
 
             Case mps.i_watched(0).database
-                SQL = "DROP TRIGGER IF EXISTS mpsync_update"
+                SQL = "DROP TRIGGER IF EXISTS mpsync_update; " & _
+                      "DROP TRIGGER IF EXISTS mpsync_update2"
             Case mps.i_watched(1).database
                 SQL = "DROP TRIGGER IF EXISTS mpsync_update"
             Case mps.i_watched(2).database
