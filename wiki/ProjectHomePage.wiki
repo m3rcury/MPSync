@@ -2,7 +2,7 @@
 
 = Description =
 
-MPSync is a new process plugin that allows you to synchronize ALL your MediaPortal databases as well as thumbs from one main client onto a central location and then have any other client synchronize its database from this central location. Synchronization is done at a record level and there is no copying of whole databases. This plugin caters only for database synchronizations as it expects that all your thumbs are already stored centrally.
+MPSync is a new process plugin that allows you to synchronize ALL your MediaPortal databases as well as thumbs from one main client onto a central location and then have any other client synchronize its database from this central location. Synchronization is done at record level and there is no copying of whole databases. This plugin caters also for thumbs synchronizations.
 
 Like the application and is it useful for you? Help support the development and [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=7MDF77KKTGKAJ&lc=MT&item_name=MPSync%20support&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif]
 
