@@ -9,7 +9,7 @@ The thumbs synchronization is somehow straightforward and will be explained late
 
 = Database Synchronization =
 
- * Synchronization using database triggers
+ * *Synchronization using database triggers*
 
 This method comprises in creating a new table, *mpsync_triggers*, in every database selected for synchronization.  On every remaining table _(excluding system tables)_ inside the database, 3 triggers will be created to capture modifications on the particular table.  The change events are Insert, Update and Delete.
 
@@ -22,3 +22,8 @@ http://cdbsync-plugin.googlecode.com/svn/wiki/screens/mpsync_triggers_structure.
 Below is a sample of the same table for MovingPictures database:
 
 http://cdbsync-plugin.googlecode.com/svn/wiki/screens/mpsync_triggers_content.jpg
+
+Once a synchronization cycle is kicked-off, the plugin will read *mpsync_triggers* table and only process tables whose name appear under column _tablename_ and their _lastupdated_ time is after the time when last cycle was kicked-off.  This enables the plugin to process only modified tables, thus eliminating the need to process all the tables in the database and compare contents between source and target.  This method brings huge improvements, both in time to process, I/O and CPU usage.
+
+
+ * *Synchronization using file timestamp*
