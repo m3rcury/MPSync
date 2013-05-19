@@ -50,3 +50,8 @@ The table has the below structure:
 
 http://cdbsync-plugin.googlecode.com/svn/wiki/screens/mpsync_structure.jpg
 
+
+Below is a sample of the same table for MovingPictures database:
+
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/mpsync_content.jpg
+
