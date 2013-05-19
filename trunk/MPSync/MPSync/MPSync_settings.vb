@@ -6,7 +6,7 @@ Imports System.Data.SQLite
 Public Class MPSync_settings
 
     Dim i_direction(2) As Image
-    Dim i_method(2), _databases, _thumbs, _watched_dbs, _curversion, _version, _session As String
+    Dim i_method(2), _databases, _thumbs, _watched_dbs, _objects, _curversion, _version, _session, _sync_type As String
     Dim _db_sync_method, _thumbs_sync_method As Integer
     Dim _clicks_db As Integer = 1
     Dim _clicks_thumbs As Integer = 1
@@ -63,37 +63,47 @@ Public Class MPSync_settings
         End Get
     End Property
 
-    Private Sub populate_checkedlistbox(ByRef clb As CheckedListBox, ByVal path As String, Optional ByVal searchpattern As String = Nothing)
+    Private Sub populate_checkedlistbox(ByRef clb As CheckedListBox, ByVal path As String, Optional ByVal searchpattern As String = Nothing, Optional ByVal ommit As String = Nothing)
 
-        If IO.Directory.Exists(path) Then
+        clb.Items.Clear()
 
-            clb.Items.Clear()
+        If searchpattern <> Nothing And ommit <> Nothing Then
 
-            If searchpattern <> Nothing Then
+            Dim all_checked As Boolean = (_databases = Nothing)
 
-                Dim all_checked As Boolean = (_databases = Nothing)
-
-                For Each database As String In IO.Directory.GetFiles(path, searchpattern)
+            For Each objects As String In IO.Directory.GetFiles(path, searchpattern)
+                If IO.Path.GetExtension(objects) <> ommit Or ommit = Nothing Then
                     If all_checked Then
-                        clb.Items.Add(IO.Path.GetFileName(database), True)
+                        clb.Items.Add(IO.Path.GetFileName(objects), True)
                     Else
-                        clb.Items.Add(IO.Path.GetFileName(database), _databases.Contains(IO.Path.GetFileName(database)))
+                        clb.Items.Add(IO.Path.GetFileName(objects), _objects.Contains(IO.Path.GetFileName(objects)))
                     End If
-                Next
+                End If
+            Next
 
-            Else
+        ElseIf searchpattern <> Nothing Then
 
-                Dim all_checked As Boolean = (_thumbs = Nothing)
+            Dim all_checked As Boolean = (_databases = Nothing)
 
-                For Each folder As String In IO.Directory.GetDirectories(path)
-                    If all_checked Then
-                        clb.Items.Add(IO.Path.GetFileName(folder), True)
-                    Else
-                        clb.Items.Add(IO.Path.GetFileName(folder), _thumbs.Contains(IO.Path.GetFileName(folder)))
-                    End If
-                Next
+            For Each database As String In IO.Directory.GetFiles(path, searchpattern)
+                If all_checked Then
+                    clb.Items.Add(IO.Path.GetFileName(database), True)
+                Else
+                    clb.Items.Add(IO.Path.GetFileName(database), _databases.Contains(IO.Path.GetFileName(database)))
+                End If
+            Next
 
-            End If
+        Else
+
+            Dim all_checked As Boolean = (_thumbs = Nothing)
+
+            For Each folder As String In IO.Directory.GetDirectories(path)
+                If all_checked Then
+                    clb.Items.Add(IO.Path.GetFileName(folder), True)
+                Else
+                    clb.Items.Add(IO.Path.GetFileName(folder), _thumbs.Contains(IO.Path.GetFileName(folder)))
+                End If
+            Next
 
         End If
 
@@ -133,9 +143,11 @@ Public Class MPSync_settings
                 cb_thumbs.Checked = XMLreader.GetValueAsString("Plugin", "thumbs", True)
                 cb_debug.Checked = XMLreader.GetValueAsString("Plugin", "debug", False)
                 _session = XMLreader.GetValueAsString("Plugin", "session ID", System.Guid.NewGuid.ToString())
+                _sync_type = XMLreader.GetValueAsString("Plugin", "sync type", "Triggers")
 
                 _databases = XMLreader.GetValueAsString("DB Settings", "databases", Nothing)
                 _watched_dbs = XMLreader.GetValueAsString("DB Settings", "watched databases", Nothing)
+                _objects = XMLreader.GetValueAsString("DB Settings", "objects", Nothing)
                 _thumbs = XMLreader.GetValueAsString("Thumbs Settings", "thumbs", Nothing)
 
                 _clicks_db = XMLreader.GetValueAsInt("DB Path", "direction", 1)
@@ -168,9 +180,32 @@ Public Class MPSync_settings
         rb_specific_db.Checked = Not rb_all_db.Checked
         rb_w_all.Checked = (_watched_dbs = Nothing)
         rb_w_specific.Checked = Not rb_w_all.Checked
+        rb_o_all.Checked = (_objects = Nothing)
+        rb_o_nothing.Checked = (_objects = "NOTHING|")
+        rb_o_specific.Checked = Not (rb_o_all.Checked Or rb_o_nothing.Checked)
 
         rb_all_thumbs.Checked = (_thumbs = Nothing)
         rb_specific_thumbs.Checked = Not rb_all_thumbs.Checked
+
+        rb_triggers.Checked = (_sync_type = "Triggers")
+        rb_timestamp.Checked = Not rb_triggers.Checked
+
+        rb_triggers.Enabled = cb_databases.Checked
+        rb_timestamp.Enabled = cb_databases.Checked
+
+        'populate the respective listboxes
+
+        If _clicks_db <> 2 Then
+            populate_checkedlistbox(clb_databases, tb_db_client_path.Text, "*.db3")
+            populate_checkedlistbox(clb_objects, tb_db_client_path.Text, "*.*", ".db3")
+            populate_checkedlistbox(clb_thumbs, tb_thumbs_client_path.Text)
+        ElseIf _clicks_db = 2 Then
+            populate_checkedlistbox(clb_databases, tb_db_server_path.Text, "*.db3")
+            populate_checkedlistbox(clb_objects, tb_db_server_path.Text, "*.*", ".db3")
+            populate_checkedlistbox(clb_thumbs, tb_thumbs_server_path.Text)
+        End If
+
+        populate_watchedchecklistbox(clb_watched)
 
     End Sub
 
@@ -202,6 +237,26 @@ Public Class MPSync_settings
             Next
         End If
 
+        _objects = Nothing
+
+        If rb_o_all.Checked Then
+            For x As Integer = 0 To (clb_objects.Items.Count - 1)
+                _objects += clb_objects.GetItemText(clb_objects.Items(x)) & "|"
+            Next
+        ElseIf rb_o_specific.Checked Then
+            For x As Integer = 0 To (clb_objects.CheckedItems.Count - 1)
+                _objects += clb_objects.GetItemText(clb_objects.CheckedItems(x)) & "|"
+            Next
+        ElseIf rb_o_nothing.Checked Then
+            _objects = "NOTHING|"
+        End If
+
+        If rb_triggers.Checked Then
+            _sync_type = "Triggers"
+        Else
+            _sync_type = "Timestamp"
+        End If
+
         Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
 
             XMLwriter.SetValue("Plugin", "version", _curversion)
@@ -209,6 +264,7 @@ Public Class MPSync_settings
             XMLwriter.SetValue("Plugin", "thumbs", cb_thumbs.Checked)
             XMLwriter.SetValue("Plugin", "debug", cb_debug.Checked)
             XMLwriter.SetValue("Plugin", "session ID", _session)
+            XMLwriter.SetValue("Plugin", "sync type", _sync_type)
 
             XMLwriter.SetValue("DB Path", "client", tb_db_client_path.Text)
             XMLwriter.SetValue("DB Path", "server", tb_db_server_path.Text)
@@ -221,6 +277,7 @@ Public Class MPSync_settings
             XMLwriter.SetValue("DB Settings", "databases", _databases)
             XMLwriter.SetValue("DB Settings", "watched", cb_watched.Checked)
             XMLwriter.SetValue("DB Settings", "watched databases", _watched_dbs)
+            XMLwriter.SetValue("DB Settings", "objects", _objects)
 
             XMLwriter.SetValue("Thumbs Path", "client", tb_thumbs_client_path.Text)
             XMLwriter.SetValue("Thumbs Path", "server", tb_thumbs_server_path.Text)
@@ -240,6 +297,8 @@ Public Class MPSync_settings
 
     Private Sub cb_databases_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles cb_databases.CheckedChanged
         If cb_databases.Checked Then tc_main.TabPages.Insert(1, tp_database) Else tc_main.TabPages.Remove(tp_database)
+        rb_triggers.Enabled = cb_databases.Checked
+        rb_timestamp.Enabled = cb_databases.Checked
     End Sub
 
     Private Sub cb_thumbs_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles cb_thumbs.CheckedChanged
@@ -284,24 +343,28 @@ Public Class MPSync_settings
                 Else
                     tb_db_client_path.Text = objFolder.Items.Item.Path
                 End If
+                tb_db_client_path.Focus()
             ElseIf DirectCast(sender, System.Windows.Forms.Button).Name = "b_thumbs_client" Then
                 If IsError(objFolder.Items.Item.Path) Then
                     tb_thumbs_client_path.Text = CStr(objFolder)
                 Else
                     tb_thumbs_client_path.Text = objFolder.Items.Item.Path
                 End If
+                tb_thumbs_client_path.Focus()
             ElseIf DirectCast(sender, System.Windows.Forms.Button).Name = "b_db_server" Then
                 If IsError(objFolder.Items.Item.Path) Then
                     tb_db_server_path.Text = CStr(objFolder)
                 Else
                     tb_db_server_path.Text = objFolder.Items.Item.Path
                 End If
+                tb_db_server_path.Focus()
             ElseIf DirectCast(sender, System.Windows.Forms.Button).Name = "b_thumbs_server" Then
                 If IsError(objFolder.Items.Item.Path) Then
                     tb_thumbs_server_path.Text = CStr(objFolder)
                 Else
                     tb_thumbs_server_path.Text = objFolder.Items.Item.Path
                 End If
+                tb_thumbs_server_path.Focus()
             End If
 
         Catch ex As Exception
@@ -369,16 +432,25 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub tb_path_TextChanged(sender As System.Object, e As System.EventArgs) Handles tb_db_client_path.TextChanged, tb_db_server_path.TextChanged, tb_thumbs_client_path.TextChanged, tb_thumbs_server_path.TextChanged
+    Private Sub tb_path_Leave(sender As System.Object, e As System.EventArgs) Handles tb_db_client_path.Leave, tb_db_server_path.Leave, tb_thumbs_client_path.Leave, tb_thumbs_server_path.Leave
 
-        If DirectCast(sender, System.Windows.Forms.TextBox).Name = "tb_db_client_path" And _clicks_db <> 2 Then
-            populate_checkedlistbox(clb_databases, tb_db_client_path.Text, "*.db3")
-        ElseIf DirectCast(sender, System.Windows.Forms.TextBox).Name = "tb_db_server_path" And _clicks_db = 2 Then
-            populate_checkedlistbox(clb_databases, tb_db_server_path.Text, "*.db3")
-        ElseIf DirectCast(sender, System.Windows.Forms.TextBox).Name = "tb_thumbs_client_path" And _clicks_thumbs <> 2 Then
-            populate_checkedlistbox(clb_thumbs, tb_thumbs_client_path.Text)
-        ElseIf DirectCast(sender, System.Windows.Forms.TextBox).Name = "tb_thumbs_server_path" And _clicks_thumbs = 2 Then
-            populate_checkedlistbox(clb_thumbs, tb_thumbs_server_path.Text)
+        If Not IO.Directory.Exists(DirectCast(sender, System.Windows.Forms.TextBox).Text) Then
+            MsgBox("Path not found!", MsgBoxStyle.Exclamation)
+            DirectCast(sender, System.Windows.Forms.TextBox).Undo()
+        Else
+            If DirectCast(sender, System.Windows.Forms.TextBox).Name = "tb_db_client_path" And _clicks_db <> 2 Then
+                populate_checkedlistbox(clb_databases, tb_db_client_path.Text, "*.db3")
+                populate_checkedlistbox(clb_objects, tb_db_client_path.Text, "*.*", ".db3")
+                populate_watchedchecklistbox(clb_watched)
+            ElseIf DirectCast(sender, System.Windows.Forms.TextBox).Name = "tb_db_server_path" And _clicks_db = 2 Then
+                populate_checkedlistbox(clb_databases, tb_db_server_path.Text, "*.db3")
+                populate_checkedlistbox(clb_objects, tb_db_server_path.Text, "*.*", ".db3")
+                populate_watchedchecklistbox(clb_watched)
+            ElseIf DirectCast(sender, System.Windows.Forms.TextBox).Name = "tb_thumbs_client_path" And _clicks_thumbs <> 2 Then
+                populate_checkedlistbox(clb_thumbs, tb_thumbs_client_path.Text)
+            ElseIf DirectCast(sender, System.Windows.Forms.TextBox).Name = "tb_thumbs_server_path" And _clicks_thumbs = 2 Then
+                populate_checkedlistbox(clb_thumbs, tb_thumbs_server_path.Text)
+            End If
         End If
 
     End Sub
@@ -407,6 +479,18 @@ Public Class MPSync_settings
 
     Private Sub rb_w_all_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_w_all.CheckedChanged
         clb_watched.Enabled = Not rb_w_all.Checked
+    End Sub
+
+    Private Sub rb_o_all_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_o_all.CheckedChanged
+        clb_objects.Enabled = Not rb_o_all.Checked
+    End Sub
+
+    Private Sub rb_o_specific_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_o_specific.CheckedChanged
+        clb_objects.Enabled = rb_o_specific.Checked
+    End Sub
+
+    Private Sub rb_o_nothing_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_o_nothing.CheckedChanged
+        clb_objects.Enabled = Not rb_o_nothing.Checked
     End Sub
 
     Private Sub rb_w_specific_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_w_specific.CheckedChanged
@@ -438,7 +522,7 @@ Public Class MPSync_settings
 
         'initialize timer
         AddHandler lb_status_timer.Elapsed, AddressOf lb_status_timer_update
-        lb_status_timer.Interval = 1000
+        lb_status_timer.Interval = 500
         lb_status_timer.Enabled = True
         lb_status_timer.Start()
 
@@ -497,7 +581,7 @@ Public Class MPSync_settings
     Private Sub MPSync_settings_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
 
         ' initialize version
-        _curversion = "1.0.0.3"
+        _curversion = "1.0.0.6"
         Me.Text = Me.Text & _curversion
 
         ' initialize direction images

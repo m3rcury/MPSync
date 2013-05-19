@@ -8,11 +8,17 @@ Imports System.Data.SQLite
 Public Class MPSync_process
 
     Private mps As New MPSync_settings
-    Public Shared _db_client, _db_server, _thumbs_client, _thumbs_server, _databases(), _thumbs(), _watched_dbs(), dbname(), session As String
+    Public Shared _db_client, _db_server, _thumbs_client, _thumbs_server, _databases(), _thumbs(), _watched_dbs(), _objects(), dbname(), session, sync_type As String
     Public Shared _db_sync, _thumbs_sync, _db_direction, _db_sync_method, _thumbs_direction, _thumbs_sync_method As Integer
     Public Shared _db_pause, _thumbs_pause, debug, check_watched As Boolean
     Public Shared dbinfo() As IO.FileInfo
+
     Dim checked_databases, checked_thumbs As Boolean
+    Dim bw_threads As Integer
+
+    Private Structure fieldnames
+        Dim names As Array
+    End Structure
 
     Public Shared Property p_Debug As Boolean
         Get
@@ -47,8 +53,17 @@ Public Class MPSync_process
 
     Public Shared Sub logStats(ByVal message As String, ByVal msgtype As String)
 
+        Select Case msgtype
+            Case "INFO"
+                Log.Info(message)
+            Case "ERROR"
+                Log.Error(message)
+        End Select
+
         Dim file As String = Config.GetFile(Config.Dir.Log, "mpsync.log")
         Dim fhandle As System.IO.FileStream
+
+        If msgtype = "LOG" Then msgtype = "INFO"
 
         Dim info As Byte() = New System.Text.UTF8Encoding(True).GetBytes(DateTime.Now & " - [" & msgtype & "] " & message & vbCrLf)
 
@@ -59,12 +74,20 @@ Public Class MPSync_process
         Catch ex As Exception
         End Try
 
-        Select Case msgtype
-            Case "INFO"
-                Log.Info(message)
-            Case "ERROR"
-                Log.Error(message)
-        End Select
+    End Sub
+
+    Public Shared Sub MPSync_Launcher()
+
+        ' create log file
+        Dim file As String = Config.GetFile(Config.Dir.Log, "mpsync.log")
+
+        If IO.File.Exists(Config.GetFile(Config.Dir.Log, "mpsync.bak")) Then IO.File.Delete(Config.GetFile(Config.Dir.Log, "mpsync.bak"))
+        If IO.File.Exists(file) Then FileIO.FileSystem.RenameFile(file, "mpsync.bak")
+        Dim fhandle As System.IO.FileStream = IO.File.Open(file, IO.FileMode.OpenOrCreate)
+        fhandle.Close()
+
+        Dim mps As New MPSync_process
+        mps.MPSyncProcess()
 
     End Sub
 
@@ -75,7 +98,7 @@ Public Class MPSync_process
         If Not FileIO.FileSystem.FileExists(file) Then Return
 
         Dim i_method As Array = {"Propagate both additions and deletions", "Propagate additions only", "Propagate deletions only"}
-        Dim db_sync_value, thumbs_sync_value, databases, thumbs, watched_dbs, version As String
+        Dim db_sync_value, thumbs_sync_value, databases, thumbs, watched_dbs, objects, version As String
 
         ' get configuratin from XML file
         Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(file)
@@ -85,6 +108,7 @@ Public Class MPSync_process
             checked_thumbs = XMLreader.GetValueAsString("Plugin", "thumbs", True)
             p_Debug = XMLreader.GetValueAsString("Plugin", "debug", False)
             session = XMLreader.GetValueAsString("Plugin", "session ID", Nothing)
+            sync_type = XMLreader.GetValueAsString("Plugin", "sync type", "Triggers")
             check_watched = XMLreader.GetValueAsString("DB Settings", "watched", False)
 
             _db_client = XMLreader.GetValueAsString("DB Path", "client", Nothing)
@@ -97,6 +121,7 @@ Public Class MPSync_process
             _db_pause = XMLreader.GetValueAsString("DB Settings", "pause while playing", False)
             databases = XMLreader.GetValueAsString("DB Settings", "databases", Nothing)
             watched_dbs = XMLreader.GetValueAsString("DB Settings", "watched databases", Nothing)
+            objects = XMLreader.GetValueAsString("DB Settings", "objects", Nothing)
 
             _thumbs_client = XMLreader.GetValueAsString("Thumbs Path", "client", Nothing)
             _thumbs_server = XMLreader.GetValueAsString("Thumbs Path", "server", Nothing)
@@ -123,6 +148,55 @@ Public Class MPSync_process
             End Using
         End If
 
+        ' write settings to log file
+        If checked_databases Then
+            Select Case _db_direction
+                Case 0
+                    logStats("MPSync: DB - " & _db_client & " <-> " & _db_server, "INFO")
+                Case 1
+                    logStats("MPSync: DB - " & _db_client & " --> " & _db_server, "INFO")
+                Case 2
+                    logStats("MPSync: DB - " & _db_client & " <-- " & _db_server, "INFO")
+            End Select
+            logStats("MPSync: DB synchronization method - " & i_method(_db_sync_method), "INFO")
+            If databases = Nothing Then
+                logStats("MPSync: DBs selected - ALL", "INFO")
+            Else
+                logStats("MPSync: DBs selected - " & databases, "INFO")
+            End If
+            If check_watched Then
+                If watched_dbs = Nothing Then
+                    logStats("MPSync: watched/resume selected for ALL", "INFO")
+                Else
+                    logStats("MPSync: watched/resume selected for " & watched_dbs, "INFO")
+                End If
+            Else
+                logStats("MPSync: watched/resume not selected", "INFO")
+            End If
+            If objects = Nothing Then
+                logStats("MPSync: Objects selected - ALL", "INFO")
+            Else
+                logStats("MPSync: Objects selected - " & objects, "INFO")
+            End If
+        End If
+
+        If checked_thumbs Then
+            Select Case _thumbs_direction
+                Case 0
+                    logStats("MPSync: THUMBS - " & _thumbs_client & " <-> " & _thumbs_server, "INFO")
+                Case 1
+                    logStats("MPSync: THUMBS - " & _thumbs_client & " --> " & _thumbs_server, "INFO")
+                Case 2
+                    logStats("MPSync: THUMBS - " & _thumbs_client & " <-- " & _thumbs_server, "INFO")
+            End Select
+            logStats("MPSync: THUMBS synchronization method - " & i_method(_thumbs_sync_method), "INFO")
+            If thumbs = Nothing Then
+                logStats("MPSync: THUMBS selected - ALL", "INFO")
+            Else
+                logStats("MPSync: THUMBS selected - " & thumbs, "INFO")
+            End If
+        End If
+
         If _db_client <> Nothing And _db_server <> Nothing And checked_databases Then
 
             ' get list of databases to synchronise
@@ -138,6 +212,14 @@ Public Class MPSync_process
                 _watched_dbs = Split(watched_dbs, "|")
             Else
                 _watched_dbs = mps.getDatabase
+            End If
+
+            ' get list of objects to copy
+            If objects <> Nothing Then
+                _objects = Split(objects, "|")
+            Else
+                ReDim _objects(0)
+                _objects(0) = "ALL"
             End If
 
             ' calculate actual sync periodicity in seconds
@@ -156,129 +238,72 @@ Public Class MPSync_process
                 getDBInfo(_db_server, _db_client)
             End If
 
-            ' create the required work files and triggers to handle watched status synchronization
-            If check_watched Then
-                For x As Integer = 0 To UBound(_watched_dbs)
-                    Create_Work_Tables(_db_client, _watched_dbs(x))
-                    Create_Work_Tables(_db_server, _watched_dbs(x))
-                    If _db_direction <> 1 Then
-                        Create_Triggers(_db_client, _watched_dbs(x))
-                    Else
-                        Drop_Triggers(_db_client, _watched_dbs(x))
-                    End If
-                Next
-            Else
-                For x As Integer = 0 To UBound(_watched_dbs)
-                    Drop_Work_Tables(_db_client, _watched_dbs(x))
-                    Drop_Triggers(_db_client, _watched_dbs(x))
-                Next
+            ' create the required work files and triggers to handle watched status & synchronization
+            If _db_direction = 1 Then
+                checkTriggers("client>server")
+            ElseIf _db_direction = 2 Then
+                checkTriggers("server>client")
             End If
 
         End If
 
-            If _thumbs_client <> Nothing And _thumbs_server <> Nothing And checked_thumbs Then
+        If _thumbs_client <> Nothing And _thumbs_server <> Nothing And checked_thumbs Then
 
-                ' get list of thumbs to synchronise
-                If thumbs <> Nothing Then
-                    _thumbs = Split(thumbs, "|")
-                Else
-                    ReDim _thumbs(0)
-                    _thumbs(0) = "ALL"
-                End If
-
-                ' calculate actual sync periodicity in seconds
-                If thumbs_sync_value = "minutes" Then
-                    _thumbs_sync = _thumbs_sync * 60
-                ElseIf thumbs_sync_value = "hours" Then
-                    _thumbs_sync = _thumbs_sync * 3600
-                End If
-
-                ' check that both paths end with a "\"
-                If InStrRev(_thumbs_client, "\") <> Len(_thumbs_client) Then _thumbs_client = Trim(_thumbs_client) & "\"
-                If InStrRev(_thumbs_server, "\") <> Len(_thumbs_server) Then _thumbs_server = Trim(_thumbs_server) & "\"
-
-            End If
-
-            ' write settings to log file
-            If checked_databases Then
-                Select Case _db_direction
-                    Case 0
-                        logStats("MPSync: DB - " & _db_client & " <-> " & _db_server, "INFO")
-                    Case 1
-                        logStats("MPSync: DB - " & _db_client & " --> " & _db_server, "INFO")
-                    Case 2
-                        logStats("MPSync: DB - " & _db_client & " <-- " & _db_server, "INFO")
-                End Select
-                logStats("MPSync: DB synchronization method - " & i_method(_db_sync_method), "INFO")
-                If databases = Nothing Then
-                    logStats("MPSync: DBs selected - ALL", "INFO")
-                Else
-                    logStats("MPSync: DBs selected - " & databases, "INFO")
-                End If
-                If check_watched Then
-                    If watched_dbs = Nothing Then
-                        logStats("MPSync: watched/resume selected for ALL", "INFO")
-                    Else
-                        logStats("MPSync: watched/resume selected for " & watched_dbs, "INFO")
-                    End If
-                Else
-                    logStats("MPSync: watched/resume not selected", "INFO")
-                End If
-            End If
-
-            If checked_thumbs Then
-                Select Case _thumbs_direction
-                    Case 0
-                        logStats("MPSync: THUMBS - " & _thumbs_client & " <-> " & _thumbs_server, "INFO")
-                    Case 1
-                        logStats("MPSync: THUMBS - " & _thumbs_client & " --> " & _thumbs_server, "INFO")
-                    Case 2
-                        logStats("MPSync: THUMBS - " & _thumbs_client & " <-- " & _thumbs_server, "INFO")
-                End Select
-                logStats("MPSync: THUMBS synchronization method - " & i_method(_thumbs_sync_method), "INFO")
-                If thumbs = Nothing Then
-                    logStats("MPSync: THUMBS selected - ALL", "INFO")
-                Else
-                    logStats("MPSync: THUMBS selected - " & thumbs, "INFO")
-                End If
-            End If
-
-            If Not MPSync_settings.syncnow Then
-
-                If p_Debug Then logStats("MPSync: Immediate Synchronization started", "DEBUG")
-
-                Dim autoEvent As New AutoResetEvent(False)
-
-                ThreadPool.QueueUserWorkItem(AddressOf WorkMethod, autoEvent)
-
-                autoEvent.WaitOne()
-
+            ' get list of thumbs to synchronise
+            If thumbs <> Nothing Then
+                _thumbs = Split(thumbs, "|")
             Else
-                WorkMethod(Nothing)
+                ReDim _thumbs(0)
+                _thumbs(0) = "ALL"
             End If
+
+            ' calculate actual sync periodicity in seconds
+            If thumbs_sync_value = "minutes" Then
+                _thumbs_sync = _thumbs_sync * 60
+            ElseIf thumbs_sync_value = "hours" Then
+                _thumbs_sync = _thumbs_sync * 3600
+            End If
+
+            ' check that both paths end with a "\"
+            If InStrRev(_thumbs_client, "\") <> Len(_thumbs_client) Then _thumbs_client = Trim(_thumbs_client) & "\"
+            If InStrRev(_thumbs_server, "\") <> Len(_thumbs_server) Then _thumbs_server = Trim(_thumbs_server) & "\"
+
+        End If
+
+        If Not MPSync_settings.syncnow Then
+
+            If p_Debug Then logStats("MPSync: Immediate Synchronization started", "DEBUG")
+
+            Dim autoEvent As New AutoResetEvent(False)
+
+            ThreadPool.QueueUserWorkItem(AddressOf WorkMethod, autoEvent)
+
+            autoEvent.WaitOne()
+
+        Else
+            WorkMethod(Nothing)
+        End If
 
     End Sub
 
-    Private Function TableExist(ByVal path As String, ByVal database As String, ByVal table As String, Optional ByVal dropifempty As Boolean = False) As Boolean
+    Public Shared Function TableExist(ByVal path As String, ByVal database As String, ByVal table As String, Optional ByVal dropifempty As Boolean = False) As Boolean
 
         Dim SQLconnect As New SQLite.SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
         Dim SQLreader As SQLiteDataReader
         Dim exist As Boolean = False
 
-        SQLconnect.ConnectionString = "Data Source=" + path + database
+        SQLconnect.ConnectionString = "Data Source=" & path & database
+
+        If Not dropifempty Then SQLconnect.ConnectionString = SQLconnect.ConnectionString & ";Read Only=True;"
+
         SQLconnect.Open()
         SQLcommand = SQLconnect.CreateCommand
-        SQLcommand.CommandText = "SELECT name FROM sqlite_master WHERE type=""table"""
+        SQLcommand.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='" & table & "'"
         SQLreader = SQLcommand.ExecuteReader()
 
         While SQLreader.Read()
-
-            If SQLreader(0) = table Then
-                exist = True
-                Exit While
-            End If
-
+            exist = True
         End While
 
         SQLreader.Close()
@@ -310,7 +335,7 @@ Public Class MPSync_process
         Dim columns() As String = Nothing
         Dim x As Integer = 0
 
-        SQLconnect.ConnectionString = "Data Source=" & path & database
+        SQLconnect.ConnectionString = "Data Source=" & path & database & ";Read Only=True;"
         SQLconnect.Open()
         SQLcommand = SQLconnect.CreateCommand
         SQLcommand.CommandText = "PRAGMA table_info (" & table & ")"
@@ -342,42 +367,201 @@ Public Class MPSync_process
 
         Next
 
-        Return Left(f_list, Len(f_list) - 1)
+        If f_list <> Nothing Then f_list = Left(f_list, Len(f_list) - 1)
+
+        Return f_list
 
     End Function
 
     Private Sub getDBInfo(ByVal source As String, ByVal target As String)
 
         Dim x As Integer = 0
+        Dim check As String = Nothing
+        Dim bw_checkDB() As BackgroundWorker = Nothing
 
         For Each database As String In IO.Directory.GetFiles(source, "*.db3")
 
-            ReDim Preserve dbname(x)
-            ReDim Preserve dbinfo(x)
-            dbname(x) = IO.Path.GetFileName(database)
-            dbinfo(x) = My.Computer.FileSystem.GetFileInfo(database)
+            If _databases.Contains(IO.Path.GetFileName(database)) Or _databases.Contains("ALL") Then
 
-            If Not IO.File.Exists(target & dbname(x)) Then
-                IO.File.Copy(database, target & dbname(x), True)
-                Drop_Triggers(target, dbname(x))
+                ReDim Preserve dbname(x)
+                ReDim Preserve dbinfo(x)
+                dbname(x) = IO.Path.GetFileName(database)
+                dbinfo(x) = My.Computer.FileSystem.GetFileInfo(database)
+
+                ReDim Preserve bw_checkDB(x)
+                bw_checkDB(x) = New BackgroundWorker
+                bw_checkDB(x).WorkerSupportsCancellation = True
+                AddHandler bw_checkDB(x).DoWork, AddressOf bw_checkDB_worker
+
+                If Not bw_checkDB(x).IsBusy Then bw_checkDB(x).RunWorkerAsync(target & "|" & dbname(x) & "|" & database)
+                x += 1
+                bw_threads += 1
+
             End If
-
-            x += 1
-
         Next
+
+        Do While bw_threads > 0
+            wait(10, False)
+        Loop
 
     End Sub
 
-    Private Sub Create_Work_Tables(ByVal path As String, ByVal database As String)
+    Private Sub bw_checkDB_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
 
-        If p_Debug Then logStats("MPSync: Creating work table mpsync in database " & database, "DEBUG")
+        Dim check As String = "ok"
+        Dim parm() As String = Split(e.Argument, "|")
 
-        Dim SQLconnect As New SQLiteConnection()
-        Dim SQLcommand As SQLiteCommand
+        If IO.File.Exists(parm(0) & parm(1)) Then
+            Dim SQLconnect As New SQLiteConnection()
+            Dim SQLcommand As SQLiteCommand
+            Dim SQLreader As SQLiteDataReader = Nothing
+            SQLconnect.ConnectionString = "Data Source=" & parm(0) & parm(1)
+            SQLconnect.Open()
+            SQLcommand = SQLconnect.CreateCommand
+            SQLcommand.CommandText = "PRAGMA integrity_check;"
 
-        SQLconnect.ConnectionString = "Data Source=" & path & database
-        SQLconnect.Open()
-        SQLcommand = SQLconnect.CreateCommand
+            Try
+                SQLreader = SQLcommand.ExecuteReader()
+                check = SQLreader(0)
+            Catch ex As Exception
+                check = "error"
+            End Try
+
+            SQLconnect.Close()
+
+            If check <> "ok" Then IO.File.Delete(parm(0) & parm(1))
+
+        End If
+
+        If Not IO.File.Exists(parm(0) & parm(1)) Then
+            logStats("MPSync: Copying database " & parm(2) & " from source", "LOG")
+            IO.File.Copy(parm(2), parm(0) & parm(1), True)
+            Drop_Triggers(parm(0), parm(1), "mpsync_update|mpsync_watch")
+            check = "copied file from source"
+        End If
+
+        logStats("MPSync: Checking integrity of database " & parm(1) & " - Status: " & check, "LOG")
+
+        bw_threads -= 1
+
+    End Sub
+
+    Private Sub checkTriggers(ByVal mode As String)
+
+        Dim x As Integer
+        Dim bw_checkTriggers() As BackgroundWorker = Nothing
+
+        For x = 0 To UBound(_watched_dbs)
+
+            ReDim Preserve bw_checkTriggers(x)
+            bw_checkTriggers(x) = New BackgroundWorker
+            bw_checkTriggers(x).WorkerSupportsCancellation = True
+            AddHandler bw_checkTriggers(x).DoWork, AddressOf bw_watchtriggers_worker
+
+            If check_watched Then
+                If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("ADD|" & _watched_dbs(x))
+            Else
+                If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("DROP|" & _watched_dbs(x))
+            End If
+
+            bw_threads += 1
+
+        Next
+
+        If sync_type = "Triggers" Then
+            ' create remaining triggers to handle synchronization
+
+            If mode = "client>server" Then
+                For Each database As String In IO.Directory.GetFiles(_db_client, "*.db3")
+                    If _databases.Contains(IO.Path.GetFileName(database)) Or _databases.Contains("ALL") Then
+
+                        ReDim Preserve bw_checkTriggers(x)
+                        bw_checkTriggers(x) = New BackgroundWorker
+                        bw_checkTriggers(x).WorkerSupportsCancellation = True
+                        AddHandler bw_checkTriggers(x).DoWork, AddressOf bw_worktriggers_worker
+
+                        If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("ADD|" & database)
+                        x += 1
+                        bw_threads += 1
+
+                    End If
+                Next
+            End If
+
+            For Each database As String In IO.Directory.GetFiles(_db_server, "*.db3")
+                If _databases.Contains(IO.Path.GetFileName(database)) Or _databases.Contains("ALL") Then
+
+                    ReDim Preserve bw_checkTriggers(x)
+                    bw_checkTriggers(x) = New BackgroundWorker
+                    bw_checkTriggers(x).WorkerSupportsCancellation = True
+                    AddHandler bw_checkTriggers(x).DoWork, AddressOf bw_worktriggers_worker
+
+                    If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("ADD|" & database)
+                    x += 1
+                    bw_threads += 1
+
+                End If
+            Next
+        End If
+
+        ' remove triggers from local, if any
+        If sync_type = "Timestamp" Or mode = "server>client" Then
+            For Each database As String In IO.Directory.GetFiles(_db_client, "*.db3")
+
+                ReDim Preserve bw_checkTriggers(x)
+                bw_checkTriggers(x) = New BackgroundWorker
+                bw_checkTriggers(x).WorkerSupportsCancellation = True
+                AddHandler bw_checkTriggers(x).DoWork, AddressOf bw_worktriggers_worker
+
+                If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("DROP|" & database)
+                x += 1
+                bw_threads += 1
+
+            Next
+        End If
+
+        Do While bw_threads > 0
+            wait(10, False)
+        Loop
+
+    End Sub
+
+    Private Sub bw_watchtriggers_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
+
+        Dim parm() As String = Split(e.Argument, "|")
+
+        If parm(0) = "ADD" Then
+            Create_Watch_Tables(_db_client, parm(1))
+            Create_Watch_Tables(_db_server, parm(1))
+            Drop_Triggers(_db_client, parm(1), "mpsync_update|mpsync_watch")
+            If _db_direction <> 1 Then
+                Create_Watch_Triggers(_db_client, parm(1))
+            End If
+        ElseIf parm(0) = "DROP" Then
+            Drop_Watch_Tables(_db_client, parm(1))
+            Drop_Triggers(_db_client, parm(1), "mpsync_update|mpsync_watch")
+        End If
+
+        bw_threads -= 1
+
+    End Sub
+
+    Private Sub bw_worktriggers_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
+
+        Dim parm() As String = Split(e.Argument, "|")
+
+        If parm(0) = "DROP" Then Drop_Triggers(IO.Path.GetDirectoryName(parm(1)) & "\", IO.Path.GetFileName(parm(1)), "mpsync_work")
+        If parm(0) = "ADD" Then Create_Sync_Triggers(parm(1))
+
+        bw_threads -= 1
+
+    End Sub
+
+    Private Sub Create_Watch_Tables(ByVal path As String, ByVal database As String)
+
+        If Not IO.File.Exists(path & database) Then Exit Sub
+
+        logStats("MPSync: Creating/altering work table mpsync in database " & path & database, "LOG")
 
         Dim SQL As String = Nothing
 
@@ -407,31 +591,78 @@ Public Class MPSync_process
             End Select
 
         Else
-            If FieldExist(path, database, "mpsync", "mps_session") = False Then SQL = "ALTER TABLE mpsync ADD COLUMN mps_session TEXT"
+            If FieldExist(path, database, "mpsync", "mps_session") = False Then SQL = "ALTER TABLE mpsync ADD COLUMN mps_session TEXT;"
 
-            If database = mps.i_watched(0).database Then
-                If FieldExist(path, database, "mpsync", "alternatecovers") = False Then SQL = "ALTER TABLE mpsync ADD COLUMN alternatecovers TEXT"
-                If FieldExist(path, database, "mpsync", "coverfullpath") = False Then SQL = "ALTER TABLE mpsync ADD COLUMN coverfullpath TEXT"
-                If FieldExist(path, database, "mpsync", "coverthumbfullpath") = False Then SQL = "ALTER TABLE mpsync ADD COLUMN coverthumbfullpath TEXT"
-            End If
+            Select Case database
+
+                Case mps.i_watched(0).database
+                    If FieldExist(path, database, "mpsync", "id") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN id INTEGER;"
+                    If FieldExist(path, database, "mpsync", "user") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN user TEXT;"
+                    If FieldExist(path, database, "mpsync", "user_rating") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN user_rating TEXT;"
+                    If FieldExist(path, database, "mpsync", "watched") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN watched INTEGER;"
+                    If FieldExist(path, database, "mpsync", "resume_part") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN resume_part INTEGER;"
+                    If FieldExist(path, database, "mpsync", "resume_data") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN resume_data TEXT;"
+                    If FieldExist(path, database, "mpsync", "alternatecovers") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN alternatecovers TEXT;"
+                    If FieldExist(path, database, "mpsync", "coverfullpath") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN coverfullpath TEXT;"
+                    If FieldExist(path, database, "mpsync", "coverthumbfullpath") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN coverthumbfullpath TEXT;"
+                Case mps.i_watched(1).database
+                    If FieldExist(path, database, "mpsync", "idTrack") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN idTrack INTEGER;"
+                    If FieldExist(path, database, "mpsync", "iResumeAt") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN iResumeAt INTEGER;"
+                    If FieldExist(path, database, "mpsync", "dateLastPlayed") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN dateLastPlayed TEXT;"
+                Case mps.i_watched(2).database
+                    If FieldExist(path, database, "mpsync", "CompositeID") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN CompositeID TEXT;"
+                    If FieldExist(path, database, "mpsync", "id") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN id INTEGER;"
+                    If FieldExist(path, database, "mpsync", "EpisodeFilename") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN EpisoideFilename TEXT;"
+                    If FieldExist(path, database, "mpsync", "watched") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN watched INTEGER;"
+                    If FieldExist(path, database, "mpsync", "myRating") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN myRating TEXT;"
+                    If FieldExist(path, database, "mpsync", "StopTime") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN StopTime TEXT;"
+                    If FieldExist(path, database, "mpsync", "DateWatched") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN DateWatched TEXT;"
+                    If FieldExist(path, database, "mpsync", "WatchedFileTimeStamp") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN WatchedFileTimeStamp INTEGER;"
+                    If FieldExist(path, database, "mpsync", "UnwatchedItems") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN UnwatchedItems INTEGER;"
+                    If FieldExist(path, database, "mpsync", "EpisodesUnWatched") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN EpisodesUnWatched INTEGER;"
+                Case mps.i_watched(3).database
+                    If FieldExist(path, database, "mpsync", "idMovie") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN idMovie INTEGER;"
+                    If FieldExist(path, database, "mpsync", "watched") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN watched BOOL;"
+                    If FieldExist(path, database, "mpsync", "timeswatched") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN timeswatched INTEGER;"
+                    If FieldExist(path, database, "mpsync", "iwatchedPercent") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN iwatchedPercent INTEGER;"
+                    If FieldExist(path, database, "mpsync", "idResume") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN idResume INTEGER;"
+                    If FieldExist(path, database, "mpsync", "idFile") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN idFile INTEGER;"
+                    If FieldExist(path, database, "mpsync", "stoptime") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN stoptime INTEGER;"
+                    If FieldExist(path, database, "mpsync", "resumeData") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN resumeData BLOOB;"
+                    If FieldExist(path, database, "mpsync", "idBookmark") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN idBookmark INTEGER;"
+                    If FieldExist(path, database, "mpsync", "fPercentage") = False Then SQL = SQL & "ALTER TABLE mpsync ADD COLUMN fPercentage TEXT;"
+
+            End Select
+
         End If
 
         If SQL <> Nothing Then
+
+            Dim SQLconnect As New SQLiteConnection()
+            Dim SQLcommand As SQLiteCommand
+
+            SQLconnect.ConnectionString = "Data Source=" & path & database
+            SQLconnect.Open()
+            SQLcommand = SQLconnect.CreateCommand
+
             Try
                 SQLcommand.CommandText = SQL
                 SQLcommand.ExecuteNonQuery()
             Catch ex As Exception
-                logStats("MPSync: Error executing " & SQL, "ERROR")
+                logStats("MPSync: Error executing '" & SQLcommand.CommandText & "' on database " & database, "ERROR")
             End Try
-        End If
 
-        SQLconnect.Close()
+            SQLconnect.Close()
+
+        End If
 
     End Sub
 
-    Private Sub Drop_Work_Tables(ByVal path As String, ByVal database As String)
+    Private Sub Drop_Watch_Tables(ByVal path As String, ByVal database As String)
 
-        If p_Debug Then logStats("MPSync: Dropping work table mpsync in database " & database, "DEBUG")
+        If Not IO.File.Exists(path & database) Then Exit Sub
+
+        If p_Debug Then logStats("MPSync: Drop work table mpsync from database " & database, "DEBUG")
 
         Dim SQLconnect As New SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
@@ -444,157 +675,168 @@ Public Class MPSync_process
             SQLcommand.CommandText = "DROP TABLE IF EXISTS mpsync"
             SQLcommand.ExecuteNonQuery()
         Catch ex As Exception
-            logStats("MPSync: Error executing 'DROP TABLE IF EXISTS mpsync'", "ERROR")
+            logStats("MPSync: Error executing '" & SQLcommand.CommandText & "' from database " & database, "ERROR")
         End Try
 
         SQLconnect.Close()
 
     End Sub
 
-    Private Sub Create_Triggers(ByVal path As String, ByVal database As String)
+    Private Sub Create_Watch_Triggers(ByVal path As String, ByVal database As String)
 
-        If p_Debug Then logStats("MPSync: Creating triggers in database " & database, "DEBUG")
+        If Not IO.File.Exists(path & database) Then Exit Sub
+
+        logStats("MPSync: Creating triggers in database " & database, "LOG")
+
+        Dim SQL As String = Nothing
+        Dim tables() As String = Nothing
+        Dim keys() As String = Nothing
+        Dim fields() As fieldnames = Nothing
+        Dim tblflds As String = Nothing
+        Dim newflds As String = Nothing
+
+        Select Case database
+
+            Case mps.i_watched(0).database
+                ReDim tables(1), keys(1), fields(1)
+
+                tables(0) = "user_movie_settings"
+                keys(0) = "id"
+                fields(0).names = {"id", "user", "user_rating", "watched", "resume_part", "resume_time", "resume_data"}
+
+                tables(1) = "movie_info"
+                keys(1) = "id"
+                fields(1).names = {"id", "alternatecovers", "coverfullpath", "coverthumbfullpath"}
+
+            Case mps.i_watched(1).database
+                ReDim tables(0), keys(0), fields(0)
+
+                tables(0) = "tracks"
+                keys(0) = "idTrack"
+                fields(0).names = {"idTrack", "iResumeAt", "dateLastPlayed"}
+
+            Case mps.i_watched(2).database
+                ReDim tables(3), keys(3), fields(3)
+
+                tables(0) = "local_episodes"
+                keys(0) = "EpisodeFilename"
+                fields(0).names = {"EpisodeFilename", "CompositeID", "DateWatched", "StopTime"}
+
+                tables(1) = "online_episodes"
+                keys(1) = "CompositeID"
+                fields(1).names = {"CompositeID", "watched", "myRating"}
+
+                tables(2) = "online_series"
+                keys(2) = "id"
+                fields(2).names = {"ID", "WatchedFileTimeStamp", "UnwatchedItems", "EpisodesUnWatched"}
+
+                tables(3) = "season"
+                keys(3) = "id"
+                fields(3).names = {"ID", "UnwatchedItems", "EpisodesUnWatched"}
+
+            Case mps.i_watched(3).database
+                ReDim tables(2), keys(2), fields(2)
+
+                tables(0) = "movie"
+                keys(0) = "idMovie"
+                fields(0).names = {"idMovie", "watched", "timeswatched", "iwatchedPercent"}
+
+                tables(1) = "resume"
+                keys(1) = "idResume"
+                fields(1).names = {"idResume", "idFile", "stoptime", "resumeData"}
+
+                tables(2) = "bookmark"
+                keys(2) = "idResume"
+                fields(2).names = {"idBookMark", "idFile", "fPercentage"}
+
+        End Select
+
+        ' build the SQL statement for the creation of the respective triggers
+
+        For x As Integer = 0 To UBound(tables)
+
+            If tables(x) <> Nothing Then
+
+                If TableExist(path, database, tables(x)) Then
+
+                    tblflds = FieldList(path, database, tables(x), fields(x).names)
+
+                    If tblflds <> Nothing Then
+                        newflds = FieldList(path, database, tables(x), fields(x).names, "new.")
+
+                        SQL = SQL & "CREATE TRIGGER IF NOT EXISTS mpsync_watch_" & tables(x) & " " & _
+                              "AFTER UPDATE OF " & tblflds & " ON " & tables(x) & " " & _
+                              "BEGIN " & _
+                              "DELETE FROM mpsync WHERE tablename='" & tables(x) & "' AND mps_session='" & session & "' AND " & keys(x) & "=new." & keys(x) & "; " & _
+                              "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds & ") " & _
+                              "VALUES('" & tables(x) & "',datetime('now','localtime'),'" & session & "'," & newflds & "); " & _
+                              "END; "
+                    End If
+                End If
+            End If
+        Next
+
+        If SQL <> Nothing Then
+
+            Dim SQLconnect As New SQLiteConnection()
+            Dim SQLcommand As SQLiteCommand
+
+            SQLconnect.ConnectionString = "Data Source=" & path & database
+            SQLconnect.Open()
+            SQLcommand = SQLconnect.CreateCommand
+
+            Try
+                SQLcommand.CommandText = SQL
+                SQLcommand.ExecuteNonQuery()
+            Catch ex As Exception
+                logStats("MPSync: Error executing '" & SQLcommand.CommandText & " on database " & database, "ERROR")
+            End Try
+
+            SQLconnect.Close()
+
+        End If
+
+    End Sub
+
+    Private Sub Drop_Triggers(ByVal path As String, ByVal database As String, ByVal searchpattern As String, Optional ByVal table As String = Nothing)
+
+        If Not IO.File.Exists(path & database) Then Exit Sub
+
+        If p_Debug Then logStats("MPSync: Drop triggers in database " & database, "DEBUG")
+
+        Dim SQL As String = Nothing
+        Dim pattern() As String = Split(searchpattern, "|")
 
         Dim SQLconnect As New SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
+        Dim SQLreader As SQLiteDataReader
 
         SQLconnect.ConnectionString = "Data Source=" & path & database
         SQLconnect.Open()
         SQLcommand = SQLconnect.CreateCommand
 
-        Dim SQL As String = Nothing
-        Dim fields1, fields2, fields3, fields4 As Array
-        Dim tblflds1, tblflds2, tblflds3, tblflds4 As String
-        Dim newflds1, newflds2, newflds3, newflds4 As String
+        If table = Nothing Then
+            SQLcommand.CommandText = "SELECT name FROM sqlite_master WHERE type='trigger'"
+        Else
+            SQLcommand.CommandText = "SELECT name FROM sqlite_master WHERE type='trigger' and tbl_name='" & table & "'"
+        End If
 
-        Select Case database
+        SQLreader = SQLcommand.ExecuteReader()
 
-            Case mps.i_watched(0).database
-                fields1 = {"id", "user", "user_rating", "watched", "resume_part", "resume_time", "resume_data"}
-                tblflds1 = FieldList(path, database, "user_movie_settings", fields1)
-                newflds1 = FieldList(path, database, "user_movie_settings", fields1, "new.")
-                fields2 = {"id", "alternatecovers", "coverfullpath", "coverthumbfullpath"}
-                tblflds2 = FieldList(path, database, "movie_info", fields2)
-                newflds2 = FieldList(path, database, "movie_info", fields2, "new.")
+        While SQLreader.Read()
+            For x As Integer = 0 To UBound(pattern)
+                If Left(SQLreader(0), Len(pattern(x))) = pattern(x) Then SQL = SQL & "DROP TRIGGER " & SQLreader(0) & "; "
+            Next
+        End While
 
-                SQL = "DROP TRIGGER IF EXISTS mpsync_update; " & _
-                      "CREATE TRIGGER mpsync_update " & _
-                      "AFTER UPDATE OF " & tblflds1 & " ON user_movie_settings " & _
-                      "BEGIN " & _
-                      "DELETE FROM mpsync WHERE tablename='user_movie_settings' AND mps_session='" & session & "' AND id=new.id; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
-                      "VALUES('user_movie_settings',datetime('now','localtime'),'" & session & "'," & newflds1 & "); " & _
-                      "END; " & _
-                      "DROP TRIGGER IF EXISTS mpsync_update2; " & _
-                      "CREATE TRIGGER mpsync_update2 " & _
-                      "AFTER UPDATE OF " & tblflds2 & " ON movie_info " & _
-                      "BEGIN " & _
-                      "DELETE FROM mpsync WHERE tablename='movie_info' AND mps_session='" & session & "' AND id=new.id; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds2 & ") " & _
-                      "VALUES('movie_info',datetime('now','localtime'),'" & session & "'," & newflds2 & "); " & _
-                      "END"
-            Case mps.i_watched(1).database
-                fields1 = {"idTrack", "iResumeAt", "dateLastPlayed"}
-                tblflds1 = FieldList(path, database, "tracks", fields1)
-                newflds1 = FieldList(path, database, "tracks", fields1, "new.")
-
-                SQL = "DROP TRIGGER IF EXISTS mpsync_update; " & _
-                      "CREATE TRIGGER mpsync_update " & _
-                      "AFTER UPDATE OF " & tblflds1 & " ON tracks " & _
-                      "BEGIN " & _
-                      "DELETE FROM mpsync WHERE tablename='tracks' AND mps_session='" & session & "' AND idTrack=new.idTrack; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
-                      "VALUES('tracks',datetime('now','localtime'),'" & session & "'," & newflds1 & "); " & _
-                      "END"
-            Case mps.i_watched(2).database
-                fields1 = {"EpisodeFilename", "CompositeID", "DateWatched", "StopTime"}
-                tblflds1 = FieldList(path, database, "local_episodes", fields1)
-                newflds1 = FieldList(path, database, "local_episodes", fields1, "new.")
-                fields2 = {"CompositeID", "watched", "myRating"}
-                tblflds2 = FieldList(path, database, "online_episodes", fields2)
-                newflds2 = FieldList(path, database, "online_episodes", fields2, "new.")
-                fields3 = {"ID", "WatchedFileTimeStamp", "UnwatchedItems", "EpisodesUnWatched"}
-                tblflds3 = FieldList(path, database, "online_series", fields3)
-                newflds3 = FieldList(path, database, "online_series", fields3, "new.")
-                fields4 = {"ID", "UnwatchedItems", "EpisodesUnWatched"}
-                tblflds4 = FieldList(path, database, "season", fields4)
-                newflds4 = FieldList(path, database, "season", fields4, "new.")
-
-                SQL = "DROP TRIGGER IF EXISTS mpsync_update1; " & _
-                      "CREATE TRIGGER mpsync_update1 " & _
-                      "AFTER UPDATE OF " & tblflds1 & " ON local_episodes " & _
-                      "BEGIN  " & _
-                      "DELETE FROM mpsync WHERE tablename='local_episodes' AND mps_session='" & session & "' AND EpisodeFilename=new.EpisodeFilename; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
-                      "VALUES('local_episodes',datetime('now','localtime'),'" & session & "'," & newflds1 & "); " & _
-                      "END; " & _
-                      "DROP TRIGGER IF EXISTS mpsync_update2; " & _
-                      "CREATE TRIGGER mpsync_update2 " & _
-                      "AFTER UPDATE OF " & tblflds2 & " ON online_episodes " & _
-                      "BEGIN " & _
-                      "DELETE FROM mpsync WHERE tablename='online_episodes' AND mps_session='" & session & "' AND CompositeID=new.CompositeID; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds2 & ") " & _
-                      "VALUES('online_episodes',datetime('now','localtime'),'" & session & "'," & newflds2 & "); " & _
-                      "END; " & _
-                      "DROP TRIGGER IF EXISTS mpsync_update3; " & _
-                      "CREATE TRIGGER mpsync_update3 " & _
-                      "AFTER UPDATE OF " & tblflds3 & " ON online_series " & _
-                      "BEGIN " & _
-                      "DELETE FROM mpsync WHERE tablename='online_series' AND mps_session='" & session & "' AND ID=new.ID; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds3 & ") " & _
-                      "VALUES('online_series',datetime('now','localtime'),'" & session & "'," & newflds3 & "); " & _
-                      "END; " & _
-                      "DROP TRIGGER IF EXISTS mpsync_update4; " & _
-                      "CREATE TRIGGER mpsync_update4 " & _
-                      "AFTER UPDATE OF " & tblflds4 & " ON season " & _
-                      "BEGIN " & _
-                      "DELETE FROM mpsync WHERE tablename='season' AND mps_session='" & session & "' AND ID=new.ID; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds4 & ") " & _
-                      "VALUES('season',datetime('now','localtime'),'" & session & "'," & newflds4 & "); " & _
-                      "END"
-            Case mps.i_watched(3).database
-                fields1 = {"idMovie", "watched", "timeswatched", "iwatchedPercent"}
-                tblflds1 = FieldList(path, database, "movie", fields1)
-                newflds1 = FieldList(path, database, "movie", fields1, "new.")
-                fields2 = {"idResume", "idFile", "stoptime", "resumeData"}
-                tblflds2 = FieldList(path, database, "resume", fields2)
-                newflds2 = FieldList(path, database, "resume", fields2, "new.")
-                fields3 = {"idBookMark", "idFile", "fPercentage"}
-                tblflds3 = FieldList(path, database, "bookmark", fields3)
-                newflds3 = FieldList(path, database, "bookmark", fields3, "new.")
-
-                SQL = "DROP TRIGGER IF EXISTS mpsync_update1; " & _
-                      "CREATE TRIGGER mpsync_update1 " & _
-                      "AFTER UPDATE OF " & tblflds1 & " ON movie " & _
-                      "BEGIN  " & _
-                      "DELETE FROM mpsync WHERE tablename='movie' AND mps_session='" & session & "' AND idMovie=new.idMovie; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds1 & ") " & _
-                      "VALUES('movie',datetime('now','localtime'),'" & session & "'," & newflds1 & "); " & _
-                      "END; " & _
-                      "DROP TRIGGER IF EXISTS mpsync_update2; " & _
-                      "CREATE TRIGGER mpsync_update2 " & _
-                      "AFTER UPDATE OF " & tblflds2 & " ON resume " & _
-                      "BEGIN " & _
-                      "DELETE FROM mpsync WHERE tablename='resume' AND mps_session='" & session & "' AND idResume=new.idResume; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds2 & ") " & _
-                      "VALUES('resume',datetime('now','localtime'),'" & session & "'," & newflds2 & "); " & _
-                      "END; " & _
-                      "DROP TRIGGER IF EXISTS mpsync_update3; " & _
-                      "CREATE TRIGGER mpsync_update3 " & _
-                      "AFTER UPDATE OF " & tblflds3 & " ON bookmark " & _
-                      "BEGIN " & _
-                      "DELETE FROM mpsync WHERE tablename='bookmark' AND mps_session='" & session & "' AND idResume=new.idResume; " & _
-                      "INSERT OR REPLACE INTO mpsync(tablename,mps_lastupdated,mps_session," & tblflds3 & ") " & _
-                      "VALUES('bookmark',datetime('now','localtime'),'" & session & "'," & newflds3 & "); " & _
-                      "END"
-        End Select
+        SQLreader.Close()
 
         If SQL <> Nothing Then
             Try
                 SQLcommand.CommandText = SQL
                 SQLcommand.ExecuteNonQuery()
             Catch ex As Exception
-                logStats("MPSync: Error executing " & SQL, "ERROR")
+                logStats("MPSync: Error executing '" & SQLcommand.CommandText & "' on database " & database, "ERROR")
             End Try
         End If
 
@@ -602,45 +844,146 @@ Public Class MPSync_process
 
     End Sub
 
-    Private Sub Drop_Triggers(ByVal path As String, ByVal database As String)
+    Private Sub Create_Sync_Triggers(ByVal database As String)
 
-        If p_Debug Then logStats("MPSync: Dropping triggers in database " & database, "DEBUG")
+        If p_Debug Then logStats("MPSync: Check synchronization triggers in database " & database, "DEBUG")
+
+        Dim x As Integer = -1
+        Dim table() As String = Nothing
+        Dim trigger() As String = Nothing
+        Dim SQL() As String = Nothing
+        Dim d_SQL, u_SQL, i_SQL As String
+        Dim omit As Array = {"mpsync", "mpsync_trigger", "sqlite_sequence", "sqlite_stat1", "sqlite_stat2"}
 
         Dim SQLconnect As New SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
+        Dim SQLreader As SQLiteDataReader
 
-        SQLconnect.ConnectionString = "Data Source=" & path & database
+        SQLconnect.ConnectionString = "Data Source=" & database
         SQLconnect.Open()
         SQLcommand = SQLconnect.CreateCommand
+        SQLcommand.CommandText = "SELECT name FROM sqlite_master WHERE type='table'"
+        SQLreader = SQLcommand.ExecuteReader()
 
-        Dim SQL As String = Nothing
+        While SQLreader.Read()
 
-        Select Case database
+            If Array.IndexOf(omit, SQLreader(0)) = -1 Then
+                x += 1
+                ReDim Preserve table(x)
+                table(x) = SQLreader(0)
+            End If
 
-            Case mps.i_watched(0).database
-                SQL = "DROP TRIGGER IF EXISTS mpsync_update; " & _
-                      "DROP TRIGGER IF EXISTS mpsync_update2"
-            Case mps.i_watched(1).database
-                SQL = "DROP TRIGGER IF EXISTS mpsync_update"
-            Case mps.i_watched(2).database
-                SQL = "DROP TRIGGER IF EXISTS mpsync_update1; " & _
-                      "DROP TRIGGER IF EXISTS mpsync_update2; " & _
-                      "DROP TRIGGER IF EXISTS mpsync_update3; " & _
-                      "DROP TRIGGER IF EXISTS mpsync_update4"
-            Case mps.i_watched(3).database
-                SQL = "DROP TRIGGER IF EXISTS mpsync_update1; " & _
-                      "DROP TRIGGER IF EXISTS mpsync_update2; " & _
-                      "DROP TRIGGER IF EXISTS mpsync_update3"
-        End Select
+        End While
 
-        If SQL <> Nothing Then
+        SQLreader.Close()
+
+        If x = -1 Then
+            ReDim Preserve table(0)
+            table(0) = Nothing
+        End If
+
+        SQLcommand.CommandText = "SELECT sql FROM sqlite_master WHERE type='trigger'"
+        SQLreader = SQLcommand.ExecuteReader()
+
+        x = -1
+
+        While SQLreader.Read()
+
+            If Array.IndexOf(omit, SQLreader(0)) = -1 Then
+                x += 1
+                ReDim Preserve trigger(x)
+                trigger(x) = SQLreader(0)
+            End If
+
+        End While
+
+        SQLreader.Close()
+
+        If x = -1 Then
+            ReDim Preserve trigger(0)
+            trigger(0) = Nothing
+        End If
+
+        If TableExist(IO.Path.GetDirectoryName(database) & "\", IO.Path.GetFileName(database), "mpsync_trigger", True) = False Then
+
             Try
-                SQLcommand.CommandText = SQL
+                SQLcommand.CommandText = "CREATE TABLE IF NOT EXISTS mpsync_trigger (id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, lastupdated TEXT)"
                 SQLcommand.ExecuteNonQuery()
             Catch ex As Exception
-                logStats("MPSync: Error executing " & SQL, "ERROR")
+                logStats("MPSync: Error executing '" & SQLcommand.CommandText & " on database " & database, "ERROR")
             End Try
+
         End If
+
+        For x = 0 To UBound(table)
+
+            u_SQL = "CREATE TRIGGER mpsync_work_u_" & table(x) & " " & _
+                    "AFTER UPDATE ON " & table(x) & " " & _
+                    "BEGIN " & _
+                    "UPDATE mpsync_trigger SET lastupdated=datetime('now','localtime') WHERE tablename='" & table(x) & "'; " & _
+                    "INSERT INTO mpsync_trigger(tablename,lastupdated) " & _
+                    "SELECT '" & table(x) & "',datetime('now','localtime') " & _
+                    "WHERE NOT EXISTS (SELECT 1 FROM mpsync_trigger WHERE tablename = '" & table(x) & "' LIMIT 1); " & _
+                    "END"
+
+            i_SQL = "CREATE TRIGGER mpsync_work_i_" & table(x) & " " & _
+                    "AFTER INSERT ON " & table(x) & " " & _
+                    "BEGIN " & _
+                    "UPDATE mpsync_trigger SET lastupdated=datetime('now','localtime') WHERE tablename='" & table(x) & "'; " & _
+                    "INSERT INTO mpsync_trigger(tablename,lastupdated) " & _
+                    "SELECT '" & table(x) & "',datetime('now','localtime') " & _
+                    "WHERE NOT EXISTS (SELECT 1 FROM mpsync_trigger WHERE tablename = '" & table(x) & "' LIMIT 1); " & _
+                    "END"
+
+            d_SQL = "CREATE TRIGGER mpsync_work_d_" & table(x) & " " & _
+                    "AFTER DELETE ON " & table(x) & " " & _
+                    "BEGIN " & _
+                    "UPDATE mpsync_trigger SET lastupdated=datetime('now','localtime') WHERE tablename='" & table(x) & "'; " & _
+                    "INSERT INTO mpsync_trigger(tablename,lastupdated) " & _
+                    "SELECT '" & table(x) & "',datetime('now','localtime') " & _
+                    "WHERE NOT EXISTS (SELECT 1 FROM mpsync_trigger WHERE tablename = '" & table(x) & "' LIMIT 1); " & _
+                    "END"
+
+            If trigger.Contains(u_SQL) And trigger.Contains(i_SQL) And trigger.Contains(d_SQL) Then
+                u_SQL = Nothing
+                i_SQL = Nothing
+                d_SQL = Nothing
+            Else
+                u_SQL = u_SQL & "; "
+                i_SQL = i_SQL & "; "
+                d_SQL = d_SQL & "; "
+            End If
+
+            ReDim Preserve SQL(x)
+            SQL(x) = u_SQL & i_SQL & d_SQL
+
+        Next
+
+        SQLconnect.Close()
+
+        For x = 0 To UBound(SQL)
+            If SQL(x) <> Nothing Then Drop_Triggers(IO.Path.GetDirectoryName(database) & "\", IO.Path.GetFileName(database), "mpsync_work", table(x))
+        Next
+
+        SQLconnect.ConnectionString = "Data Source=" & database
+        SQLconnect.Open()
+
+        For x = 0 To UBound(SQL)
+
+            If SQL(x) <> Nothing Then
+
+                logStats("MPSync: Creating synchronization triggers on table " & table(x) & " in database " & database, "LOG")
+
+                Try
+                    SQLcommand.CommandText = SQL(x)
+                    SQLcommand.ExecuteNonQuery()
+                Catch ex As Exception
+                    logStats("MPSync: Error executing '" & SQLcommand.CommandText & " on table " & table(x) & " in database " & database & " with exception: " & ex.Message, "ERROR")
+                End Try
+
+            End If
+
+        Next
 
         SQLconnect.Close()
 

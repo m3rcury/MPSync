@@ -10,6 +10,7 @@ E:\Rudolph\Documents\Visual Studio 2010\Projects\MPSync\MPSync\obj\x86\Release\R
 E:\Rudolph\Documents\Visual Studio 2010\Projects\MPSync\MPSync\obj\x86\Release\MPSync.xml
 E:\Rudolph\Documents\Visual Studio 2010\Projects\MPSync\MPSync\obj\x86\Release\MPSync.pdb
 E:\Rudolph\Documents\Visual Studio 2010\Projects\MPSync\MPSync\bin\Release\System.Data.SQLite.dll
+E:\Rudolph\Documents\Visual Studio 2010\Projects\MPSync\MPSync\bin\Release\log4net.dll
 E:\Rudolph\Documents\Visual Studio 2010\Projects\MPSync\MPSync\bin\Release\MPSync.dll.config
 E:\Rudolph\Documents\Visual Studio 2010\Projects\MPSync\MPSync\bin\Release\MPSync.dll
 E:\Rudolph\Documents\Visual Studio 2010\Projects\MPSync\MPSync\obj\x86\Release\MPSync.dll

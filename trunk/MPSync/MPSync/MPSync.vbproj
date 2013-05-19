@@ -104,6 +104,9 @@
       <HintPath>C:\Program Files (x86)\Team MediaPortal\MediaPortal\Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="log4net">
+      <HintPath>C:\Program Files (x86)\Team MediaPortal\MediaPortal\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.SQLite, Version=1.0.84.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=x86">
@@ -206,9 +209,11 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\thumbs.jpg" />
     <EmbeddedResource Include="Resources\MPSync_disabled.png" />
     <EmbeddedResource Include="Resources\MPSync_enabled.png" />
     <Content Include="MPSync.ico" />
+    <None Include="Resources\database.png" />
     <Content Include="Resources\sync_both.png" />
     <Content Include="Resources\sync_master2slave.png" />
     <Content Include="Resources\sync_slave2master.png" />

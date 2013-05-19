@@ -60,6 +60,13 @@ Namespace My.Resources
             End Set
         End Property
         
+        Friend ReadOnly Property database() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("database", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
         Friend ReadOnly Property MPSync_disabled() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("MPSync_disabled", resourceCulture)
@@ -91,6 +98,13 @@ Namespace My.Resources
         Friend ReadOnly Property sync_slave2master() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("sync_slave2master", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+        
+        Friend ReadOnly Property thumbs() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("thumbs", resourceCulture)
                 Return CType(obj,System.Drawing.Bitmap)
             End Get
         End Property

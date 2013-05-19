@@ -1,6 +1,7 @@
 ﻿Imports MediaPortal.GUI.Library
 
 Imports System.ComponentModel
+Imports System.Security.Cryptography
 
 Public Class MPSync_process_Thumbs
 
@@ -13,6 +14,8 @@ Public Class MPSync_process_Thumbs
         Dim mps_thumbs As New MPSync_process_Thumbs
 
         Do
+
+            MPSync_process.logStats("MPSync: THUMBS synchronization cycle starting.", "LOG")
 
             mps_thumbs.debug = MPSync_process.p_Debug
 
@@ -27,6 +30,7 @@ Public Class MPSync_process_Thumbs
             End If
 
             If Not MPSync_settings.syncnow Then
+                MPSync_process.logStats("MPSync: THUMBS synchronization cycle complete.", "LOG")
                 MPSync_process.wait(MPSync_process._thumbs_sync, , "THUMBS")
             Else
                 MPSync_settings.thumbs_complete = True
@@ -66,15 +70,19 @@ Public Class MPSync_process_Thumbs
 
         x = -1
 
-        If debug Then MPSync_process.logStats("MPSync: Scanning folder " & source & " for thumbs", "DEBUG")
+        MPSync_process.logStats("MPSync: Scanning folder " & source & " for thumbs", "LOG")
 
-        For Each file As String In IO.Directory.GetFiles(source, "*.*", IO.SearchOption.AllDirectories)
+        Dim files() As String
+
+        files = IO.Directory.GetFiles(source, "*.*", IO.SearchOption.AllDirectories)
+
+        For Each file As String In files
             If InStr(Len(source) + 1, file, "\") > 0 Then
                 folder = Mid(file, Len(source) + 1, InStr(Len(source) + 1, file, "\") - Len(source) - 1)
                 If (MPSync_process._thumbs.Contains(folder) Or MPSync_process._thumbs.Contains("ALL")) And IO.Path.GetFileName(file) <> "Thumbs.db" Then
                     x += 1
                     ReDim Preserve s_thumbs(x)
-                    s_thumbs(x) = Right(file, Len(file) - Len(s_path))
+                    s_thumbs(x) = Right(file, Len(file) - Len(s_path)) & "|" & IO.File.GetLastWriteTimeUtc(file)
                 End If
             End If
         Next
@@ -82,19 +90,24 @@ Public Class MPSync_process_Thumbs
         If x = -1 Then
             ReDim s_thumbs(0)
             s_thumbs(0) = ""
+            x = 0
         End If
+
+        If debug Then MPSync_process.logStats("MPSync: " & x.ToString & " images found in folder " & source, "DEBUG")
 
         x = -1
 
-        If debug Then MPSync_process.logStats("MPSync: Scanning folder " & target & " for thumbs", "DEBUG")
+        MPSync_process.logStats("MPSync: Scanning folder " & target & " for thumbs", "LOG")
 
-        For Each file As String In IO.Directory.GetFiles(target, "*.*", IO.SearchOption.AllDirectories)
+        files = IO.Directory.GetFiles(target, "*.*", IO.SearchOption.AllDirectories)
+
+        For Each file As String In files
             If InStr(Len(target) + 1, file, "\") > 0 Then
                 folder = Mid(file, Len(target) + 1, InStr(Len(target) + 1, file, "\") - Len(target) - 1)
                 If (MPSync_process._thumbs.Contains(folder) Or MPSync_process._thumbs.Contains("ALL")) And IO.Path.GetFileName(file) <> "Thumbs.db" Then
                     x += 1
                     ReDim Preserve t_thumbs(x)
-                    t_thumbs(x) = Right(file, Len(file) - Len(t_path))
+                    t_thumbs(x) = Right(file, Len(file) - Len(t_path)) & "|" & IO.File.GetLastWriteTimeUtc(file)
                 End If
             End If
         Next
@@ -102,10 +115,10 @@ Public Class MPSync_process_Thumbs
         If x = -1 Then
             ReDim t_thumbs(0)
             t_thumbs(0) = ""
+            x = 0
         End If
 
-        Dim _bw_active_thumbs_jobs, _bw_sync_thumbs_jobs As Integer
-        Dim bw_sync_thumbs() As BackgroundWorker
+        If debug Then MPSync_process.logStats("MPSync: " & x.ToString & " images found in folder " & target, "DEBUG")
 
         ' propagate deletions or both
         If MPSync_process._thumbs_sync_method <> 1 And t_thumbs(0) <> "" Then
@@ -113,106 +126,70 @@ Public Class MPSync_process_Thumbs
 
             If debug Then MPSync_process.logStats("MPSync: found " & (UBound(diff.ToArray) + 1).ToString & " differences for deletion", "DEBUG")
 
-            If UBound(diff.ToArray) >= 0 Then
-                ReDim Preserve bw_sync_thumbs(_bw_sync_thumbs_jobs)
-                bw_sync_thumbs(_bw_sync_thumbs_jobs) = New BackgroundWorker
-                bw_sync_thumbs(_bw_sync_thumbs_jobs).WorkerSupportsCancellation = True
-                AddHandler bw_sync_thumbs(_bw_sync_thumbs_jobs).DoWork, AddressOf bw_delete_worker
-                AddHandler bw_sync_thumbs(_bw_sync_thumbs_jobs).RunWorkerCompleted, AddressOf bw_worker_completed
+            If UBound(diff.ToArray) >= 0 Then Delete_Images(diff.ToArray)
 
-                If Not bw_sync_thumbs(_bw_sync_thumbs_jobs).IsBusy Then bw_sync_thumbs(_bw_sync_thumbs_jobs).RunWorkerAsync(diff.ToArray)
-
-                _bw_sync_thumbs_jobs += 1
-            End If
         End If
 
         ' propagate additions or both
         If MPSync_process._thumbs_sync_method <> 2 And s_thumbs(0) <> "" Then
             diff = s_thumbs.Except(t_thumbs)
 
-            If debug Then MPSync_process.logStats("MPSync: found " & (UBound(diff.ToArray) + 1).ToString & " differences for addition", "DEBUG")
+            If debug Then MPSync_process.logStats("MPSync: found " & (UBound(diff.ToArray) + 1).ToString & " differences for addition/replacement", "DEBUG")
 
-            If UBound(diff.ToArray) >= 0 Then
-                ReDim Preserve bw_sync_thumbs(_bw_sync_thumbs_jobs)
-                bw_sync_thumbs(_bw_sync_thumbs_jobs) = New BackgroundWorker
-                bw_sync_thumbs(_bw_sync_thumbs_jobs).WorkerSupportsCancellation = True
-                AddHandler bw_sync_thumbs(_bw_sync_thumbs_jobs).DoWork, AddressOf bw_copy_worker
-                AddHandler bw_sync_thumbs(_bw_sync_thumbs_jobs).RunWorkerCompleted, AddressOf bw_worker_completed
-
-                If Not bw_sync_thumbs(_bw_sync_thumbs_jobs).IsBusy Then bw_sync_thumbs(_bw_sync_thumbs_jobs).RunWorkerAsync(diff.ToArray)
-
-                _bw_sync_thumbs_jobs += 1
-            End If
-        End If
-
-        If _bw_sync_thumbs_jobs > 0 Then
-
-            Dim busy As Boolean = True
-
-            Do While busy
-
-                For x = 0 To _bw_sync_thumbs_jobs - 1
-                    If bw_sync_thumbs(x).IsBusy Then
-                        busy = True
-                        Exit For
-                    Else
-                        busy = False
-                    End If
-                Next
-
-                MPSync_process.wait(30, False)
-
-            Loop
+            If UBound(diff.ToArray) >= 0 Then Copy_Images(diff.ToArray)
 
         End If
 
     End Sub
 
-    Private Sub bw_copy_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
+    Private Sub Copy_Images(ByVal parm As Array)
 
-        Dim parm() As String = e.Argument
+        Dim file As Array
         Dim x As Integer
 
         Dim directory As String
 
         For x = 0 To UBound(parm)
             MPSync_process.CheckPlayerplaying("thumbs", checkplayer)
-            directory = IO.Path.GetDirectoryName(t_path & parm(x))
+
+            file = Split(parm(x), "|")
+
+            directory = IO.Path.GetDirectoryName(t_path & file(0))
 
             If Not IO.Directory.Exists(directory) Then
                 IO.Directory.CreateDirectory(directory)
                 If debug Then MPSync_process.logStats("MPSync: directory missing, creating " & directory, "DEBUG")
             End If
 
-            IO.File.Copy(s_path & parm(x), t_path & parm(x), True)
+            IO.File.Copy(s_path & file(0), t_path & file(0), True)
+
+            If debug Then MPSync_process.logStats("MPSync: copying " & file(0), "DEBUG")
         Next
 
-        e.Result = "MPSync: " & x.ToString & " images added."
+        MPSync_process.logStats("MPSync: " & x.ToString & " images added/replaced.", "INFO")
 
     End Sub
 
-    Private Sub bw_delete_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
+    Private Sub Delete_Images(ByVal parm As Array)
 
-        Dim parm() As String = e.Argument
+        Dim file As Array
         Dim x As Integer
 
         For x = 0 To UBound(parm)
             MPSync_process.CheckPlayerplaying("thumbs", checkplayer)
+
+            file = Split(parm(x), "|")
+
             Try
-                IO.File.Delete(t_path & parm(x))
+                IO.File.Delete(t_path & file(0))
+                If debug Then MPSync_process.logStats("MPSync: deleting " & parm(x), "DEBUG")
             Catch ex As Exception
                 MPSync_process.logStats("MPSync: Error deleting " & t_path & parm(x), "ERROR")
             End Try
         Next
 
-        e.Result = "MPSync: " & x.ToString & " images removed."
+        MPSync_process.logStats("MPSync: " & x.ToString & " images removed.", "INFO")
 
-    End Sub
-
-    Private Sub bw_worker_completed(ByVal sender As Object, ByVal e As RunWorkerCompletedEventArgs)
-        If e.Result <> Nothing Then
-            MPSync_process.logStats(e.Result, "INFO")
-        End If
     End Sub
 
 End Class
