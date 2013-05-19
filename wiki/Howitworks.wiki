@@ -55,3 +55,7 @@ Below is a sample of the same table for MovingPictures database:
 
 http://cdbsync-plugin.googlecode.com/svn/wiki/screens/mpsync_content.jpg
 
+
+= Thumbs Synchronization =
+
+Thumbs synchronization is done by comparing images on the source with those on the target.  Missing ones from the master are added, while extra ones on target are deleted.  For changes, it uses the last modified date of the image.  If this is different on target, the one from the master is copied over.
