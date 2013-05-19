@@ -1,0 +1,58 @@
+= Description =
+
+MPSync is a new process plugin that allows you to synchronize ALL your MediaPortal databases as well as thumbs from one main client onto a central location and then have any other client synchronize its database from this central location. Synchronization is done at a record level and there is no copying of whole databases. This plugin caters only for database synchronizations as it expects that all your thumbs are already stored centrally.
+
+Like the application and is it useful for you? Help support the development and [https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=7MDF77KKTGKAJ&lc=MT&item_name=MPSync%20support&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif]
+
+
+= Setting Up =
+
+The plugin settings are rather simple as can be seen from the below screenshot.
+
+http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1889.jpg
+http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1900.jpg
+http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1901.jpg
+http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1902.jpg
+http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1895.jpg
+http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1898.jpg
+http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1914.jpg
+
+The settings will vary depending on the role of the client you are running the plugin on. Let us take the settings on the Master client.
+
+== Master Setup ==
+
+  * The client DB path should be the path where the local Mediaportal databases are located on the client.
+  * The server DB path should be the path where the centralized databases are located.
+  * Synchronization direction should be as in the picture, i.e. from client to server. 
+  * Synchronization mode, should be "Propagate both additions and deletions".
+
+== Client Setup ==
+
+  * The client DB path should be the path were the local Mediaportal databases are located on the client.
+  * The server DB path should be the path where the centralized databases are located.
+  * Synchronization direction should be from server to client.
+  * Synchronization mode, should be "Propagate both additions and deletions".
+
+_*Same can be done for the thumbs setup.*_
+
+
+Other options available are:
+
+Synchronization direction can be set to be:
+ # from source to target
+ # from target to source
+
+For these two options above, the mode can be:
+ # Propagate both additions and deletions
+ # Propagate additions only
+ # Propagate deletions only
+
+== Recommendation ==
+
+When setting up for the first time, it is suggested that you backup your databases just in case you set it up incorrectly resulting in data loss.
+
+
+
+= Suggested Setup =
+
+http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1886.jpg
