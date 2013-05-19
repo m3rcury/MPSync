@@ -1,4 +1,4 @@
-#This page briefly explain how the plugin works.
+#summary This page briefly explain how the plugin works.
 
 = Introduction =
 
