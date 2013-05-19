@@ -9,13 +9,14 @@ Like the application and is it useful for you? Help support the development and 
 
 The plugin settings are rather simple as can be seen from the below screenshot.
 
-http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1889.jpg
-http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1900.jpg
-http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1901.jpg
-http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1902.jpg
-http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1895.jpg
-http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1898.jpg
-http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1914.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(1)%20MPSync_settings.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(2)%20MPSync_database_paths.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(3)%20MPSync_database_advanced_settings.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(4)%20MPSync_database_other.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(5)%20MPSync_database_watched_status.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(6)%20MPSync_thumbs_paths.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(7)%20MPSync_thumbs_advanced_settings.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(8)%20MPSync_status.jpg
 
 The settings will vary depending on the role of the client you are running the plugin on. Let us take the settings on the Master client.
 
@@ -55,4 +56,4 @@ When setting up for the first time, it is suggested that you backup your databas
 
 = Suggested Setup =
 
-http://www.team-mediaportal.com/components/com_mtree/img/listings/m/1886.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/Suggested%20setup.jpg
