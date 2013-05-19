@@ -1,0 +1,24 @@
+= Introduction =
+
+This wiki page briefly describes how the plugin works.
+
+I will explain the database methods, both when using triggers and when using file timestamp to do the synchronization.  The difference is mainly in the mechanism which kicks-off the synchronization as the actual synchronization process is common to both methodologies.
+
+The thumbs synchronization is somehow straightforward and will be explained later on.
+
+
+= Database Synchronization =
+
+ * Synchronization using database triggers
+
+This method comprises in creating a new table, *mpsync_triggers*, in every database selected for synchronization.  On every remaining table _(excluding system tables)_ inside the database, 3 triggers will be created to capture modifications on the particular table.  The change events are Insert, Update and Delete.
+
+*mpsync_triggers* table will contain a list of tables that have been modified by their respective plugin and the time when that modification occurred.
+
+The table has the below structure:
+
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/mpsync_triggers_structure.jpg
+
+Below is a sample of the same table for MovingPictures database:
+
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/mpsync_triggers_content.jpg
