@@ -1,3 +1,5 @@
+#This page briefly explain how the plugin works.
+
 = Introduction =
 
 This wiki page briefly describes how the plugin works.
