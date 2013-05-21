@@ -11,7 +11,7 @@ The thumbs synchronization is somehow straightforward and will be explained late
 
 = Database Synchronization =
 
- * *Synchronization using database triggers*
+== Synchronization using database triggers ==
 
 This method comprises in creating a new table, *mpsync_triggers*, in every database selected for synchronization.  On every remaining table _(excluding system tables)_ inside the database, 3 triggers will be created to capture modifications on the particular table.  The change events are Insert, Update and Delete.  These triggers are created on those databases that serve as the *source* from which data is synchronized.  In a typical setup, these would be created on the Master Client and the Central Server from which other clients synchronize.
 
@@ -35,12 +35,12 @@ http://cdbsync-plugin.googlecode.com/svn/wiki/screens/mpsync_triggers_content.jp
 Once a synchronization cycle is kicked-off, the plugin will read *mpsync_triggers* table and only compares/synchronizes content of tables whose name appear under column _tablename_ and their _lastupdated_ time is after the time when last cycle was kicked-off.  This enables the plugin to process only modified tables, thus eliminating the need to process all the tables in the database and compare contents between source and target.  This method brings huge improvements, both in time to process, I/O and CPU usage.
 
 
- * *Synchronization using file timestamp*
+== Synchronization using file timestamp ==
 
 This method comprises in comparing the last modified date and time of the database files between source and target.  If these differ, the plugin would then read and compare all content of all tables in the database of both source and target and any difference from source synchronized to target.  Although this method reduces the number of databases processed, it still needs to go through all the tables and all their content.
 
 
- * *Watched Synchronization*
+== Watched Synchronization ==
 
 This additional synchronization is done similarly for the above two methods mentioned above.  The direction of this synchronization is the inverse of that selected by user, meaning that if you are synchronizing from source to target, then Watched Synchronization happens from target to source.
 
@@ -58,4 +58,15 @@ http://cdbsync-plugin.googlecode.com/svn/wiki/screens/mpsync_content.jpg
 
 = Thumbs Synchronization =
 
-Thumbs synchronization is done by comparing images on the source with those on the target.  Missing ones from the master are added, while extra ones on target are deleted.  For changes, it uses the last modified date of the image.  If this is different on target, the one from the master is copied over.
+Thumbs synchronization is done in two steps:
+
+== Step 1 ==
+
+The first synchronization pass is done by comparing image files on the source with those on the target.  Missing ones from the master are added, while extra ones on target are deleted.  For changes, it uses the last modified date of the image.  If this is different on target, the one from the master is copied over.
+
+
+== Step 2 ==
+
+A watch process is started on the source thumbs folder.  This process will monitor for any change, which in turn is immediately synchronized on the target.
+
+This eliminates the need to perform step 1 every time the thumbs synchronization cycle kicks-off, thus freeing up substantial CPU usage and I/O.
