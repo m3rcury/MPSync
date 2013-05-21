@@ -93,9 +93,6 @@ Partial Class MPSync_settings
         Me.rb_all_thumbs = New System.Windows.Forms.RadioButton()
         Me.Label8 = New System.Windows.Forms.Label()
         Me.clb_thumbs = New System.Windows.Forms.CheckedListBox()
-        Me.cb_thumbs_sync = New System.Windows.Forms.ComboBox()
-        Me.nud_thumbs_sync = New System.Windows.Forms.NumericUpDown()
-        Me.Label7 = New System.Windows.Forms.Label()
         Me.tp_syncnow = New System.Windows.Forms.TabPage()
         Me.lb_status = New System.Windows.Forms.ListBox()
         Me.PictureBox2 = New System.Windows.Forms.PictureBox()
@@ -124,7 +121,6 @@ Partial Class MPSync_settings
         Me.TabPage1.SuspendLayout()
         Me.TabPage2.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
-        CType(Me.nud_thumbs_sync, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.tp_syncnow.SuspendLayout()
         CType(Me.PictureBox2, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -810,9 +806,6 @@ Partial Class MPSync_settings
         Me.TabPage2.Controls.Add(Me.GroupBox2)
         Me.TabPage2.Controls.Add(Me.Label8)
         Me.TabPage2.Controls.Add(Me.clb_thumbs)
-        Me.TabPage2.Controls.Add(Me.cb_thumbs_sync)
-        Me.TabPage2.Controls.Add(Me.nud_thumbs_sync)
-        Me.TabPage2.Controls.Add(Me.Label7)
         Me.TabPage2.Location = New System.Drawing.Point(4, 22)
         Me.TabPage2.Name = "TabPage2"
         Me.TabPage2.Padding = New System.Windows.Forms.Padding(3)
@@ -825,7 +818,7 @@ Partial Class MPSync_settings
         Me.cb_thumbs_pause.AutoSize = True
         Me.cb_thumbs_pause.CheckAlign = System.Drawing.ContentAlignment.MiddleRight
         Me.cb_thumbs_pause.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.cb_thumbs_pause.Location = New System.Drawing.Point(6, 44)
+        Me.cb_thumbs_pause.Location = New System.Drawing.Point(6, 26)
         Me.cb_thumbs_pause.Name = "cb_thumbs_pause"
         Me.cb_thumbs_pause.Size = New System.Drawing.Size(172, 17)
         Me.cb_thumbs_pause.TabIndex = 18
@@ -837,9 +830,9 @@ Partial Class MPSync_settings
         Me.GroupBox2.Controls.Add(Me.rb_specific_thumbs)
         Me.GroupBox2.Controls.Add(Me.rb_all_thumbs)
         Me.GroupBox2.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.GroupBox2.Location = New System.Drawing.Point(10, 74)
+        Me.GroupBox2.Location = New System.Drawing.Point(10, 61)
         Me.GroupBox2.Name = "GroupBox2"
-        Me.GroupBox2.Size = New System.Drawing.Size(273, 76)
+        Me.GroupBox2.Size = New System.Drawing.Size(273, 89)
         Me.GroupBox2.TabIndex = 17
         Me.GroupBox2.TabStop = False
         Me.GroupBox2.Text = " Synchronize "
@@ -847,7 +840,7 @@ Partial Class MPSync_settings
         'rb_specific_thumbs
         '
         Me.rb_specific_thumbs.AutoSize = True
-        Me.rb_specific_thumbs.Location = New System.Drawing.Point(11, 51)
+        Me.rb_specific_thumbs.Location = New System.Drawing.Point(11, 56)
         Me.rb_specific_thumbs.Name = "rb_specific_thumbs"
         Me.rb_specific_thumbs.Size = New System.Drawing.Size(104, 17)
         Me.rb_specific_thumbs.TabIndex = 1
@@ -885,37 +878,6 @@ Partial Class MPSync_settings
         Me.clb_thumbs.Size = New System.Drawing.Size(265, 124)
         Me.clb_thumbs.Sorted = True
         Me.clb_thumbs.TabIndex = 15
-        '
-        'cb_thumbs_sync
-        '
-        Me.cb_thumbs_sync.FormattingEnabled = True
-        Me.cb_thumbs_sync.Items.AddRange(New Object() {"seconds", "minutes", "hours"})
-        Me.cb_thumbs_sync.Location = New System.Drawing.Point(160, 10)
-        Me.cb_thumbs_sync.Name = "cb_thumbs_sync"
-        Me.cb_thumbs_sync.Size = New System.Drawing.Size(80, 21)
-        Me.cb_thumbs_sync.TabIndex = 13
-        Me.cb_thumbs_sync.Text = "minutes"
-        '
-        'nud_thumbs_sync
-        '
-        Me.nud_thumbs_sync.Location = New System.Drawing.Point(120, 11)
-        Me.nud_thumbs_sync.Maximum = New Decimal(New Integer() {99, 0, 0, 0})
-        Me.nud_thumbs_sync.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
-        Me.nud_thumbs_sync.Name = "nud_thumbs_sync"
-        Me.nud_thumbs_sync.Size = New System.Drawing.Size(36, 20)
-        Me.nud_thumbs_sync.TabIndex = 12
-        Me.nud_thumbs_sync.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        Me.nud_thumbs_sync.Value = New Decimal(New Integer() {1, 0, 0, 0})
-        '
-        'Label7
-        '
-        Me.Label7.AutoSize = True
-        Me.Label7.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label7.Location = New System.Drawing.Point(7, 13)
-        Me.Label7.Name = "Label7"
-        Me.Label7.Size = New System.Drawing.Size(115, 13)
-        Me.Label7.TabIndex = 11
-        Me.Label7.Text = "Synchronize every "
         '
         'tp_syncnow
         '
@@ -1029,7 +991,6 @@ Partial Class MPSync_settings
         Me.TabPage2.PerformLayout()
         Me.GroupBox2.ResumeLayout(False)
         Me.GroupBox2.PerformLayout()
-        CType(Me.nud_thumbs_sync, System.ComponentModel.ISupportInitialize).EndInit()
         Me.tp_syncnow.ResumeLayout(False)
         CType(Me.PictureBox2, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).EndInit()
@@ -1075,9 +1036,6 @@ Partial Class MPSync_settings
     Friend WithEvents Label6 As System.Windows.Forms.Label
     Friend WithEvents b_thumbs_client As System.Windows.Forms.Button
     Friend WithEvents TabPage2 As System.Windows.Forms.TabPage
-    Friend WithEvents cb_thumbs_sync As System.Windows.Forms.ComboBox
-    Friend WithEvents nud_thumbs_sync As System.Windows.Forms.NumericUpDown
-    Friend WithEvents Label7 As System.Windows.Forms.Label
     Friend WithEvents tp_settings As System.Windows.Forms.TabPage
     Friend WithEvents GroupBox2 As System.Windows.Forms.GroupBox
     Friend WithEvents rb_specific_thumbs As System.Windows.Forms.RadioButton
