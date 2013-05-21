@@ -9,7 +9,7 @@ Public Class MPSync_process
 
     Private mps As New MPSync_settings
     Public Shared _db_client, _db_server, _thumbs_client, _thumbs_server, _databases(), _thumbs(), _watched_dbs(), _objects(), dbname(), session, sync_type As String
-    Public Shared _db_sync, _thumbs_sync, _db_direction, _db_sync_method, _thumbs_direction, _thumbs_sync_method As Integer
+    Public Shared _db_sync, _db_direction, _db_sync_method, _thumbs_direction, _thumbs_sync_method As Integer
     Public Shared _db_pause, _thumbs_pause, debug, check_watched As Boolean
     Public Shared dbinfo() As IO.FileInfo
 
@@ -76,7 +76,7 @@ Public Class MPSync_process
 
     End Sub
 
-    Public Shared Sub MPSync_Launcher()
+    Public Sub MPSync_Launch()
 
         ' create log file
         Dim file As String = Config.GetFile(Config.Dir.Log, "mpsync.log")
@@ -86,19 +86,21 @@ Public Class MPSync_process
         Dim fhandle As System.IO.FileStream = IO.File.Open(file, IO.FileMode.OpenOrCreate)
         fhandle.Close()
 
-        Dim mps As New MPSync_process
-        mps.MPSyncProcess()
+        Dim workerThread As Thread
+
+        workerThread = New Thread(AddressOf MPSyncProcess)
+        workerThread.Start()
 
     End Sub
 
-    Public Sub MPSyncProcess()
+    Private Sub MPSyncProcess()
 
         Dim file As String = Config.GetFile(Config.Dir.Config, "MPSync.xml")
 
         If Not FileIO.FileSystem.FileExists(file) Then Return
 
         Dim i_method As Array = {"Propagate both additions and deletions", "Propagate additions only", "Propagate deletions only"}
-        Dim db_sync_value, thumbs_sync_value, databases, thumbs, watched_dbs, objects, version As String
+        Dim db_sync_value, databases, thumbs, watched_dbs, objects, version As String
 
         ' get configuratin from XML file
         Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(file)
@@ -128,8 +130,6 @@ Public Class MPSync_process
             _thumbs_direction = XMLreader.GetValueAsInt("Thumbs Path", "direction", 0)
             _thumbs_sync_method = XMLreader.GetValueAsInt("Thumbs Path", "method", 0)
 
-            _thumbs_sync = XMLreader.GetValueAsInt("Thumbs Settings", "sync periodicity", 15)
-            thumbs_sync_value = XMLreader.GetValueAsString("Thumbs Settings", "sync periodicity value", "minutes")
             _thumbs_pause = XMLreader.GetValueAsString("Thumbs Settings", "pause while playing", False)
             thumbs = XMLreader.GetValueAsString("Thumbs Settings", "thumbs", Nothing)
 
@@ -201,6 +201,7 @@ Public Class MPSync_process
 
             ' get list of databases to synchronise
             If databases <> Nothing Then
+                If Right(databases, 1) = "|" Then databases = Left(databases, Len(databases) - 1)
                 _databases = Split(databases, "|")
             Else
                 ReDim _databases(0)
@@ -209,6 +210,7 @@ Public Class MPSync_process
 
             ' get list of watched databases to synchronise
             If watched_dbs <> Nothing Then
+                If Right(watched_dbs, 1) = "|" Then watched_dbs = Left(watched_dbs, Len(watched_dbs) - 1)
                 _watched_dbs = Split(watched_dbs, "|")
             Else
                 _watched_dbs = mps.getDatabase
@@ -216,6 +218,7 @@ Public Class MPSync_process
 
             ' get list of objects to copy
             If objects <> Nothing Then
+                If Right(objects, 1) = "|" Then objects = Left(objects, Len(objects) - 1)
                 _objects = Split(objects, "|")
             Else
                 ReDim _objects(0)
@@ -251,17 +254,11 @@ Public Class MPSync_process
 
             ' get list of thumbs to synchronise
             If thumbs <> Nothing Then
+                If Right(thumbs, 1) = "|" Then thumbs = Left(thumbs, Len(thumbs) - 1)
                 _thumbs = Split(thumbs, "|")
             Else
                 ReDim _thumbs(0)
                 _thumbs(0) = "ALL"
-            End If
-
-            ' calculate actual sync periodicity in seconds
-            If thumbs_sync_value = "minutes" Then
-                _thumbs_sync = _thumbs_sync * 60
-            ElseIf thumbs_sync_value = "hours" Then
-                _thumbs_sync = _thumbs_sync * 3600
             End If
 
             ' check that both paths end with a "\"

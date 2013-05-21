@@ -297,7 +297,7 @@ public class Script
       <Major>1</Major>
       <Minor>0</Minor>
       <Build>0</Build>
-      <Revision>6</Revision>
+      <Revision>7</Revision>
     </Version>
     <ExtensionDescription>This plugin synchronizes your MediaPortal databases with a central database as well as thumbs folder, so that any additons can by automatically applied to any other MP seat you might have in your household.</ExtensionDescription>
     <VersionDescription>Enhanced synchronization to be based on database triggers resulting in faster synchronization and also less load on HTPC CPU.
@@ -305,7 +305,7 @@ public class Script
 Compatibility with MediaPortal v1.4.0</VersionDescription>
     <DevelopmentStatus>Stable</DevelopmentStatus>
     <OnlineLocation>https://cdbsync-plugin.googlecode.com/files/[Name]-v[Version].mpe1</OnlineLocation>
-    <ReleaseDate>2013-05-19T23:39:41</ReleaseDate>
+    <ReleaseDate>2013-05-21T23:39:41</ReleaseDate>
     <Tags>synchronization, database, thumbs</Tags>
     <Location>E:\Software\MediaPortal\MPSync\[Name]-v[Version].mpe1</Location>
     <Params>

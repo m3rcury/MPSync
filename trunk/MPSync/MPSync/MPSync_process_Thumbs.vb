@@ -1,63 +1,183 @@
 ﻿Imports MediaPortal.GUI.Library
 
+Imports System.IO
 Imports System.ComponentModel
 Imports System.Security.Cryptography
+Imports System.Threading
 
 Public Class MPSync_process_Thumbs
 
     Dim debug As Boolean
     Dim checkplayer As Integer = 30
     Dim s_path, t_path As String
+    Dim watchfolder As FileSystemWatcher
 
     Public Shared Sub bw_thumbs_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
 
         Dim mps_thumbs As New MPSync_process_Thumbs
 
-        Do
+        MPSync_process.logStats("MPSync: THUMBS synchronization cycle starting.", "LOG")
 
-            MPSync_process.logStats("MPSync: THUMBS synchronization cycle starting.", "LOG")
+        mps_thumbs.debug = MPSync_process.p_Debug
 
-            mps_thumbs.debug = MPSync_process.p_Debug
+        ' direction is client to server
+        If MPSync_process._thumbs_direction <> 2 Then
+            mps_thumbs.Process_Thumbs_folder(MPSync_process._thumbs_client, MPSync_process._thumbs_server)
+        End If
 
-            ' direction is client to server or both
+        ' direction is server to client
+        If MPSync_process._thumbs_direction <> 1 Then
+            mps_thumbs.Process_Thumbs_folder(MPSync_process._thumbs_server, MPSync_process._thumbs_client)
+        End If
+
+        If Not MPSync_settings.syncnow Then
+
+            MPSync_process.logStats("MPSync: THUMBS synchronization cycle complete.", "LOG")
+            MPSync_process.logStats("MPSync: THUMBS folder watch starting.", "LOG")
+
+            ' direction is client to server
             If MPSync_process._thumbs_direction <> 2 Then
-                mps_thumbs.Process_Thumbs_folder(MPSync_process._thumbs_client, MPSync_process._thumbs_server)
+                mps_thumbs.watch_Thumbs_folder(MPSync_process._thumbs_client, MPSync_process._thumbs_server)
             End If
 
-            ' direction is server to client or both
+            ' direction is server to client
             If MPSync_process._thumbs_direction <> 1 Then
-                mps_thumbs.Process_Thumbs_folder(MPSync_process._thumbs_server, MPSync_process._thumbs_client)
+                mps_thumbs.watch_Thumbs_folder(MPSync_process._thumbs_server, MPSync_process._thumbs_client)
             End If
 
-            If Not MPSync_settings.syncnow Then
-                MPSync_process.logStats("MPSync: THUMBS synchronization cycle complete.", "LOG")
-                MPSync_process.wait(MPSync_process._thumbs_sync, , "THUMBS")
-            Else
-                MPSync_settings.thumbs_complete = True
-                MPSync_process.logStats("MPSync: THUMBS synchronization complete.", "INFO")
-                Exit Do
-            End If
-
-        Loop
+        Else
+            MPSync_settings.thumbs_complete = True
+            MPSync_process.logStats("MPSync: THUMBS synchronization complete.", "INFO")
+        End If
 
     End Sub
 
+    Private Sub watch_Thumbs_folder(ByVal source As String, ByVal target As String)
+
+        watchfolder = New System.IO.FileSystemWatcher()
+
+        'this is the path we want to monitor
+        watchfolder.Path = source
+        watchfolder.IncludeSubdirectories = True
+
+        'Add a list of Filter we want to specify
+        watchfolder.NotifyFilter = NotifyFilters.DirectoryName
+        watchfolder.NotifyFilter = watchfolder.NotifyFilter Or NotifyFilters.FileName
+        watchfolder.NotifyFilter = watchfolder.NotifyFilter Or NotifyFilters.Attributes
+
+        ' add the handler to each event
+        AddHandler watchfolder.Changed, AddressOf fileChange
+        AddHandler watchfolder.Created, AddressOf fileChange
+        AddHandler watchfolder.Deleted, AddressOf fileChange
+        AddHandler watchfolder.Renamed, AddressOf fileRename
+
+        'Set this property to true to start watching
+        watchfolder.EnableRaisingEvents = True
+
+        Dim autoEvent As New AutoResetEvent(False)
+        autoEvent.WaitOne()
+
+    End Sub
+
+    Private Sub fileChange(ByVal source As Object, ByVal e As System.IO.FileSystemEventArgs)
+
+        Dim file As String = Right(e.FullPath, Len(e.FullPath) - Len(s_path)) & "|"
+        Dim folder As String
+        Dim l As Integer = Len(source.Path) + 1
+
+        folder = Mid(e.FullPath, l, InStr(l, e.FullPath, "\") - l)
+
+        If MPSync_process._thumbs.Contains(folder) Or MPSync_process._thumbs.Contains("ALL") Then
+
+            Dim parm(0) As String
+
+            parm(0) = file
+
+            If e.ChangeType = WatcherChangeTypes.Changed Or e.ChangeType = WatcherChangeTypes.Created Then
+                Copy_Images(parm)
+            End If
+
+            If e.ChangeType = WatcherChangeTypes.Deleted Then
+                Delete_Images(parm)
+            End If
+
+        End If
+
+    End Sub
+
+    Public Sub fileRename(ByVal source As Object, ByVal e As System.IO.RenamedEventArgs)
+
+        Dim file As String = Right(e.FullPath, Len(e.FullPath) - Len(s_path)) & "|"
+        Dim folder As String
+        Dim l As Integer = Len(source) + 1
+
+        folder = Mid(e.FullPath, l, InStr(l, e.FullPath, "\") - l)
+
+        If MPSync_process._thumbs.Contains(folder) Or MPSync_process._thumbs.Contains("ALL") Then
+
+            Dim parm(0) As String
+
+            parm(0) = file
+
+            If e.ChangeType = WatcherChangeTypes.Changed Or e.ChangeType = WatcherChangeTypes.Created Then
+                Copy_Images(parm)
+            End If
+
+        End If
+
+    End Sub
+
+    Private Function getThumbsDetails(ByVal path As String, ByVal c_path As String) As Array
+
+        Dim thumbs() As String = Nothing
+        Dim folder As String = Nothing
+        Dim l1 As Integer = Len(path) + 1
+        Dim l2 As Integer = Len(c_path)
+        Dim x As Integer = -1
+
+        Dim dir As New DirectoryInfo(path)
+
+        Dim list = dir.GetFiles("*.*", SearchOption.AllDirectories)
+
+        For Each file As IO.FileInfo In list
+
+            If file.Name <> "Thumbs.db" Then
+
+                folder = Mid(file.FullName, l1, InStr(l1, file.FullName, "\") - l1)
+
+                If MPSync_process._thumbs.Contains(folder) Or MPSync_process._thumbs.Contains("ALL") Then
+                    x += 1
+                    ReDim Preserve thumbs(x)
+                    thumbs(x) = Right(file.FullName, Len(file.FullName) - l2) & "|" & file.LastWriteTimeUtc
+                End If
+            End If
+
+        Next
+
+        Array.Sort(thumbs)
+
+        If x = -1 Then x = 0
+
+        If debug Then MPSync_process.logStats("MPSync: " & x.ToString & " images found in folder " & path, "DEBUG")
+
+        Return thumbs
+
+    End Function
+
     Private Sub Process_Thumbs_folder(ByVal source As String, ByVal target As String)
 
-        If Not IO.Directory.Exists(source) Then
+        If Not Directory.Exists(source) Then
             MPSync_process.logStats("MPSync: folder " & source & " does not exist", "ERROR")
             Exit Sub
         End If
 
-        If Not IO.Directory.Exists(target) Then IO.Directory.CreateDirectory(target)
+        If Not Directory.Exists(target) Then Directory.CreateDirectory(target)
 
         On Error Resume Next
 
         Dim diff As IEnumerable(Of String)
         Dim s_thumbs() As String = Nothing
         Dim t_thumbs() As String = Nothing
-        Dim folder As String
-
         Dim x As Integer = 0
 
         Do While Right(source, x) = Right(target, x)
@@ -68,57 +188,13 @@ Public Class MPSync_process_Thumbs
         s_path = Left(source, Len(source) - x)
         t_path = Left(target, Len(target) - x)
 
-        x = -1
-
         MPSync_process.logStats("MPSync: Scanning folder " & source & " for thumbs", "LOG")
 
-        Dim files() As String
-
-        files = IO.Directory.GetFiles(source, "*.*", IO.SearchOption.AllDirectories)
-
-        For Each file As String In files
-            If InStr(Len(source) + 1, file, "\") > 0 Then
-                folder = Mid(file, Len(source) + 1, InStr(Len(source) + 1, file, "\") - Len(source) - 1)
-                If (MPSync_process._thumbs.Contains(folder) Or MPSync_process._thumbs.Contains("ALL")) And IO.Path.GetFileName(file) <> "Thumbs.db" Then
-                    x += 1
-                    ReDim Preserve s_thumbs(x)
-                    s_thumbs(x) = Right(file, Len(file) - Len(s_path)) & "|" & IO.File.GetLastWriteTimeUtc(file)
-                End If
-            End If
-        Next
-
-        If x = -1 Then
-            ReDim s_thumbs(0)
-            s_thumbs(0) = ""
-            x = 0
-        End If
-
-        If debug Then MPSync_process.logStats("MPSync: " & x.ToString & " images found in folder " & source, "DEBUG")
-
-        x = -1
+        s_thumbs = getThumbsDetails(source, s_path)
 
         MPSync_process.logStats("MPSync: Scanning folder " & target & " for thumbs", "LOG")
 
-        files = IO.Directory.GetFiles(target, "*.*", IO.SearchOption.AllDirectories)
-
-        For Each file As String In files
-            If InStr(Len(target) + 1, file, "\") > 0 Then
-                folder = Mid(file, Len(target) + 1, InStr(Len(target) + 1, file, "\") - Len(target) - 1)
-                If (MPSync_process._thumbs.Contains(folder) Or MPSync_process._thumbs.Contains("ALL")) And IO.Path.GetFileName(file) <> "Thumbs.db" Then
-                    x += 1
-                    ReDim Preserve t_thumbs(x)
-                    t_thumbs(x) = Right(file, Len(file) - Len(t_path)) & "|" & IO.File.GetLastWriteTimeUtc(file)
-                End If
-            End If
-        Next
-
-        If x = -1 Then
-            ReDim t_thumbs(0)
-            t_thumbs(0) = ""
-            x = 0
-        End If
-
-        If debug Then MPSync_process.logStats("MPSync: " & x.ToString & " images found in folder " & target, "DEBUG")
+        t_thumbs = getThumbsDetails(target, t_path)
 
         ' propagate deletions or both
         If MPSync_process._thumbs_sync_method <> 1 And t_thumbs(0) <> "" Then
@@ -166,7 +242,7 @@ Public Class MPSync_process_Thumbs
             If debug Then MPSync_process.logStats("MPSync: copying " & file(0), "DEBUG")
         Next
 
-        MPSync_process.logStats("MPSync: " & x.ToString & " images added/replaced.", "INFO")
+        MPSync_process.logStats("MPSync: " & x.ToString & " images added/replaced.", "LOG")
 
     End Sub
 
@@ -188,7 +264,7 @@ Public Class MPSync_process_Thumbs
             End Try
         Next
 
-        MPSync_process.logStats("MPSync: " & x.ToString & " images removed.", "INFO")
+        MPSync_process.logStats("MPSync: " & x.ToString & " images removed.", "LOG")
 
     End Sub
 

@@ -33,8 +33,8 @@ Namespace MPSync
 
         Private Sub Worker()
 
-            Dim cdb As New MPSync_process
-            cdb.MPSyncProcess()
+            Dim mps As New MPSync_process
+            mps.MPSync_Launch()
 
         End Sub
 
