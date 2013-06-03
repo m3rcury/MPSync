@@ -5,7 +5,7 @@ Imports System.Data.SQLite
 
 Public Class MPSync_settings
 
-    Dim _curversion As String = "1.0.0.7"
+    Dim _curversion As String = "1.0.0.8"
     Dim i_direction(2) As Image
     Dim i_method(2), _databases, _thumbs, _watched_dbs, _objects, _version, _session, _sync_type As String
     Dim _db_sync_method, _thumbs_sync_method As Integer
@@ -64,11 +64,11 @@ Public Class MPSync_settings
         End Get
     End Property
 
-    Private Sub populate_checkedlistbox(ByRef clb As CheckedListBox, ByVal path As String, Optional ByVal searchpattern As String = Nothing, Optional ByVal ommit As String = Nothing)
+    Private Sub populate_checkedlistbox(ByRef clb As CheckedListBox, ByVal path As String, ByVal listtype As String, Optional ByVal searchpattern As String = Nothing, Optional ByVal ommit As String = Nothing)
 
         clb.Items.Clear()
 
-        If searchpattern <> Nothing And ommit <> Nothing Then
+        If listtype = "objects" Then
 
             Dim all_checked As Boolean = (_databases = Nothing)
 
@@ -82,19 +82,21 @@ Public Class MPSync_settings
                 End If
             Next
 
-        ElseIf searchpattern <> Nothing Then
+        ElseIf listtype = "databases" Then
 
             Dim all_checked As Boolean = (_databases = Nothing)
 
             For Each database As String In IO.Directory.GetFiles(path, searchpattern)
-                If all_checked Then
-                    clb.Items.Add(IO.Path.GetFileName(database), True)
-                Else
-                    clb.Items.Add(IO.Path.GetFileName(database), _databases.Contains(IO.Path.GetFileName(database)))
+                If IO.Path.GetExtension(database) <> ommit Or ommit = Nothing Then
+                    If all_checked Then
+                        clb.Items.Add(IO.Path.GetFileName(database), True)
+                    Else
+                        clb.Items.Add(IO.Path.GetFileName(database), _databases.Contains(IO.Path.GetFileName(database)))
+                    End If
                 End If
             Next
 
-        Else
+        ElseIf listtype = "thumbs" Then
 
             Dim all_checked As Boolean = (_thumbs = Nothing)
 
@@ -195,13 +197,13 @@ Public Class MPSync_settings
         'populate the respective listboxes
 
         If _clicks_db <> 2 Then
-            populate_checkedlistbox(clb_databases, tb_db_client_path.Text, "*.db3")
-            populate_checkedlistbox(clb_objects, tb_db_client_path.Text, "*.*", ".db3")
-            populate_checkedlistbox(clb_thumbs, tb_thumbs_client_path.Text)
+            populate_checkedlistbox(clb_databases, tb_db_client_path.Text, "databases", "*.db3", ".db3-journal")
+            populate_checkedlistbox(clb_objects, tb_db_client_path.Text, "objects", "*.*", ".db3")
+            populate_checkedlistbox(clb_thumbs, tb_thumbs_client_path.Text, "thumbs")
         ElseIf _clicks_db = 2 Then
-            populate_checkedlistbox(clb_databases, tb_db_server_path.Text, "*.db3")
-            populate_checkedlistbox(clb_objects, tb_db_server_path.Text, "*.*", ".db3")
-            populate_checkedlistbox(clb_thumbs, tb_thumbs_server_path.Text)
+            populate_checkedlistbox(clb_databases, tb_db_server_path.Text, "databases", "*.db3", ".db3-journal")
+            populate_checkedlistbox(clb_objects, tb_db_server_path.Text, "objects", "*.*", ".db3")
+            populate_checkedlistbox(clb_thumbs, tb_thumbs_server_path.Text, "thumbs")
         End If
 
         populate_watchedchecklistbox(clb_watched)
@@ -412,9 +414,9 @@ Public Class MPSync_settings
             b_thumbs_direction.Refresh()
 
             If _clicks_thumbs <> 2 Then
-                populate_checkedlistbox(clb_thumbs, tb_thumbs_client_path.Text)
+                populate_checkedlistbox(clb_thumbs, tb_thumbs_client_path.Text, "thumbs")
             ElseIf _clicks_thumbs = 2 Then
-                populate_checkedlistbox(clb_thumbs, tb_thumbs_server_path.Text)
+                populate_checkedlistbox(clb_thumbs, tb_thumbs_server_path.Text, "thumbs")
             End If
 
         End If
@@ -436,17 +438,17 @@ Public Class MPSync_settings
             DirectCast(sender, System.Windows.Forms.TextBox).Undo()
         Else
             If DirectCast(sender, System.Windows.Forms.TextBox).Name = "tb_db_client_path" And _clicks_db <> 2 Then
-                populate_checkedlistbox(clb_databases, tb_db_client_path.Text, "*.db3")
-                populate_checkedlistbox(clb_objects, tb_db_client_path.Text, "*.*", ".db3")
+                populate_checkedlistbox(clb_databases, tb_db_client_path.Text, "databases", "*.db3")
+                populate_checkedlistbox(clb_objects, tb_db_client_path.Text, "objects", "*.*", ".db3")
                 populate_watchedchecklistbox(clb_watched)
             ElseIf DirectCast(sender, System.Windows.Forms.TextBox).Name = "tb_db_server_path" And _clicks_db = 2 Then
-                populate_checkedlistbox(clb_databases, tb_db_server_path.Text, "*.db3")
-                populate_checkedlistbox(clb_objects, tb_db_server_path.Text, "*.*", ".db3")
+                populate_checkedlistbox(clb_databases, tb_db_server_path.Text, "databases", "*.db3")
+                populate_checkedlistbox(clb_objects, tb_db_server_path.Text, "objects", "*.*", ".db3")
                 populate_watchedchecklistbox(clb_watched)
             ElseIf DirectCast(sender, System.Windows.Forms.TextBox).Name = "tb_thumbs_client_path" And _clicks_thumbs <> 2 Then
-                populate_checkedlistbox(clb_thumbs, tb_thumbs_client_path.Text)
+                populate_checkedlistbox(clb_thumbs, tb_thumbs_client_path.Text, "thumbs")
             ElseIf DirectCast(sender, System.Windows.Forms.TextBox).Name = "tb_thumbs_server_path" And _clicks_thumbs = 2 Then
-                populate_checkedlistbox(clb_thumbs, tb_thumbs_server_path.Text)
+                populate_checkedlistbox(clb_thumbs, tb_thumbs_server_path.Text, "thumbs")
             End If
         End If
 

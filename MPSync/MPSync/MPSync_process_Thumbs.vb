@@ -37,12 +37,12 @@ Public Class MPSync_process_Thumbs
 
             ' direction is client to server
             If MPSync_process._thumbs_direction <> 2 Then
-                mps_thumbs.watch_Thumbs_folder(MPSync_process._thumbs_client, MPSync_process._thumbs_server)
+                mps_thumbs.watch_Thumbs_folder(MPSync_process._thumbs_client)
             End If
 
             ' direction is server to client
             If MPSync_process._thumbs_direction <> 1 Then
-                mps_thumbs.watch_Thumbs_folder(MPSync_process._thumbs_server, MPSync_process._thumbs_client)
+                mps_thumbs.watch_Thumbs_folder(MPSync_process._thumbs_server)
             End If
 
         Else
@@ -52,12 +52,12 @@ Public Class MPSync_process_Thumbs
 
     End Sub
 
-    Private Sub watch_Thumbs_folder(ByVal source As String, ByVal target As String)
+    Private Sub watch_Thumbs_folder(ByVal path As String)
 
         watchfolder = New System.IO.FileSystemWatcher()
 
         'this is the path we want to monitor
-        watchfolder.Path = source
+        watchfolder.Path = path
         watchfolder.IncludeSubdirectories = True
 
         'Add a list of Filter we want to specify
@@ -81,7 +81,7 @@ Public Class MPSync_process_Thumbs
 
     Private Sub fileChange(ByVal source As Object, ByVal e As System.IO.FileSystemEventArgs)
 
-        Dim file As String = Right(e.FullPath, Len(e.FullPath) - Len(s_path)) & "|"
+        Dim file As String = Right(e.FullPath, Len(e.FullPath) - Len(s_path)) & "|WATCH"
         Dim folder As String
         Dim l As Integer = Len(source.Path) + 1
 
@@ -90,24 +90,23 @@ Public Class MPSync_process_Thumbs
         If MPSync_process._thumbs.Contains(folder) Or MPSync_process._thumbs.Contains("ALL") Then
 
             Dim parm(0) As String
-
             parm(0) = file
 
             If e.ChangeType = WatcherChangeTypes.Changed Or e.ChangeType = WatcherChangeTypes.Created Then
+                MPSync_process.logStats("MPSync: THUMB " & e.FullPath & " added/replaced.", "LOG")
                 Copy_Images(parm)
-            End If
-
-            If e.ChangeType = WatcherChangeTypes.Deleted Then
+            ElseIf e.ChangeType = WatcherChangeTypes.Deleted Then
+                MPSync_process.logStats("MPSync: THUMB " & e.FullPath & " deleted.", "LOG")
                 Delete_Images(parm)
             End If
 
-        End If
+            End If
 
     End Sub
 
     Public Sub fileRename(ByVal source As Object, ByVal e As System.IO.RenamedEventArgs)
 
-        Dim file As String = Right(e.FullPath, Len(e.FullPath) - Len(s_path)) & "|"
+        Dim file As String = Right(e.FullPath, Len(e.FullPath) - Len(s_path)) & "|WATCH"
         Dim folder As String
         Dim l As Integer = Len(source) + 1
 
@@ -116,12 +115,10 @@ Public Class MPSync_process_Thumbs
         If MPSync_process._thumbs.Contains(folder) Or MPSync_process._thumbs.Contains("ALL") Then
 
             Dim parm(0) As String
-
             parm(0) = file
 
-            If e.ChangeType = WatcherChangeTypes.Changed Or e.ChangeType = WatcherChangeTypes.Created Then
-                Copy_Images(parm)
-            End If
+            MPSync_process.logStats("MPSync: THUMB " & e.FullPath & " renamed.", "LOG")
+            Copy_Images(parm)
 
         End If
 
@@ -135,30 +132,43 @@ Public Class MPSync_process_Thumbs
         Dim l2 As Integer = Len(c_path)
         Dim x As Integer = -1
 
-        Dim dir As New DirectoryInfo(path)
+        MPSync_process.logStats("MPSync: Scanning folder " & path & " for thumbs", "LOG")
 
-        Dim list = dir.GetFiles("*.*", SearchOption.AllDirectories)
+        Try
 
-        For Each file As IO.FileInfo In list
+            Dim dir As New DirectoryInfo(path)
 
-            If file.Name <> "Thumbs.db" Then
+            Dim list = dir.GetFiles("*.*", SearchOption.AllDirectories)
 
-                folder = Mid(file.FullName, l1, InStr(l1, file.FullName, "\") - l1)
+            For Each file As IO.FileInfo In list
 
-                If MPSync_process._thumbs.Contains(folder) Or MPSync_process._thumbs.Contains("ALL") Then
-                    x += 1
-                    ReDim Preserve thumbs(x)
-                    thumbs(x) = Right(file.FullName, Len(file.FullName) - l2) & "|" & file.LastWriteTimeUtc
+                If file.Name <> "Thumbs.db" Then
+
+                    folder = Mid(file.FullName, l1, InStr(l1, file.FullName, "\") - l1)
+
+                    If MPSync_process._thumbs.Contains(folder) Or MPSync_process._thumbs.Contains("ALL") Then
+                        x += 1
+                        ReDim Preserve thumbs(x)
+                        thumbs(x) = Right(file.FullName, Len(file.FullName) - l2) & "|" & file.LastWriteTimeUtc
+                    End If
+
                 End If
-            End If
 
-        Next
+            Next
 
-        Array.Sort(thumbs)
+        Catch ex As Exception
+            MPSync_process.logStats("MPSync: failed to read thumbs from folder " & path & " with exception: " & ex.Message, "ERROR")
+        End Try
 
-        If x = -1 Then x = 0
+        If x = -1 Then
+            x = 0
+            ReDim thumbs(x)
+            thumbs(x) = ""
+        Else
+            Array.Sort(thumbs)
+        End If
 
-        If debug Then MPSync_process.logStats("MPSync: " & x.ToString & " images found in folder " & path, "DEBUG")
+        MPSync_process.logStats("MPSync: " & x.ToString & " images found in folder " & path, "LOG")
 
         Return thumbs
 
@@ -188,12 +198,7 @@ Public Class MPSync_process_Thumbs
         s_path = Left(source, Len(source) - x)
         t_path = Left(target, Len(target) - x)
 
-        MPSync_process.logStats("MPSync: Scanning folder " & source & " for thumbs", "LOG")
-
         s_thumbs = getThumbsDetails(source, s_path)
-
-        MPSync_process.logStats("MPSync: Scanning folder " & target & " for thumbs", "LOG")
-
         t_thumbs = getThumbsDetails(target, t_path)
 
         ' propagate deletions or both
@@ -220,14 +225,18 @@ Public Class MPSync_process_Thumbs
 
     Private Sub Copy_Images(ByVal parm As Array)
 
-        Dim file As Array
+        Dim file As Array = Nothing
         Dim x As Integer
+        Dim times As Integer
+        Dim lock As New ReaderWriterLockSlim
 
         Dim directory As String
 
         For x = 0 To UBound(parm)
+
             MPSync_process.CheckPlayerplaying("thumbs", checkplayer)
 
+            times = 5
             file = Split(parm(x), "|")
 
             directory = IO.Path.GetDirectoryName(t_path & file(0))
@@ -237,34 +246,61 @@ Public Class MPSync_process_Thumbs
                 If debug Then MPSync_process.logStats("MPSync: directory missing, creating " & directory, "DEBUG")
             End If
 
-            IO.File.Copy(s_path & file(0), t_path & file(0), True)
+            Do While times > 0 And Not lock.TryEnterReadLock(250)
+                times -= 1
+            Loop
 
-            If debug Then MPSync_process.logStats("MPSync: copying " & file(0), "DEBUG")
+            If times > 0 Then
+                Try
+                    IO.File.Copy(s_path & file(0), t_path & file(0), True)
+                Catch ex As Exception
+                    MPSync_process.logStats("MPSync: copy failed with exception: " & ex.Message, "ERROR")
+                End Try
+            Else
+                MPSync_process.logStats("MPSync: could not get read lock on file " & s_path & file(0), "ERROR")
+            End If
+
+            lock.ExitReadLock()
+
         Next
 
-        MPSync_process.logStats("MPSync: " & x.ToString & " images added/replaced.", "LOG")
+        If file(1) <> "WATCH" Then MPSync_process.logStats("MPSync: " & x.ToString & " images added/replaced.", "LOG")
 
     End Sub
 
     Private Sub Delete_Images(ByVal parm As Array)
 
-        Dim file As Array
+        Dim file As Array = Nothing
         Dim x As Integer
+        Dim times As Integer
+        Dim lock As New ReaderWriterLockSlim
 
         For x = 0 To UBound(parm)
+
             MPSync_process.CheckPlayerplaying("thumbs", checkplayer)
 
+            times = 5
             file = Split(parm(x), "|")
 
-            Try
-                IO.File.Delete(t_path & file(0))
-                If debug Then MPSync_process.logStats("MPSync: deleting " & parm(x), "DEBUG")
-            Catch ex As Exception
-                MPSync_process.logStats("MPSync: Error deleting " & t_path & parm(x), "ERROR")
-            End Try
+            Do While times > 0 And Not lock.TryEnterReadLock(250)
+                times -= 1
+            Loop
+
+            If times > 0 Then
+                Try
+                    IO.File.Delete(t_path & file(0))
+                Catch ex As Exception
+                    MPSync_process.logStats("MPSync: delete failed with exception: " & ex.Message, "ERROR")
+                End Try
+            Else
+                MPSync_process.logStats("MPSync: could not get read lock on file " & t_path & file(0), "ERROR")
+            End If
+
+            lock.ExitReadLock()
+
         Next
 
-        MPSync_process.logStats("MPSync: " & x.ToString & " images removed.", "LOG")
+        If file(1) <> "WATCH" Then MPSync_process.logStats("MPSync: " & x.ToString & " images removed.", "LOG")
 
     End Sub
 
