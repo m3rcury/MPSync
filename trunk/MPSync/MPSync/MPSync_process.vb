@@ -93,6 +93,15 @@ Public Class MPSync_process
 
     End Sub
 
+    Private Sub checkPath(ByVal path As String)
+
+        Do While Not IO.Directory.Exists(path)
+            logStats("MPSync: path " & path & " not available.", "LOG")
+            wait(30, False)
+        Loop
+
+    End Sub
+
     Private Sub MPSyncProcess()
 
         Dim file As String = Config.GetFile(Config.Dir.Config, "MPSync.xml")
@@ -216,6 +225,15 @@ Public Class MPSync_process
                 _watched_dbs = mps.getDatabase
             End If
 
+            ' check that all watch databases are actually selected for synchronization
+            If _databases(0) <> "ALL" Then
+                For x As Integer = 0 To UBound(_watched_dbs)
+                    If Not _databases.Contains(_watched_dbs(x)) Then
+                        _watched_dbs(x) = ""
+                    End If
+                Next
+            End If
+
             ' get list of objects to copy
             If objects <> Nothing Then
                 If Right(objects, 1) = "|" Then objects = Left(objects, Len(objects) - 1)
@@ -232,9 +250,21 @@ Public Class MPSync_process
             If InStrRev(_db_client, "\") <> Len(_db_client) Then _db_client = Trim(_db_client) & "\"
             If InStrRev(_db_server, "\") <> Len(_db_server) Then _db_server = Trim(_db_server) & "\"
 
-            If Not IO.Directory.Exists(_db_server) Then IO.Directory.CreateDirectory(_db_server)
+            ' check that server is available
+            Dim checkDBPath_Thread As Thread
+            checkDBPath_Thread = New Thread(AddressOf checkPath)
 
-            ' get last write time for all db3s
+            logStats("MPSync: Checking availability of " & _db_server, "LOG")
+
+            checkDBPath_Thread.Start(_db_server)
+
+            Do While checkDBPath_Thread.IsAlive
+                wait(10, False)
+            Loop
+
+            logStats("MPSync: " & _db_server & " is available.", "LOG")
+
+            ' get db info and check integrity
             If _db_direction = 1 Then
                 getDBInfo(_db_client, _db_server)
             ElseIf _db_direction = 2 Then
@@ -264,6 +294,20 @@ Public Class MPSync_process
             ' check that both paths end with a "\"
             If InStrRev(_thumbs_client, "\") <> Len(_thumbs_client) Then _thumbs_client = Trim(_thumbs_client) & "\"
             If InStrRev(_thumbs_server, "\") <> Len(_thumbs_server) Then _thumbs_server = Trim(_thumbs_server) & "\"
+
+            ' check that server is available
+            Dim checkTHUMBPath_Thread As Thread
+            checkTHUMBPath_Thread = New Thread(AddressOf checkPath)
+
+            logStats("MPSync: Checking availability of " & _thumbs_server, "LOG")
+
+            checkTHUMBPath_Thread.Start(_thumbs_server)
+
+            Do While checkTHUMBPath_Thread.IsAlive
+                wait(10, False)
+            Loop
+
+            logStats("MPSync: " & _thumbs_server & " is available.", "LOG")
 
         End If
 
@@ -376,30 +420,40 @@ Public Class MPSync_process
         Dim check As String = Nothing
         Dim bw_checkDB() As BackgroundWorker = Nothing
 
+        If p_Debug Then logStats("MPSync: Background threads for database integrity checking started.", "DEBUG")
+
         For Each database As String In IO.Directory.GetFiles(source, "*.db3")
 
-            If _databases.Contains(IO.Path.GetFileName(database)) Or _databases.Contains("ALL") Then
+            If IO.Path.GetExtension(database) <> ".db3-journal" Then
 
-                ReDim Preserve dbname(x)
-                ReDim Preserve dbinfo(x)
-                dbname(x) = IO.Path.GetFileName(database)
-                dbinfo(x) = My.Computer.FileSystem.GetFileInfo(database)
+                If _databases.Contains(IO.Path.GetFileName(database)) Or _databases.Contains("ALL") Then
 
-                ReDim Preserve bw_checkDB(x)
-                bw_checkDB(x) = New BackgroundWorker
-                bw_checkDB(x).WorkerSupportsCancellation = True
-                AddHandler bw_checkDB(x).DoWork, AddressOf bw_checkDB_worker
+                    ReDim Preserve dbname(x)
+                    ReDim Preserve dbinfo(x)
+                    dbname(x) = IO.Path.GetFileName(database)
+                    dbinfo(x) = My.Computer.FileSystem.GetFileInfo(database)
 
-                If Not bw_checkDB(x).IsBusy Then bw_checkDB(x).RunWorkerAsync(target & "|" & dbname(x) & "|" & database)
-                x += 1
-                bw_threads += 1
+                    ReDim Preserve bw_checkDB(x)
+                    bw_checkDB(x) = New BackgroundWorker
+                    bw_checkDB(x).WorkerSupportsCancellation = True
+                    AddHandler bw_checkDB(x).DoWork, AddressOf bw_checkDB_worker
+
+                    If Not bw_checkDB(x).IsBusy Then bw_checkDB(x).RunWorkerAsync(target & "|" & dbname(x) & "|" & database)
+                    x += 1
+                    bw_threads += 1
+
+                End If
 
             End If
+
         Next
 
         Do While bw_threads > 0
+            If p_Debug Then logStats("MPSync: [getDBInfo] waiting for background threads to finish...", "DEBUG")
             wait(10, False)
         Loop
+
+        If p_Debug Then logStats("MPSync: Background threads for database integrity checking complete.", "DEBUG")
 
     End Sub
 
@@ -408,16 +462,18 @@ Public Class MPSync_process
         Dim check As String = "ok"
         Dim parm() As String = Split(e.Argument, "|")
 
+        If p_Debug Then logStats("MPSync: Checking integrity of database " & parm(1) & " in progress...", "DEBUG")
+
         If IO.File.Exists(parm(0) & parm(1)) Then
             Dim SQLconnect As New SQLiteConnection()
             Dim SQLcommand As SQLiteCommand
             Dim SQLreader As SQLiteDataReader = Nothing
             SQLconnect.ConnectionString = "Data Source=" & parm(0) & parm(1)
-            SQLconnect.Open()
-            SQLcommand = SQLconnect.CreateCommand
-            SQLcommand.CommandText = "PRAGMA integrity_check;"
 
             Try
+                SQLconnect.Open()
+                SQLcommand = SQLconnect.CreateCommand
+                SQLcommand.CommandText = "PRAGMA integrity_check;"
                 SQLreader = SQLcommand.ExecuteReader()
                 check = SQLreader(0)
             Catch ex As Exception
@@ -430,14 +486,18 @@ Public Class MPSync_process
 
         End If
 
-        If Not IO.File.Exists(parm(0) & parm(1)) Then
-            logStats("MPSync: Copying database " & parm(2) & " from source", "LOG")
-            IO.File.Copy(parm(2), parm(0) & parm(1), True)
-            Drop_Triggers(parm(0), parm(1), "mpsync_update|mpsync_watch")
-            check = "copied file from source"
-        End If
+        Try
+            If Not IO.File.Exists(parm(0) & parm(1)) Then
+                logStats("MPSync: Copying database " & parm(2) & " from source", "LOG")
+                IO.File.Copy(parm(2), parm(0) & parm(1), True)
+                Drop_Triggers(parm(0), parm(1), "mpsync_update|mpsync_watch")
+                check = "copied file from source"
+            End If
+        Catch ex As Exception
+            logStats("MPSync: Error while copying database " & parm(2) & " with exception: " & ex.Message, "ERROR")
+        End Try
 
-        logStats("MPSync: Checking integrity of database " & parm(1) & " - Status: " & check, "LOG")
+        logStats("MPSync: Checking integrity of database " & parm(1) & " complete - Status: " & check, "LOG")
 
         bw_threads -= 1
 
@@ -448,20 +508,24 @@ Public Class MPSync_process
         Dim x As Integer
         Dim bw_checkTriggers() As BackgroundWorker = Nothing
 
+        If p_Debug Then logStats("MPSync: Background threads for Trigger checking started.", "DEBUG")
+
         For x = 0 To UBound(_watched_dbs)
 
-            ReDim Preserve bw_checkTriggers(x)
-            bw_checkTriggers(x) = New BackgroundWorker
-            bw_checkTriggers(x).WorkerSupportsCancellation = True
-            AddHandler bw_checkTriggers(x).DoWork, AddressOf bw_watchtriggers_worker
+            If _watched_dbs(x) <> "" Then
+                ReDim Preserve bw_checkTriggers(x)
+                bw_checkTriggers(x) = New BackgroundWorker
+                bw_checkTriggers(x).WorkerSupportsCancellation = True
+                AddHandler bw_checkTriggers(x).DoWork, AddressOf bw_watchtriggers_worker
 
-            If check_watched Then
-                If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("ADD|" & _watched_dbs(x))
-            Else
-                If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("DROP|" & _watched_dbs(x))
+                If check_watched Then
+                    If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("ADD|" & _watched_dbs(x))
+                Else
+                    If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("DROP|" & _watched_dbs(x))
+                End If
+
+                bw_threads += 1
             End If
-
-            bw_threads += 1
 
         Next
 
@@ -470,6 +534,29 @@ Public Class MPSync_process
 
             If mode = "client>server" Then
                 For Each database As String In IO.Directory.GetFiles(_db_client, "*.db3")
+
+                    If IO.Path.GetExtension(database) <> ".db3-journal" Then
+
+                        If _databases.Contains(IO.Path.GetFileName(database)) Or _databases.Contains("ALL") Then
+
+                            ReDim Preserve bw_checkTriggers(x)
+                            bw_checkTriggers(x) = New BackgroundWorker
+                            bw_checkTriggers(x).WorkerSupportsCancellation = True
+                            AddHandler bw_checkTriggers(x).DoWork, AddressOf bw_worktriggers_worker
+
+                            If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("ADD|" & database)
+                            x += 1
+                            bw_threads += 1
+
+                        End If
+                    End If
+                Next
+            End If
+
+            For Each database As String In IO.Directory.GetFiles(_db_server, "*.db3")
+
+                If IO.Path.GetExtension(database) <> ".db3-journal" Then
+
                     If _databases.Contains(IO.Path.GetFileName(database)) Or _databases.Contains("ALL") Then
 
                         ReDim Preserve bw_checkTriggers(x)
@@ -482,22 +569,8 @@ Public Class MPSync_process
                         bw_threads += 1
 
                     End If
-                Next
-            End If
-
-            For Each database As String In IO.Directory.GetFiles(_db_server, "*.db3")
-                If _databases.Contains(IO.Path.GetFileName(database)) Or _databases.Contains("ALL") Then
-
-                    ReDim Preserve bw_checkTriggers(x)
-                    bw_checkTriggers(x) = New BackgroundWorker
-                    bw_checkTriggers(x).WorkerSupportsCancellation = True
-                    AddHandler bw_checkTriggers(x).DoWork, AddressOf bw_worktriggers_worker
-
-                    If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("ADD|" & database)
-                    x += 1
-                    bw_threads += 1
-
                 End If
+
             Next
         End If
 
@@ -505,27 +578,34 @@ Public Class MPSync_process
         If sync_type = "Timestamp" Or mode = "server>client" Then
             For Each database As String In IO.Directory.GetFiles(_db_client, "*.db3")
 
-                ReDim Preserve bw_checkTriggers(x)
-                bw_checkTriggers(x) = New BackgroundWorker
-                bw_checkTriggers(x).WorkerSupportsCancellation = True
-                AddHandler bw_checkTriggers(x).DoWork, AddressOf bw_worktriggers_worker
+                If IO.Path.GetExtension(database) <> ".db3-journal" Then
+                    ReDim Preserve bw_checkTriggers(x)
+                    bw_checkTriggers(x) = New BackgroundWorker
+                    bw_checkTriggers(x).WorkerSupportsCancellation = True
+                    AddHandler bw_checkTriggers(x).DoWork, AddressOf bw_worktriggers_worker
 
-                If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("DROP|" & database)
-                x += 1
-                bw_threads += 1
+                    If Not bw_checkTriggers(x).IsBusy Then bw_checkTriggers(x).RunWorkerAsync("DROP|" & database)
+                    x += 1
+                    bw_threads += 1
+                End If
 
             Next
         End If
 
         Do While bw_threads > 0
+            If p_Debug Then logStats("MPSync: [checkTriggers] waiting for background threads to finish...", "DEBUG")
             wait(10, False)
         Loop
+
+        If p_Debug Then logStats("MPSync: Background threads for Trigger checking complete.", "DEBUG")
 
     End Sub
 
     Private Sub bw_watchtriggers_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
 
         Dim parm() As String = Split(e.Argument, "|")
+
+        If p_Debug Then logStats("MPSync: Background watch trigger thread on database " & parm(1) & " started.", "DEBUG")
 
         If parm(0) = "ADD" Then
             Create_Watch_Tables(_db_client, parm(1))
@@ -541,16 +621,22 @@ Public Class MPSync_process
 
         bw_threads -= 1
 
+        If p_Debug Then logStats("MPSync: Background watch trigger thread on database " & parm(1) & " complete.", "DEBUG")
+
     End Sub
 
     Private Sub bw_worktriggers_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
 
         Dim parm() As String = Split(e.Argument, "|")
 
+        If p_Debug Then logStats("MPSync: Background work trigger thread on database " & parm(1) & " started.", "DEBUG")
+
         If parm(0) = "DROP" Then Drop_Triggers(IO.Path.GetDirectoryName(parm(1)) & "\", IO.Path.GetFileName(parm(1)), "mpsync_work")
         If parm(0) = "ADD" Then Create_Sync_Triggers(parm(1))
 
         bw_threads -= 1
+
+        If p_Debug Then logStats("MPSync: Background work trigger thread on database " & parm(1) & " complete.", "DEBUG")
 
     End Sub
 
@@ -558,7 +644,7 @@ Public Class MPSync_process
 
         If Not IO.File.Exists(path & database) Then Exit Sub
 
-        logStats("MPSync: Creating/altering work table mpsync in database " & path & database, "LOG")
+        logStats("MPSync: Creating/altering watch table mpsync in database " & path & database, "LOG")
 
         Dim SQL As String = Nothing
 
@@ -639,10 +725,10 @@ Public Class MPSync_process
             Dim SQLcommand As SQLiteCommand
 
             SQLconnect.ConnectionString = "Data Source=" & path & database
-            SQLconnect.Open()
             SQLcommand = SQLconnect.CreateCommand
 
             Try
+                SQLconnect.Open()
                 SQLcommand.CommandText = SQL
                 SQLcommand.ExecuteNonQuery()
             Catch ex As Exception
@@ -659,16 +745,16 @@ Public Class MPSync_process
 
         If Not IO.File.Exists(path & database) Then Exit Sub
 
-        If p_Debug Then logStats("MPSync: Drop work table mpsync from database " & database, "DEBUG")
+        If p_Debug Then logStats("MPSync: Drop watch table mpsync from database " & database, "DEBUG")
 
         Dim SQLconnect As New SQLiteConnection()
         Dim SQLcommand As SQLiteCommand
 
         SQLconnect.ConnectionString = "Data Source=" & path & database
-        SQLconnect.Open()
         SQLcommand = SQLconnect.CreateCommand
 
         Try
+            SQLconnect.Open()
             SQLcommand.CommandText = "DROP TABLE IF EXISTS mpsync"
             SQLcommand.ExecuteNonQuery()
         Catch ex As Exception
@@ -779,10 +865,10 @@ Public Class MPSync_process
             Dim SQLcommand As SQLiteCommand
 
             SQLconnect.ConnectionString = "Data Source=" & path & database
-            SQLconnect.Open()
             SQLcommand = SQLconnect.CreateCommand
 
             Try
+                SQLconnect.Open()
                 SQLcommand.CommandText = SQL
                 SQLcommand.ExecuteNonQuery()
             Catch ex As Exception
@@ -843,7 +929,9 @@ Public Class MPSync_process
 
     Private Sub Create_Sync_Triggers(ByVal database As String)
 
-        If p_Debug Then logStats("MPSync: Check synchronization triggers in database " & database, "DEBUG")
+        If Not IO.File.Exists(database) Then Exit Sub
+
+        logStats("MPSync: Check synchronization triggers in database " & database, "LOG")
 
         Dim x As Integer = -1
         Dim table() As String = Nothing
@@ -902,6 +990,8 @@ Public Class MPSync_process
         End If
 
         If TableExist(IO.Path.GetDirectoryName(database) & "\", IO.Path.GetFileName(database), "mpsync_trigger", True) = False Then
+
+            logStats("MPSync: Creating work table mpsync_trigger in database " & database, "LOG")
 
             Try
                 SQLcommand.CommandText = "CREATE TABLE IF NOT EXISTS mpsync_trigger (id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, lastupdated TEXT)"

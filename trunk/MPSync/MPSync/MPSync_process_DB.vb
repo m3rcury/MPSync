@@ -478,23 +478,27 @@ Public Class MPSync_process_DB
 
         For Each database As String In IO.Directory.GetFiles(source, "*.db3")
 
-            Dim db As String = IO.Path.GetFileName(database)
+            If IO.Path.GetExtension(database) <> ".db3-journal" Then
 
-            If MPSync_process._databases.Contains(db) Or MPSync_process._databases.Contains("ALL") Then
+                Dim db As String = IO.Path.GetFileName(database)
 
-                If MPSync_process.sync_type = "Triggers" Then
-                    ProcessTables(source, target, db)
-                Else
+                If MPSync_process._databases.Contains(db) Or MPSync_process._databases.Contains("ALL") Then
 
-                    x = Array.IndexOf(MPSync_process.dbname, db)
-
-                    s_lastwrite = My.Computer.FileSystem.GetFileInfo(database).LastWriteTimeUtc
-                    t_lastwrite = My.Computer.FileSystem.GetFileInfo(target & db).LastWriteTimeUtc
-
-                    If MPSync_process.dbinfo(x).LastWriteTimeUtc < s_lastwrite Or MPSync_process.dbinfo(x).LastWriteTimeUtc <> t_lastwrite Then
+                    If MPSync_process.sync_type = "Triggers" Then
                         ProcessTables(source, target, db)
                     Else
-                        If debug Then MPSync_process.logStats("MPSync: no changes detected in " & database & ". Skipping synchronization.", "DEBUG")
+
+                        x = Array.IndexOf(MPSync_process.dbname, db)
+
+                        s_lastwrite = My.Computer.FileSystem.GetFileInfo(database).LastWriteTimeUtc
+                        t_lastwrite = My.Computer.FileSystem.GetFileInfo(target & db).LastWriteTimeUtc
+
+                        If MPSync_process.dbinfo(x).LastWriteTimeUtc < s_lastwrite Or MPSync_process.dbinfo(x).LastWriteTimeUtc <> t_lastwrite Then
+                            ProcessTables(source, target, db)
+                        Else
+                            If debug Then MPSync_process.logStats("MPSync: no changes detected in " & database & ". Skipping synchronization.", "DEBUG")
+                        End If
+
                     End If
 
                 End If
@@ -508,6 +512,7 @@ Public Class MPSync_process_DB
         If Not MPSync_process._objects.Contains("NOTHING") Then ProcessObject(source, target)
 
         Do While _bw_active_db_jobs > 0
+            If MPSync_process.p_Debug Then MPSync_process.logStats("MPSync: [Process_DB_folder] waiting for background threads to finish...", "DEBUG")
             MPSync_process.wait(10, False)
         Loop
 
@@ -785,6 +790,8 @@ Public Class MPSync_process_DB
         Dim busy As Boolean = True
 
         Do While busy
+
+            If MPSync_process.p_Debug Then MPSync_process.logStats("MPSync: [bw_sync_db_worker] waiting for background threads to finish...", "DEBUG")
 
             For x = 0 To bw_db_thread_jobs - 1
                 If bw_db_thread(x).IsBusy Then
