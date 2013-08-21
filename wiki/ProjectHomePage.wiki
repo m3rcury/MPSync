@@ -16,9 +16,10 @@ http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(2)%20MPSync_database_path
 http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(3)%20MPSync_database_advanced_settings.jpg
 http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(4)%20MPSync_database_other.jpg
 http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(5)%20MPSync_database_watched_status.jpg
-http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(6)%20MPSync_thumbs_paths.jpg
-http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(7)%20MPSync_thumbs_advanced_settings.jpg
-http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(8)%20MPSync_status.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(6)%20MPSync_folder_list.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(7)%20MPSync_thumbs_paths.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(8)%20MPSync_thumbs_advanced_settings.jpg
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(9)%20MPSync_status.jpg
 
 The settings will vary depending on the role of the client you are running the plugin on. Let us take the settings on the Master client.
 
