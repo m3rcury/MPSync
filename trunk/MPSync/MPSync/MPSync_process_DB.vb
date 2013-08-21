@@ -509,7 +509,7 @@ Public Class MPSync_process_DB
 
         p_lastsync = Now.ToLocalTime.ToString("yyyy-MM-dd HH:mm:ss")
 
-        If Not MPSync_process._objects.Contains("NOTHING") Then ProcessObject(source, target)
+        If Not MPSync_process._db_objects.Contains("NOTHING") Then ProcessObject(source, target)
 
         Do While _bw_active_db_jobs > 0
             If MPSync_process.p_Debug Then MPSync_process.logStats("MPSync: [Process_DB_folder] waiting for background threads to finish...", "DEBUG")
@@ -631,7 +631,7 @@ Public Class MPSync_process_DB
 
             Dim obj As String = IO.Path.GetFileName(objects)
 
-            If MPSync_process._objects.Contains(obj) Then
+            If MPSync_process._db_objects.Contains(obj) Then
 
                 s_lastwrite = My.Computer.FileSystem.GetFileInfo(objects).LastWriteTimeUtc
                 t_lastwrite = My.Computer.FileSystem.GetFileInfo(target & obj).LastWriteTimeUtc
