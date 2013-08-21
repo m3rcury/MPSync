@@ -8,12 +8,12 @@ Imports System.Data.SQLite
 Public Class MPSync_process
 
     Private mps As New MPSync_settings
-    Public Shared _db_client, _db_server, _thumbs_client, _thumbs_server, _databases(), _thumbs(), _watched_dbs(), _objects(), dbname(), session, sync_type As String
-    Public Shared _db_sync, _db_direction, _db_sync_method, _thumbs_direction, _thumbs_sync_method As Integer
-    Public Shared _db_pause, _thumbs_pause, debug, check_watched As Boolean
+    Public Shared _db_client, _db_server, _folders_client, _folders_server, _databases(), _folders(), _watched_dbs(), _db_objects(), dbname(), session, sync_type, folders, object_list As String
+    Public Shared _db_sync, _db_direction, _db_sync_method, _folders_direction, _folders_sync_method As Integer
+    Public Shared _db_pause, _folders_pause, debug, check_watched As Boolean
     Public Shared dbinfo() As IO.FileInfo
 
-    Dim checked_databases, checked_thumbs As Boolean
+    Dim checked_databases, checked_folders As Boolean
     Dim bw_threads As Integer
 
     Private Structure fieldnames
@@ -43,7 +43,7 @@ Public Class MPSync_process
     End Sub
 
     Public Shared Sub CheckPlayerplaying(ByVal thread As String, ByVal seconds As Long)
-        If (thread = "db" And _db_pause) Or (thread = "thumbs" And _thumbs_pause) Then
+        If (thread = "db" And _db_pause) Or (thread = "folders" And _folders_pause) Then
             If MediaPortal.Player.g_Player.Playing Then Log.Info("MPSync: paimports " & thread & " thread as player is playing.")
             Do While MediaPortal.Player.g_Player.Playing
                 MPSync_process.wait(seconds, False)
@@ -73,6 +73,43 @@ Public Class MPSync_process
             fhandle.Close()
         Catch ex As Exception
         End Try
+
+    End Sub
+
+    Public Shared Sub getObjectSettings(ByVal objsetting As String, Optional ByRef folders_client As String = Nothing, Optional ByRef folders_server As String = Nothing, Optional ByRef folders_direction As Integer = Nothing, Optional ByRef folders_sync_method As Integer = Nothing, Optional ByRef selectedfolders() As String = Nothing)
+
+        folders = Nothing
+
+        Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync_" & UCase(objsetting) & ".xml"))
+
+            _folders_client = XMLreader.GetValueAsString("Path", "client", Nothing)
+            _folders_server = XMLreader.GetValueAsString("Path", "server", Nothing)
+            _folders_direction = XMLreader.GetValueAsInt("Path", "direction", 0)
+            _folders_sync_method = XMLreader.GetValueAsInt("Path", "method", 0)
+
+            folders = XMLreader.GetValueAsString("Settings", "folders", Nothing)
+            _folders_pause = XMLreader.GetValueAsString("Settings", "pause while playing", False)
+
+        End Using
+
+        ' check that both paths end with a "\"
+        If InStrRev(_folders_client, "\") <> Len(_folders_client) Then _folders_client = Trim(_folders_client) & "\"
+        If InStrRev(_folders_server, "\") <> Len(_folders_server) Then _folders_server = Trim(_folders_server) & "\"
+
+        ' get list of folders to synchronise
+        If folders <> Nothing Then
+            If Right(folders, 1) = "|" Then folders = Left(folders, Len(folders) - 1)
+            _folders = Split(folders, "|")
+        Else
+            ReDim _folders(0)
+            _folders(0) = "ALL"
+        End If
+
+        folders_client = _folders_client
+        folders_server = _folders_server
+        folders_direction = _folders_direction
+        folders_sync_method = _folders_sync_method
+        selectedfolders = _folders
 
     End Sub
 
@@ -109,14 +146,14 @@ Public Class MPSync_process
         If Not FileIO.FileSystem.FileExists(file) Then Return
 
         Dim i_method As Array = {"Propagate both additions and deletions", "Propagate additions only", "Propagate deletions only"}
-        Dim db_sync_value, databases, thumbs, watched_dbs, objects, version As String
+        Dim db_sync_value, databases, watched_dbs, objects, version As String
 
         ' get configuratin from XML file
         Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(file)
 
             version = XMLreader.GetValueAsString("Plugin", "version", "0")
             checked_databases = XMLreader.GetValueAsString("Plugin", "databases", True)
-            checked_thumbs = XMLreader.GetValueAsString("Plugin", "thumbs", True)
+            checked_folders = XMLreader.GetValueAsString("Plugin", "folders", True)
             p_Debug = XMLreader.GetValueAsString("Plugin", "debug", False)
             session = XMLreader.GetValueAsString("Plugin", "session ID", Nothing)
             sync_type = XMLreader.GetValueAsString("Plugin", "sync type", "Triggers")
@@ -134,13 +171,7 @@ Public Class MPSync_process
             watched_dbs = XMLreader.GetValueAsString("DB Settings", "watched databases", Nothing)
             objects = XMLreader.GetValueAsString("DB Settings", "objects", Nothing)
 
-            _thumbs_client = XMLreader.GetValueAsString("Thumbs Path", "client", Nothing)
-            _thumbs_server = XMLreader.GetValueAsString("Thumbs Path", "server", Nothing)
-            _thumbs_direction = XMLreader.GetValueAsInt("Thumbs Path", "direction", 0)
-            _thumbs_sync_method = XMLreader.GetValueAsInt("Thumbs Path", "method", 0)
-
-            _thumbs_pause = XMLreader.GetValueAsString("Thumbs Settings", "pause while playing", False)
-            thumbs = XMLreader.GetValueAsString("Thumbs Settings", "thumbs", Nothing)
+            object_list = XMLreader.GetValueAsString("Objects List", "list", "folders¬True|")
 
         End Using
 
@@ -189,21 +220,42 @@ Public Class MPSync_process
             End If
         End If
 
-        If checked_thumbs Then
-            Select Case _thumbs_direction
-                Case 0
-                    logStats("MPSync: THUMBS - " & _thumbs_client & " <-> " & _thumbs_server, "INFO")
-                Case 1
-                    logStats("MPSync: THUMBS - " & _thumbs_client & " --> " & _thumbs_server, "INFO")
-                Case 2
-                    logStats("MPSync: THUMBS - " & _thumbs_client & " <-- " & _thumbs_server, "INFO")
-            End Select
-            logStats("MPSync: THUMBS synchronization method - " & i_method(_thumbs_sync_method), "INFO")
-            If thumbs = Nothing Then
-                logStats("MPSync: THUMBS selected - ALL", "INFO")
-            Else
-                logStats("MPSync: THUMBS selected - " & thumbs, "INFO")
-            End If
+        If checked_folders Then
+
+            If Right(object_list, 1) = "|" Then object_list = Left(object_list, Len(object_list) - 1)
+
+            Dim item As Array
+            Dim list As Array = Split(object_list, "|")
+
+            For Each obj As String In list
+
+                item = Split(obj, "¬")
+
+                If item(1) = "True" Then
+
+                    item(0) = UCase(item(0))
+
+                    getObjectSettings(item(0))
+
+                    Select Case _folders_direction
+                        Case 0
+                            logStats("MPSync: " & item(0) & " - " & _folders_client & " <-> " & _folders_server, "INFO")
+                        Case 1
+                            logStats("MPSync: " & item(0) & " - " & _folders_client & " --> " & _folders_server, "INFO")
+                        Case 2
+                            logStats("MPSync: " & item(0) & " - " & _folders_client & " <-- " & _folders_server, "INFO")
+                    End Select
+                    logStats("MPSync: " & item(0) & " synchronization method - " & i_method(_folders_sync_method), "INFO")
+                    If folders = Nothing Then
+                        logStats("MPSync: " & item(0) & " selected - ALL", "INFO")
+                    Else
+                        logStats("MPSync: " & item(0) & " selected - " & folders, "INFO")
+                    End If
+
+                End If
+
+            Next
+
         End If
 
         If _db_client <> Nothing And _db_server <> Nothing And checked_databases Then
@@ -237,10 +289,10 @@ Public Class MPSync_process
             ' get list of objects to copy
             If objects <> Nothing Then
                 If Right(objects, 1) = "|" Then objects = Left(objects, Len(objects) - 1)
-                _objects = Split(objects, "|")
+                _db_objects = Split(objects, "|")
             Else
-                ReDim _objects(0)
-                _objects(0) = "ALL"
+                ReDim _db_objects(0)
+                _db_objects(0) = "ALL"
             End If
 
             ' calculate actual sync periodicity in seconds
@@ -259,7 +311,7 @@ Public Class MPSync_process
             checkDBPath_Thread.Start(_db_server)
 
             Do While checkDBPath_Thread.IsAlive
-                wait(10, False)
+                wait(5, False)
             Loop
 
             logStats("MPSync: " & _db_server & " is available.", "LOG")
@@ -280,34 +332,42 @@ Public Class MPSync_process
 
         End If
 
-        If _thumbs_client <> Nothing And _thumbs_server <> Nothing And checked_thumbs Then
+        If checked_folders Then
 
-            ' get list of thumbs to synchronise
-            If thumbs <> Nothing Then
-                If Right(thumbs, 1) = "|" Then thumbs = Left(thumbs, Len(thumbs) - 1)
-                _thumbs = Split(thumbs, "|")
-            Else
-                ReDim _thumbs(0)
-                _thumbs(0) = "ALL"
-            End If
+            If Right(object_list, 1) = "|" Then object_list = Left(object_list, Len(object_list) - 1)
 
-            ' check that both paths end with a "\"
-            If InStrRev(_thumbs_client, "\") <> Len(_thumbs_client) Then _thumbs_client = Trim(_thumbs_client) & "\"
-            If InStrRev(_thumbs_server, "\") <> Len(_thumbs_server) Then _thumbs_server = Trim(_thumbs_server) & "\"
+            Dim item As Array
+            Dim list As Array = Split(object_list, "|")
 
-            ' check that server is available
-            Dim checkTHUMBPath_Thread As Thread
-            checkTHUMBPath_Thread = New Thread(AddressOf checkPath)
+            For Each obj As String In list
 
-            logStats("MPSync: Checking availability of " & _thumbs_server, "LOG")
+                item = Split(obj, "¬")
 
-            checkTHUMBPath_Thread.Start(_thumbs_server)
+                If item(1) = "True" Then
 
-            Do While checkTHUMBPath_Thread.IsAlive
-                wait(10, False)
-            Loop
+                    getObjectSettings(item(0))
 
-            logStats("MPSync: " & _thumbs_server & " is available.", "LOG")
+                    If _folders_client <> Nothing And _folders_server <> Nothing Then
+
+                        ' check that server is available
+                        Dim checkTHUMBPath_Thread As Thread
+                        checkTHUMBPath_Thread = New Thread(AddressOf checkPath)
+
+                        logStats("MPSync: Checking availability of " & _folders_server, "LOG")
+
+                        checkTHUMBPath_Thread.Start(_folders_server)
+
+                        Do While checkTHUMBPath_Thread.IsAlive
+                            wait(5, False)
+                        Loop
+
+                        logStats("MPSync: " & _folders_server & " is available.", "LOG")
+
+                    End If
+
+                End If
+
+            Next
 
         End If
 
@@ -1079,7 +1139,7 @@ Public Class MPSync_process
     Private Sub WorkMethod(stateInfo As Object)
 
         Dim db As Boolean = True
-        Dim thumbs As Boolean = True
+        Dim folders As Boolean = True
 
         If _db_client <> Nothing And _db_server <> Nothing And checked_databases Then
             If p_Debug Then Log.Debug("MPSync: Started Database thread")
@@ -1091,18 +1151,18 @@ Public Class MPSync_process
             db = False
         End If
 
-        If _thumbs_client <> Nothing And _thumbs_server <> Nothing And checked_thumbs Then
-            If p_Debug Then Log.Debug("MPSync: Started Thumbs thread")
-            Dim bw_thumbs As New BackgroundWorker
-            bw_thumbs.WorkerSupportsCancellation = True
-            AddHandler bw_thumbs.DoWork, AddressOf MPSync_process_Thumbs.bw_thumbs_worker
-            bw_thumbs.RunWorkerAsync()
+        If _folders_client <> Nothing And _folders_server <> Nothing And checked_folders Then
+            If p_Debug Then Log.Debug("MPSync: Started folders thread")
+            Dim bw_folders As New BackgroundWorker
+            bw_folders.WorkerSupportsCancellation = True
+            AddHandler bw_folders.DoWork, AddressOf MPSync_process_folders.bw_folders_worker
+            bw_folders.RunWorkerAsync()
         Else
-            thumbs = False
+            folders = False
         End If
 
         If Not MPSync_settings.syncnow Then
-            If db = False And thumbs = False Then CType(stateInfo, AutoResetEvent).Set()
+            If db = False And folders = False Then CType(stateInfo, AutoResetEvent).Set()
         End If
 
     End Sub

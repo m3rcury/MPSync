@@ -297,14 +297,14 @@ public class Script
       <Major>1</Major>
       <Minor>0</Minor>
       <Build>0</Build>
-      <Revision>8</Revision>
+      <Revision>9</Revision>
     </Version>
     <ExtensionDescription>This plugin synchronizes your MediaPortal databases with a central database as well as thumbs folder, so that any additons can by automatically applied to any other MP seat you might have in your household.</ExtensionDescription>
     <VersionDescription />
     <DevelopmentStatus>Stable</DevelopmentStatus>
     <OnlineLocation>https://cdbsync-plugin.googlecode.com/files/[Name]-v[Version].mpe1</OnlineLocation>
-    <ReleaseDate>2013-05-24T23:39:41</ReleaseDate>
-    <Tags>synchronization, database, thumbs</Tags>
+    <ReleaseDate>2013-08-21T23:39:41</ReleaseDate>
+    <Tags>synchronization, database, thumbs, any folder you set up.</Tags>
     <Location>E:\Software\MediaPortal\MPSync\[Name]-v[Version].mpe1</Location>
     <Params>
       <Items>
@@ -326,7 +326,7 @@ public class Script
  If have .dll extension used like MP plugin configuration</Description>
         </SectionParam>
         <SectionParam Name="Online Screenshots">
-          <Value>http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(1)%20MPSync_settings.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(2)%20MPSync_database_paths.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(3)%20MPSync_database_advanced_settings.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(4)%20MPSync_database_other.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(5)%20MPSync_database_watched_status.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(6)%20MPSync_thumbs_paths.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(7)%20MPSync_thumbs_advanced_settings.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(8)%20MPSync_status.jpg</Value>
+          <Value>http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(1)%20MPSync_settings.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(2)%20MPSync_database_paths.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(3)%20MPSync_database_advanced_settings.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(4)%20MPSync_database_other.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(5)%20MPSync_database_watched_status.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(6)%20MPSync_folder_list.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(7)%20MPSync_thumbs_paths.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(8)%20MPSync_thumbs_advanced_settings.jpg;http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(9)%20MPSync_status.jpg</Value>
           <ValueType>String</ValueType>
           <Description>Online stored screenshot urls separated by ; </Description>
         </SectionParam>

@@ -22,6 +22,7 @@ Partial Class MPSync_settings
     'Do not modify it imports the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.components = New System.ComponentModel.Container()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(MPSync_settings))
         Me.b_save = New System.Windows.Forms.Button()
         Me.tb_master_path = New System.Windows.Forms.TextBox()
@@ -31,7 +32,7 @@ Partial Class MPSync_settings
         Me.tc_main = New System.Windows.Forms.TabControl()
         Me.tp_settings = New System.Windows.Forms.TabPage()
         Me.Panel5 = New System.Windows.Forms.Panel()
-        Me.cb_thumbs = New System.Windows.Forms.CheckBox()
+        Me.cb_folders = New System.Windows.Forms.CheckBox()
         Me.Panel2 = New System.Windows.Forms.Panel()
         Me.cb_debug = New System.Windows.Forms.CheckBox()
         Me.Panel1 = New System.Windows.Forms.Panel()
@@ -67,7 +68,7 @@ Partial Class MPSync_settings
         Me.rb_o_specific = New System.Windows.Forms.RadioButton()
         Me.rb_o_all = New System.Windows.Forms.RadioButton()
         Me.Label12 = New System.Windows.Forms.Label()
-        Me.clb_objects = New System.Windows.Forms.CheckedListBox()
+        Me.clb_db_objects = New System.Windows.Forms.CheckedListBox()
         Me.tp_watched = New System.Windows.Forms.TabPage()
         Me.Panel3 = New System.Windows.Forms.Panel()
         Me.Label11 = New System.Windows.Forms.Label()
@@ -76,29 +77,38 @@ Partial Class MPSync_settings
         Me.rb_w_all = New System.Windows.Forms.RadioButton()
         Me.Label9 = New System.Windows.Forms.Label()
         Me.clb_watched = New System.Windows.Forms.CheckedListBox()
-        Me.tp_thumbs = New System.Windows.Forms.TabPage()
-        Me.TabControl1 = New System.Windows.Forms.TabControl()
-        Me.TabPage1 = New System.Windows.Forms.TabPage()
-        Me.cb_thumbs_sync_method = New System.Windows.Forms.ComboBox()
+        Me.tp_folders = New System.Windows.Forms.TabPage()
+        Me.tc_objects = New System.Windows.Forms.TabControl()
+        Me.tp_list = New System.Windows.Forms.TabPage()
+        Me.pnl_object_list = New System.Windows.Forms.Panel()
+        Me.tb_object_list = New System.Windows.Forms.TextBox()
+        Me.clb_object_list = New System.Windows.Forms.CheckedListBox()
+        Me.tp_paths = New System.Windows.Forms.TabPage()
+        Me.cb_folders_sync_method = New System.Windows.Forms.ComboBox()
         Me.Label5 = New System.Windows.Forms.Label()
-        Me.b_thumbs_server = New System.Windows.Forms.Button()
-        Me.tb_thumbs_server_path = New System.Windows.Forms.TextBox()
-        Me.tb_thumbs_client_path = New System.Windows.Forms.TextBox()
+        Me.b_folders_server = New System.Windows.Forms.Button()
+        Me.tb_folders_server_path = New System.Windows.Forms.TextBox()
+        Me.tb_folders_client_path = New System.Windows.Forms.TextBox()
         Me.Label6 = New System.Windows.Forms.Label()
-        Me.b_thumbs_client = New System.Windows.Forms.Button()
-        Me.TabPage2 = New System.Windows.Forms.TabPage()
-        Me.cb_thumbs_pause = New System.Windows.Forms.CheckBox()
+        Me.b_folders_client = New System.Windows.Forms.Button()
+        Me.tp_advancedsettings = New System.Windows.Forms.TabPage()
+        Me.b_apply = New System.Windows.Forms.Button()
+        Me.cb_folders_pause = New System.Windows.Forms.CheckBox()
         Me.GroupBox2 = New System.Windows.Forms.GroupBox()
-        Me.rb_specific_thumbs = New System.Windows.Forms.RadioButton()
-        Me.rb_all_thumbs = New System.Windows.Forms.RadioButton()
+        Me.rb_specific_folders = New System.Windows.Forms.RadioButton()
+        Me.rb_all_folders = New System.Windows.Forms.RadioButton()
         Me.Label8 = New System.Windows.Forms.Label()
-        Me.clb_thumbs = New System.Windows.Forms.CheckedListBox()
+        Me.clb_objects = New System.Windows.Forms.CheckedListBox()
         Me.tp_syncnow = New System.Windows.Forms.TabPage()
         Me.lb_status = New System.Windows.Forms.ListBox()
+        Me.ToolTip = New System.Windows.Forms.ToolTip(Me.components)
         Me.PictureBox2 = New System.Windows.Forms.PictureBox()
         Me.PictureBox1 = New System.Windows.Forms.PictureBox()
         Me.b_db_direction = New System.Windows.Forms.Button()
-        Me.b_thumbs_direction = New System.Windows.Forms.Button()
+        Me.b_delete = New System.Windows.Forms.Button()
+        Me.b_edit = New System.Windows.Forms.Button()
+        Me.b_add = New System.Windows.Forms.Button()
+        Me.b_folders_direction = New System.Windows.Forms.Button()
         Me.tc_main.SuspendLayout()
         Me.tp_settings.SuspendLayout()
         Me.Panel5.SuspendLayout()
@@ -116,10 +126,12 @@ Partial Class MPSync_settings
         Me.tp_watched.SuspendLayout()
         Me.Panel3.SuspendLayout()
         Me.GroupBox3.SuspendLayout()
-        Me.tp_thumbs.SuspendLayout()
-        Me.TabControl1.SuspendLayout()
-        Me.TabPage1.SuspendLayout()
-        Me.TabPage2.SuspendLayout()
+        Me.tp_folders.SuspendLayout()
+        Me.tc_objects.SuspendLayout()
+        Me.tp_list.SuspendLayout()
+        Me.pnl_object_list.SuspendLayout()
+        Me.tp_paths.SuspendLayout()
+        Me.tp_advancedsettings.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
         Me.tp_syncnow.SuspendLayout()
         CType(Me.PictureBox2, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -129,11 +141,11 @@ Partial Class MPSync_settings
         'b_save
         '
         Me.b_save.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.b_save.Location = New System.Drawing.Point(321, 192)
+        Me.b_save.Location = New System.Drawing.Point(294, 192)
         Me.b_save.Name = "b_save"
-        Me.b_save.Size = New System.Drawing.Size(75, 23)
+        Me.b_save.Size = New System.Drawing.Size(128, 23)
         Me.b_save.TabIndex = 58
-        Me.b_save.Text = "Save"
+        Me.b_save.Text = "Save Configuration"
         Me.b_save.UseVisualStyleBackColor = True
         '
         'tb_master_path
@@ -163,7 +175,7 @@ Partial Class MPSync_settings
         '
         'b_sync_now
         '
-        Me.b_sync_now.Location = New System.Drawing.Point(187, 192)
+        Me.b_sync_now.Location = New System.Drawing.Point(160, 192)
         Me.b_sync_now.Name = "b_sync_now"
         Me.b_sync_now.Size = New System.Drawing.Size(128, 23)
         Me.b_sync_now.TabIndex = 62
@@ -174,7 +186,7 @@ Partial Class MPSync_settings
         '
         Me.tc_main.Controls.Add(Me.tp_settings)
         Me.tc_main.Controls.Add(Me.tp_database)
-        Me.tc_main.Controls.Add(Me.tp_thumbs)
+        Me.tc_main.Controls.Add(Me.tp_folders)
         Me.tc_main.Controls.Add(Me.tp_syncnow)
         Me.tc_main.Location = New System.Drawing.Point(5, 3)
         Me.tc_main.Name = "tc_main"
@@ -201,22 +213,22 @@ Partial Class MPSync_settings
         '
         Me.Panel5.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
         Me.Panel5.Controls.Add(Me.PictureBox2)
-        Me.Panel5.Controls.Add(Me.cb_thumbs)
+        Me.Panel5.Controls.Add(Me.cb_folders)
         Me.Panel5.Location = New System.Drawing.Point(19, 81)
         Me.Panel5.Name = "Panel5"
         Me.Panel5.Size = New System.Drawing.Size(545, 62)
         Me.Panel5.TabIndex = 67
         '
-        'cb_thumbs
+        'cb_folders
         '
-        Me.cb_thumbs.AutoSize = True
-        Me.cb_thumbs.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.cb_thumbs.Location = New System.Drawing.Point(176, 20)
-        Me.cb_thumbs.Name = "cb_thumbs"
-        Me.cb_thumbs.Size = New System.Drawing.Size(190, 20)
-        Me.cb_thumbs.TabIndex = 66
-        Me.cb_thumbs.Text = "Synchronise Thumbs folder"
-        Me.cb_thumbs.UseVisualStyleBackColor = True
+        Me.cb_folders.AutoSize = True
+        Me.cb_folders.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.cb_folders.Location = New System.Drawing.Point(176, 20)
+        Me.cb_folders.Name = "cb_folders"
+        Me.cb_folders.Size = New System.Drawing.Size(194, 20)
+        Me.cb_folders.TabIndex = 66
+        Me.cb_folders.Text = "Synchronise specific folders"
+        Me.cb_folders.UseVisualStyleBackColor = True
         '
         'Panel2
         '
@@ -519,7 +531,7 @@ Partial Class MPSync_settings
         Me.tp_other.Controls.Add(Me.Panel4)
         Me.tp_other.Controls.Add(Me.GroupBox4)
         Me.tp_other.Controls.Add(Me.Label12)
-        Me.tp_other.Controls.Add(Me.clb_objects)
+        Me.tp_other.Controls.Add(Me.clb_db_objects)
         Me.tp_other.Location = New System.Drawing.Point(4, 22)
         Me.tp_other.Name = "tp_other"
         Me.tp_other.Padding = New System.Windows.Forms.Padding(3)
@@ -602,15 +614,15 @@ Partial Class MPSync_settings
         Me.Label12.TabIndex = 20
         Me.Label12.Text = "Select Objects to Copy"
         '
-        'clb_objects
+        'clb_db_objects
         '
-        Me.clb_objects.Enabled = False
-        Me.clb_objects.FormattingEnabled = True
-        Me.clb_objects.Location = New System.Drawing.Point(289, 26)
-        Me.clb_objects.Name = "clb_objects"
-        Me.clb_objects.Size = New System.Drawing.Size(265, 154)
-        Me.clb_objects.Sorted = True
-        Me.clb_objects.TabIndex = 19
+        Me.clb_db_objects.Enabled = False
+        Me.clb_db_objects.FormattingEnabled = True
+        Me.clb_db_objects.Location = New System.Drawing.Point(289, 26)
+        Me.clb_db_objects.Name = "clb_db_objects"
+        Me.clb_db_objects.Size = New System.Drawing.Size(265, 154)
+        Me.clb_db_objects.Sorted = True
+        Me.clb_db_objects.TabIndex = 19
         '
         'tp_watched
         '
@@ -701,51 +713,95 @@ Partial Class MPSync_settings
         Me.clb_watched.Sorted = True
         Me.clb_watched.TabIndex = 15
         '
-        'tp_thumbs
+        'tp_folders
         '
-        Me.tp_thumbs.BackColor = System.Drawing.SystemColors.ButtonFace
-        Me.tp_thumbs.Controls.Add(Me.TabControl1)
-        Me.tp_thumbs.Location = New System.Drawing.Point(4, 22)
-        Me.tp_thumbs.Name = "tp_thumbs"
-        Me.tp_thumbs.Size = New System.Drawing.Size(582, 224)
-        Me.tp_thumbs.TabIndex = 2
-        Me.tp_thumbs.Text = "Thumbs"
+        Me.tp_folders.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tp_folders.Controls.Add(Me.tc_objects)
+        Me.tp_folders.Location = New System.Drawing.Point(4, 22)
+        Me.tp_folders.Name = "tp_folders"
+        Me.tp_folders.Size = New System.Drawing.Size(582, 224)
+        Me.tp_folders.TabIndex = 2
+        Me.tp_folders.Text = "Folders"
         '
-        'TabControl1
+        'tc_objects
         '
-        Me.TabControl1.Controls.Add(Me.TabPage1)
-        Me.TabControl1.Controls.Add(Me.TabPage2)
-        Me.TabControl1.Location = New System.Drawing.Point(5, 8)
-        Me.TabControl1.Name = "TabControl1"
-        Me.TabControl1.SelectedIndex = 0
-        Me.TabControl1.Size = New System.Drawing.Size(573, 210)
-        Me.TabControl1.TabIndex = 65
+        Me.tc_objects.Controls.Add(Me.tp_list)
+        Me.tc_objects.Controls.Add(Me.tp_paths)
+        Me.tc_objects.Controls.Add(Me.tp_advancedsettings)
+        Me.tc_objects.Location = New System.Drawing.Point(5, 8)
+        Me.tc_objects.Name = "tc_objects"
+        Me.tc_objects.SelectedIndex = 0
+        Me.tc_objects.Size = New System.Drawing.Size(573, 210)
+        Me.tc_objects.TabIndex = 65
         '
-        'TabPage1
+        'tp_list
         '
-        Me.TabPage1.BackColor = System.Drawing.SystemColors.ButtonFace
-        Me.TabPage1.Controls.Add(Me.cb_thumbs_sync_method)
-        Me.TabPage1.Controls.Add(Me.b_thumbs_direction)
-        Me.TabPage1.Controls.Add(Me.Label5)
-        Me.TabPage1.Controls.Add(Me.b_thumbs_server)
-        Me.TabPage1.Controls.Add(Me.tb_thumbs_server_path)
-        Me.TabPage1.Controls.Add(Me.tb_thumbs_client_path)
-        Me.TabPage1.Controls.Add(Me.Label6)
-        Me.TabPage1.Controls.Add(Me.b_thumbs_client)
-        Me.TabPage1.Location = New System.Drawing.Point(4, 22)
-        Me.TabPage1.Name = "TabPage1"
-        Me.TabPage1.Padding = New System.Windows.Forms.Padding(3)
-        Me.TabPage1.Size = New System.Drawing.Size(565, 184)
-        Me.TabPage1.TabIndex = 0
-        Me.TabPage1.Text = "Paths"
+        Me.tp_list.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tp_list.Controls.Add(Me.pnl_object_list)
+        Me.tp_list.Controls.Add(Me.b_delete)
+        Me.tp_list.Controls.Add(Me.b_edit)
+        Me.tp_list.Controls.Add(Me.b_add)
+        Me.tp_list.Controls.Add(Me.clb_object_list)
+        Me.tp_list.Location = New System.Drawing.Point(4, 22)
+        Me.tp_list.Name = "tp_list"
+        Me.tp_list.Padding = New System.Windows.Forms.Padding(3)
+        Me.tp_list.Size = New System.Drawing.Size(565, 184)
+        Me.tp_list.TabIndex = 2
+        Me.tp_list.Text = "Folders List"
         '
-        'cb_thumbs_sync_method
+        'pnl_object_list
         '
-        Me.cb_thumbs_sync_method.FormattingEnabled = True
-        Me.cb_thumbs_sync_method.Location = New System.Drawing.Point(327, 91)
-        Me.cb_thumbs_sync_method.Name = "cb_thumbs_sync_method"
-        Me.cb_thumbs_sync_method.Size = New System.Drawing.Size(215, 21)
-        Me.cb_thumbs_sync_method.TabIndex = 68
+        Me.pnl_object_list.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.pnl_object_list.Controls.Add(Me.tb_object_list)
+        Me.pnl_object_list.Location = New System.Drawing.Point(44, 68)
+        Me.pnl_object_list.Name = "pnl_object_list"
+        Me.pnl_object_list.Size = New System.Drawing.Size(406, 49)
+        Me.pnl_object_list.TabIndex = 4
+        Me.pnl_object_list.Visible = False
+        '
+        'tb_object_list
+        '
+        Me.tb_object_list.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.tb_object_list.Location = New System.Drawing.Point(14, 14)
+        Me.tb_object_list.Name = "tb_object_list"
+        Me.tb_object_list.Size = New System.Drawing.Size(378, 21)
+        Me.tb_object_list.TabIndex = 0
+        '
+        'clb_object_list
+        '
+        Me.clb_object_list.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.clb_object_list.FormattingEnabled = True
+        Me.clb_object_list.Location = New System.Drawing.Point(7, 8)
+        Me.clb_object_list.Name = "clb_object_list"
+        Me.clb_object_list.Size = New System.Drawing.Size(485, 164)
+        Me.clb_object_list.Sorted = True
+        Me.clb_object_list.TabIndex = 0
+        '
+        'tp_paths
+        '
+        Me.tp_paths.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tp_paths.Controls.Add(Me.cb_folders_sync_method)
+        Me.tp_paths.Controls.Add(Me.Label5)
+        Me.tp_paths.Controls.Add(Me.b_folders_server)
+        Me.tp_paths.Controls.Add(Me.tb_folders_server_path)
+        Me.tp_paths.Controls.Add(Me.tb_folders_client_path)
+        Me.tp_paths.Controls.Add(Me.Label6)
+        Me.tp_paths.Controls.Add(Me.b_folders_client)
+        Me.tp_paths.Controls.Add(Me.b_folders_direction)
+        Me.tp_paths.Location = New System.Drawing.Point(4, 22)
+        Me.tp_paths.Name = "tp_paths"
+        Me.tp_paths.Padding = New System.Windows.Forms.Padding(3)
+        Me.tp_paths.Size = New System.Drawing.Size(565, 184)
+        Me.tp_paths.TabIndex = 0
+        Me.tp_paths.Text = "Paths"
+        '
+        'cb_folders_sync_method
+        '
+        Me.cb_folders_sync_method.FormattingEnabled = True
+        Me.cb_folders_sync_method.Location = New System.Drawing.Point(327, 91)
+        Me.cb_folders_sync_method.Name = "cb_folders_sync_method"
+        Me.cb_folders_sync_method.Size = New System.Drawing.Size(215, 21)
+        Me.cb_folders_sync_method.TabIndex = 68
         '
         'Label5
         '
@@ -753,32 +809,32 @@ Partial Class MPSync_settings
         Me.Label5.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Label5.Location = New System.Drawing.Point(6, 128)
         Me.Label5.Name = "Label5"
-        Me.Label5.Size = New System.Drawing.Size(121, 13)
+        Me.Label5.Size = New System.Drawing.Size(73, 13)
         Me.Label5.TabIndex = 66
-        Me.Label5.Text = "Server Thumbs path"
+        Me.Label5.Text = "Server path"
         '
-        'b_thumbs_server
+        'b_folders_server
         '
-        Me.b_thumbs_server.Location = New System.Drawing.Point(504, 141)
-        Me.b_thumbs_server.Name = "b_thumbs_server"
-        Me.b_thumbs_server.Size = New System.Drawing.Size(57, 23)
-        Me.b_thumbs_server.TabIndex = 65
-        Me.b_thumbs_server.Text = "Browse"
-        Me.b_thumbs_server.UseVisualStyleBackColor = True
+        Me.b_folders_server.Location = New System.Drawing.Point(504, 141)
+        Me.b_folders_server.Name = "b_folders_server"
+        Me.b_folders_server.Size = New System.Drawing.Size(57, 23)
+        Me.b_folders_server.TabIndex = 64
+        Me.b_folders_server.Text = "Browse"
+        Me.b_folders_server.UseVisualStyleBackColor = True
         '
-        'tb_thumbs_server_path
+        'tb_folders_server_path
         '
-        Me.tb_thumbs_server_path.Location = New System.Drawing.Point(6, 144)
-        Me.tb_thumbs_server_path.Name = "tb_thumbs_server_path"
-        Me.tb_thumbs_server_path.Size = New System.Drawing.Size(492, 20)
-        Me.tb_thumbs_server_path.TabIndex = 64
+        Me.tb_folders_server_path.Location = New System.Drawing.Point(6, 144)
+        Me.tb_folders_server_path.Name = "tb_folders_server_path"
+        Me.tb_folders_server_path.Size = New System.Drawing.Size(492, 20)
+        Me.tb_folders_server_path.TabIndex = 65
         '
-        'tb_thumbs_client_path
+        'tb_folders_client_path
         '
-        Me.tb_thumbs_client_path.Location = New System.Drawing.Point(3, 36)
-        Me.tb_thumbs_client_path.Name = "tb_thumbs_client_path"
-        Me.tb_thumbs_client_path.Size = New System.Drawing.Size(492, 20)
-        Me.tb_thumbs_client_path.TabIndex = 61
+        Me.tb_folders_client_path.Location = New System.Drawing.Point(3, 36)
+        Me.tb_folders_client_path.Name = "tb_folders_client_path"
+        Me.tb_folders_client_path.Size = New System.Drawing.Size(492, 20)
+        Me.tb_folders_client_path.TabIndex = 62
         '
         'Label6
         '
@@ -786,49 +842,59 @@ Partial Class MPSync_settings
         Me.Label6.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Label6.Location = New System.Drawing.Point(3, 20)
         Me.Label6.Name = "Label6"
-        Me.Label6.Size = New System.Drawing.Size(116, 13)
+        Me.Label6.Size = New System.Drawing.Size(68, 13)
         Me.Label6.TabIndex = 63
-        Me.Label6.Text = "Client Thumbs path"
+        Me.Label6.Text = "Client path"
         '
-        'b_thumbs_client
+        'b_folders_client
         '
-        Me.b_thumbs_client.Location = New System.Drawing.Point(501, 33)
-        Me.b_thumbs_client.Name = "b_thumbs_client"
-        Me.b_thumbs_client.Size = New System.Drawing.Size(57, 23)
-        Me.b_thumbs_client.TabIndex = 62
-        Me.b_thumbs_client.Text = "Browse"
-        Me.b_thumbs_client.UseVisualStyleBackColor = True
+        Me.b_folders_client.Location = New System.Drawing.Point(501, 33)
+        Me.b_folders_client.Name = "b_folders_client"
+        Me.b_folders_client.Size = New System.Drawing.Size(57, 23)
+        Me.b_folders_client.TabIndex = 61
+        Me.b_folders_client.Text = "Browse"
+        Me.b_folders_client.UseVisualStyleBackColor = True
         '
-        'TabPage2
+        'tp_advancedsettings
         '
-        Me.TabPage2.BackColor = System.Drawing.SystemColors.ButtonFace
-        Me.TabPage2.Controls.Add(Me.cb_thumbs_pause)
-        Me.TabPage2.Controls.Add(Me.GroupBox2)
-        Me.TabPage2.Controls.Add(Me.Label8)
-        Me.TabPage2.Controls.Add(Me.clb_thumbs)
-        Me.TabPage2.Location = New System.Drawing.Point(4, 22)
-        Me.TabPage2.Name = "TabPage2"
-        Me.TabPage2.Padding = New System.Windows.Forms.Padding(3)
-        Me.TabPage2.Size = New System.Drawing.Size(565, 184)
-        Me.TabPage2.TabIndex = 1
-        Me.TabPage2.Text = "Advanced Settings"
+        Me.tp_advancedsettings.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tp_advancedsettings.Controls.Add(Me.b_apply)
+        Me.tp_advancedsettings.Controls.Add(Me.cb_folders_pause)
+        Me.tp_advancedsettings.Controls.Add(Me.GroupBox2)
+        Me.tp_advancedsettings.Controls.Add(Me.Label8)
+        Me.tp_advancedsettings.Controls.Add(Me.clb_objects)
+        Me.tp_advancedsettings.Location = New System.Drawing.Point(4, 22)
+        Me.tp_advancedsettings.Name = "tp_advancedsettings"
+        Me.tp_advancedsettings.Padding = New System.Windows.Forms.Padding(3)
+        Me.tp_advancedsettings.Size = New System.Drawing.Size(565, 184)
+        Me.tp_advancedsettings.TabIndex = 1
+        Me.tp_advancedsettings.Text = "Advanced Settings"
         '
-        'cb_thumbs_pause
+        'b_apply
         '
-        Me.cb_thumbs_pause.AutoSize = True
-        Me.cb_thumbs_pause.CheckAlign = System.Drawing.ContentAlignment.MiddleRight
-        Me.cb_thumbs_pause.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.cb_thumbs_pause.Location = New System.Drawing.Point(6, 26)
-        Me.cb_thumbs_pause.Name = "cb_thumbs_pause"
-        Me.cb_thumbs_pause.Size = New System.Drawing.Size(172, 17)
-        Me.cb_thumbs_pause.TabIndex = 18
-        Me.cb_thumbs_pause.Text = "Pause when player active"
-        Me.cb_thumbs_pause.UseVisualStyleBackColor = True
+        Me.b_apply.Location = New System.Drawing.Point(10, 155)
+        Me.b_apply.Name = "b_apply"
+        Me.b_apply.Size = New System.Drawing.Size(100, 23)
+        Me.b_apply.TabIndex = 66
+        Me.b_apply.Text = "Apply Changes"
+        Me.b_apply.UseVisualStyleBackColor = True
+        '
+        'cb_folders_pause
+        '
+        Me.cb_folders_pause.AutoSize = True
+        Me.cb_folders_pause.CheckAlign = System.Drawing.ContentAlignment.MiddleRight
+        Me.cb_folders_pause.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.cb_folders_pause.Location = New System.Drawing.Point(6, 26)
+        Me.cb_folders_pause.Name = "cb_folders_pause"
+        Me.cb_folders_pause.Size = New System.Drawing.Size(172, 17)
+        Me.cb_folders_pause.TabIndex = 18
+        Me.cb_folders_pause.Text = "Pause when player active"
+        Me.cb_folders_pause.UseVisualStyleBackColor = True
         '
         'GroupBox2
         '
-        Me.GroupBox2.Controls.Add(Me.rb_specific_thumbs)
-        Me.GroupBox2.Controls.Add(Me.rb_all_thumbs)
+        Me.GroupBox2.Controls.Add(Me.rb_specific_folders)
+        Me.GroupBox2.Controls.Add(Me.rb_all_folders)
         Me.GroupBox2.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.GroupBox2.Location = New System.Drawing.Point(10, 61)
         Me.GroupBox2.Name = "GroupBox2"
@@ -837,27 +903,27 @@ Partial Class MPSync_settings
         Me.GroupBox2.TabStop = False
         Me.GroupBox2.Text = " Synchronize "
         '
-        'rb_specific_thumbs
+        'rb_specific_folders
         '
-        Me.rb_specific_thumbs.AutoSize = True
-        Me.rb_specific_thumbs.Location = New System.Drawing.Point(11, 56)
-        Me.rb_specific_thumbs.Name = "rb_specific_thumbs"
-        Me.rb_specific_thumbs.Size = New System.Drawing.Size(104, 17)
-        Me.rb_specific_thumbs.TabIndex = 1
-        Me.rb_specific_thumbs.TabStop = True
-        Me.rb_specific_thumbs.Text = "Specific Thumbs"
-        Me.rb_specific_thumbs.UseVisualStyleBackColor = True
+        Me.rb_specific_folders.AutoSize = True
+        Me.rb_specific_folders.Location = New System.Drawing.Point(11, 56)
+        Me.rb_specific_folders.Name = "rb_specific_folders"
+        Me.rb_specific_folders.Size = New System.Drawing.Size(97, 17)
+        Me.rb_specific_folders.TabIndex = 1
+        Me.rb_specific_folders.TabStop = True
+        Me.rb_specific_folders.Text = "Specific folders"
+        Me.rb_specific_folders.UseVisualStyleBackColor = True
         '
-        'rb_all_thumbs
+        'rb_all_folders
         '
-        Me.rb_all_thumbs.AutoSize = True
-        Me.rb_all_thumbs.Location = New System.Drawing.Point(11, 24)
-        Me.rb_all_thumbs.Name = "rb_all_thumbs"
-        Me.rb_all_thumbs.Size = New System.Drawing.Size(77, 17)
-        Me.rb_all_thumbs.TabIndex = 0
-        Me.rb_all_thumbs.TabStop = True
-        Me.rb_all_thumbs.Text = "All Thumbs"
-        Me.rb_all_thumbs.UseVisualStyleBackColor = True
+        Me.rb_all_folders.AutoSize = True
+        Me.rb_all_folders.Location = New System.Drawing.Point(11, 24)
+        Me.rb_all_folders.Name = "rb_all_folders"
+        Me.rb_all_folders.Size = New System.Drawing.Size(70, 17)
+        Me.rb_all_folders.TabIndex = 0
+        Me.rb_all_folders.TabStop = True
+        Me.rb_all_folders.Text = "All folders"
+        Me.rb_all_folders.UseVisualStyleBackColor = True
         '
         'Label8
         '
@@ -865,19 +931,19 @@ Partial Class MPSync_settings
         Me.Label8.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Label8.Location = New System.Drawing.Point(286, 9)
         Me.Label8.Name = "Label8"
-        Me.Label8.Size = New System.Drawing.Size(215, 13)
+        Me.Label8.Size = New System.Drawing.Size(173, 13)
         Me.Label8.TabIndex = 16
-        Me.Label8.Text = "Select Thumb folders to Synchronize"
+        Me.Label8.Text = "Select folders to Synchronize"
         '
-        'clb_thumbs
+        'clb_objects
         '
-        Me.clb_thumbs.Enabled = False
-        Me.clb_thumbs.FormattingEnabled = True
-        Me.clb_thumbs.Location = New System.Drawing.Point(289, 26)
-        Me.clb_thumbs.Name = "clb_thumbs"
-        Me.clb_thumbs.Size = New System.Drawing.Size(265, 124)
-        Me.clb_thumbs.Sorted = True
-        Me.clb_thumbs.TabIndex = 15
+        Me.clb_objects.Enabled = False
+        Me.clb_objects.FormattingEnabled = True
+        Me.clb_objects.Location = New System.Drawing.Point(289, 26)
+        Me.clb_objects.Name = "clb_objects"
+        Me.clb_objects.Size = New System.Drawing.Size(265, 124)
+        Me.clb_objects.Sorted = True
+        Me.clb_objects.TabIndex = 15
         '
         'tp_syncnow
         '
@@ -931,14 +997,49 @@ Partial Class MPSync_settings
         Me.b_db_direction.TabIndex = 67
         Me.b_db_direction.UseVisualStyleBackColor = True
         '
-        'b_thumbs_direction
+        'b_delete
         '
-        Me.b_thumbs_direction.Image = Global.MPSync.My.Resources.Resources.sync_both
-        Me.b_thumbs_direction.Location = New System.Drawing.Point(252, 68)
-        Me.b_thumbs_direction.Name = "b_thumbs_direction"
-        Me.b_thumbs_direction.Size = New System.Drawing.Size(64, 64)
-        Me.b_thumbs_direction.TabIndex = 67
-        Me.b_thumbs_direction.UseVisualStyleBackColor = True
+        Me.b_delete.BackgroundImage = Global.MPSync.My.Resources.Resources.delete
+        Me.b_delete.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
+        Me.b_delete.Location = New System.Drawing.Point(506, 72)
+        Me.b_delete.Name = "b_delete"
+        Me.b_delete.Size = New System.Drawing.Size(40, 40)
+        Me.b_delete.TabIndex = 3
+        Me.ToolTip.SetToolTip(Me.b_delete, "Delete selected Folder set")
+        Me.b_delete.UseVisualStyleBackColor = True
+        Me.b_delete.Visible = False
+        '
+        'b_edit
+        '
+        Me.b_edit.BackgroundImage = Global.MPSync.My.Resources.Resources.edit
+        Me.b_edit.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
+        Me.b_edit.Location = New System.Drawing.Point(506, 118)
+        Me.b_edit.Name = "b_edit"
+        Me.b_edit.Size = New System.Drawing.Size(40, 40)
+        Me.b_edit.TabIndex = 2
+        Me.ToolTip.SetToolTip(Me.b_edit, "Edit selected Folder set")
+        Me.b_edit.UseVisualStyleBackColor = True
+        Me.b_edit.Visible = False
+        '
+        'b_add
+        '
+        Me.b_add.BackgroundImage = Global.MPSync.My.Resources.Resources.add
+        Me.b_add.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
+        Me.b_add.Location = New System.Drawing.Point(506, 26)
+        Me.b_add.Name = "b_add"
+        Me.b_add.Size = New System.Drawing.Size(40, 40)
+        Me.b_add.TabIndex = 1
+        Me.ToolTip.SetToolTip(Me.b_add, "Add a new Folder set")
+        Me.b_add.UseVisualStyleBackColor = True
+        '
+        'b_folders_direction
+        '
+        Me.b_folders_direction.Image = Global.MPSync.My.Resources.Resources.sync_both
+        Me.b_folders_direction.Location = New System.Drawing.Point(252, 68)
+        Me.b_folders_direction.Name = "b_folders_direction"
+        Me.b_folders_direction.Size = New System.Drawing.Size(64, 64)
+        Me.b_folders_direction.TabIndex = 67
+        Me.b_folders_direction.UseVisualStyleBackColor = True
         '
         'MPSync_settings
         '
@@ -983,12 +1084,15 @@ Partial Class MPSync_settings
         Me.Panel3.PerformLayout()
         Me.GroupBox3.ResumeLayout(False)
         Me.GroupBox3.PerformLayout()
-        Me.tp_thumbs.ResumeLayout(False)
-        Me.TabControl1.ResumeLayout(False)
-        Me.TabPage1.ResumeLayout(False)
-        Me.TabPage1.PerformLayout()
-        Me.TabPage2.ResumeLayout(False)
-        Me.TabPage2.PerformLayout()
+        Me.tp_folders.ResumeLayout(False)
+        Me.tc_objects.ResumeLayout(False)
+        Me.tp_list.ResumeLayout(False)
+        Me.pnl_object_list.ResumeLayout(False)
+        Me.pnl_object_list.PerformLayout()
+        Me.tp_paths.ResumeLayout(False)
+        Me.tp_paths.PerformLayout()
+        Me.tp_advancedsettings.ResumeLayout(False)
+        Me.tp_advancedsettings.PerformLayout()
         Me.GroupBox2.ResumeLayout(False)
         Me.GroupBox2.PerformLayout()
         Me.tp_syncnow.ResumeLayout(False)
@@ -1024,30 +1128,30 @@ Partial Class MPSync_settings
     Friend WithEvents Label4 As System.Windows.Forms.Label
     Friend WithEvents Label3 As System.Windows.Forms.Label
     Friend WithEvents clb_databases As System.Windows.Forms.CheckedListBox
-    Friend WithEvents tp_thumbs As System.Windows.Forms.TabPage
-    Friend WithEvents TabControl1 As System.Windows.Forms.TabControl
-    Friend WithEvents TabPage1 As System.Windows.Forms.TabPage
-    Friend WithEvents cb_thumbs_sync_method As System.Windows.Forms.ComboBox
-    Friend WithEvents b_thumbs_direction As System.Windows.Forms.Button
+    Friend WithEvents tp_folders As System.Windows.Forms.TabPage
+    Friend WithEvents tc_objects As System.Windows.Forms.TabControl
+    Friend WithEvents tp_paths As System.Windows.Forms.TabPage
+    Friend WithEvents cb_folders_sync_method As System.Windows.Forms.ComboBox
+    Friend WithEvents b_folders_direction As System.Windows.Forms.Button
     Friend WithEvents Label5 As System.Windows.Forms.Label
-    Friend WithEvents b_thumbs_server As System.Windows.Forms.Button
-    Friend WithEvents tb_thumbs_server_path As System.Windows.Forms.TextBox
-    Friend WithEvents tb_thumbs_client_path As System.Windows.Forms.TextBox
+    Friend WithEvents b_folders_server As System.Windows.Forms.Button
+    Friend WithEvents tb_folders_server_path As System.Windows.Forms.TextBox
+    Friend WithEvents tb_folders_client_path As System.Windows.Forms.TextBox
     Friend WithEvents Label6 As System.Windows.Forms.Label
-    Friend WithEvents b_thumbs_client As System.Windows.Forms.Button
-    Friend WithEvents TabPage2 As System.Windows.Forms.TabPage
+    Friend WithEvents b_folders_client As System.Windows.Forms.Button
+    Friend WithEvents tp_advancedsettings As System.Windows.Forms.TabPage
     Friend WithEvents tp_settings As System.Windows.Forms.TabPage
     Friend WithEvents GroupBox2 As System.Windows.Forms.GroupBox
-    Friend WithEvents rb_specific_thumbs As System.Windows.Forms.RadioButton
-    Friend WithEvents rb_all_thumbs As System.Windows.Forms.RadioButton
+    Friend WithEvents rb_specific_folders As System.Windows.Forms.RadioButton
+    Friend WithEvents rb_all_folders As System.Windows.Forms.RadioButton
     Friend WithEvents Label8 As System.Windows.Forms.Label
-    Friend WithEvents clb_thumbs As System.Windows.Forms.CheckedListBox
+    Friend WithEvents clb_objects As System.Windows.Forms.CheckedListBox
     Friend WithEvents cb_db_pause As System.Windows.Forms.CheckBox
-    Friend WithEvents cb_thumbs_pause As System.Windows.Forms.CheckBox
+    Friend WithEvents cb_folders_pause As System.Windows.Forms.CheckBox
     Friend WithEvents Panel2 As System.Windows.Forms.Panel
     Friend WithEvents cb_debug As System.Windows.Forms.CheckBox
     Friend WithEvents Panel1 As System.Windows.Forms.Panel
-    Friend WithEvents cb_thumbs As System.Windows.Forms.CheckBox
+    Friend WithEvents cb_folders As System.Windows.Forms.CheckBox
     Friend WithEvents cb_databases As System.Windows.Forms.CheckBox
     Friend WithEvents cb_watched As System.Windows.Forms.CheckBox
     Friend WithEvents tp_watched As System.Windows.Forms.TabPage
@@ -1068,11 +1172,20 @@ Partial Class MPSync_settings
     Friend WithEvents rb_o_specific As System.Windows.Forms.RadioButton
     Friend WithEvents rb_o_all As System.Windows.Forms.RadioButton
     Friend WithEvents Label12 As System.Windows.Forms.Label
-    Friend WithEvents clb_objects As System.Windows.Forms.CheckedListBox
+    Friend WithEvents clb_db_objects As System.Windows.Forms.CheckedListBox
     Friend WithEvents rb_timestamp As System.Windows.Forms.RadioButton
     Friend WithEvents rb_triggers As System.Windows.Forms.RadioButton
     Friend WithEvents Panel5 As System.Windows.Forms.Panel
     Friend WithEvents PictureBox1 As System.Windows.Forms.PictureBox
     Friend WithEvents PictureBox2 As System.Windows.Forms.PictureBox
+    Friend WithEvents tp_list As System.Windows.Forms.TabPage
+    Friend WithEvents clb_object_list As System.Windows.Forms.CheckedListBox
+    Friend WithEvents b_delete As System.Windows.Forms.Button
+    Friend WithEvents b_edit As System.Windows.Forms.Button
+    Friend WithEvents b_add As System.Windows.Forms.Button
+    Friend WithEvents pnl_object_list As System.Windows.Forms.Panel
+    Friend WithEvents tb_object_list As System.Windows.Forms.TextBox
+    Friend WithEvents b_apply As System.Windows.Forms.Button
+    Friend WithEvents ToolTip As System.Windows.Forms.ToolTip
 
 End Class
