@@ -8,7 +8,7 @@ Setting up is very simple.  To create a new folder set, press this icon http://c
 
 http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(6)%20MPSync_folder_list.jpg
 
-Select it and press this icon http://cdbsync-plugin.googlecode.com/svn/trunk/MPSync/MPSync/Resources/edit.png to edit/define the actions to be performed.  Once the edit icon is pressed, the following screen will be displayed.
+Select the folder set and press this icon http://cdbsync-plugin.googlecode.com/svn/trunk/MPSync/MPSync/Resources/edit.png to edit/define the actions to be performed.  Once the edit icon is pressed, the following screen will be displayed.
 
 http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(7)%20MPSync_thumbs_paths.jpg
 
