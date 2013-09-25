@@ -1,3 +1,21 @@
-#summary One-sentence summary of this page.
+#How to set up folder replication.
 
-= page under constructon =
+= Introduction =
+
+This plugin give you the facility to set up a folder replication set where you can choose which folder to replicate from master to server/server to client.
+
+Setting up is very simple.  To create a new folder set, press this icon http://cdbsync-plugin.googlecode.com/svn/trunk/MPSync/MPSync/Resources/add.png.  A popup will show up where you have to enter the name for this new folder set.  The newly created folder set will be displayed in the list.
+
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(6)%20MPSync_folder_list.jpg
+
+Select it and press this icon http://cdbsync-plugin.googlecode.com/svn/trunk/MPSync/MPSync/Resources/edit.png to edit/define the actions to be performed.  Once the edit icon is pressed, the following screen will be displayed.
+
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(7)%20MPSync_thumbs_paths.jpg
+
+Choose the paths, synchronization direction and synchronization action.  Once complete, go to the advanced tab and select appropriately, similar to the screen below.
+
+http://cdbsync-plugin.googlecode.com/svn/wiki/screens/(8)%20MPSync_thumbs_advanced_settings.jpg
+
+If you want to remove a folder set, just select it and press the following icon http://cdbsync-plugin.googlecode.com/svn/trunk/MPSync/MPSync/Resources/delete.png.
+
+You can also opt to disable a folder set.  This can be done by simply unticking the check box.
