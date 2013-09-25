@@ -1,4 +1,4 @@
-#How to set up folder replication.
+# How to set up folder replication.
 
 = Introduction =
 
