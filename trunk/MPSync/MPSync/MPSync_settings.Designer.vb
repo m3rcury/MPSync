@@ -22,7 +22,6 @@ Partial Class MPSync_settings
     'Do not modify it imports the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.components = New System.ComponentModel.Container()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(MPSync_settings))
         Me.b_save = New System.Windows.Forms.Button()
         Me.tb_master_path = New System.Windows.Forms.TextBox()
@@ -31,18 +30,34 @@ Partial Class MPSync_settings
         Me.b_sync_now = New System.Windows.Forms.Button()
         Me.tc_main = New System.Windows.Forms.TabControl()
         Me.tp_settings = New System.Windows.Forms.TabPage()
+        Me.tc_settings = New System.Windows.Forms.TabControl()
+        Me.tp_selection = New System.Windows.Forms.TabPage()
         Me.Panel5 = New System.Windows.Forms.Panel()
+        Me.PictureBox2 = New System.Windows.Forms.PictureBox()
         Me.cb_folders = New System.Windows.Forms.CheckBox()
-        Me.Panel2 = New System.Windows.Forms.Panel()
-        Me.cb_debug = New System.Windows.Forms.CheckBox()
         Me.Panel1 = New System.Windows.Forms.Panel()
+        Me.PictureBox1 = New System.Windows.Forms.PictureBox()
         Me.cb_databases = New System.Windows.Forms.CheckBox()
         Me.rb_timestamp = New System.Windows.Forms.RadioButton()
         Me.rb_triggers = New System.Windows.Forms.RadioButton()
+        Me.tp_configuration = New System.Windows.Forms.TabPage()
+        Me.Panel6 = New System.Windows.Forms.Panel()
+        Me.rb_service = New System.Windows.Forms.RadioButton()
+        Me.rb_normal = New System.Windows.Forms.RadioButton()
+        Me.Panel2 = New System.Windows.Forms.Panel()
+        Me.cb_debug = New System.Windows.Forms.CheckBox()
+        Me.tp_service = New System.Windows.Forms.TabPage()
+        Me.b_serviceauto = New System.Windows.Forms.Button()
+        Me.b_servicedelete = New System.Windows.Forms.Button()
+        Me.b_servicestop = New System.Windows.Forms.Button()
+        Me.b_servicestart = New System.Windows.Forms.Button()
+        Me.tb_servicestatus = New System.Windows.Forms.TextBox()
+        Me.Label7 = New System.Windows.Forms.Label()
         Me.tp_database = New System.Windows.Forms.TabPage()
         Me.tc_database = New System.Windows.Forms.TabControl()
         Me.tp_db_paths = New System.Windows.Forms.TabPage()
         Me.cb_db_sync_method = New System.Windows.Forms.ComboBox()
+        Me.b_db_direction = New System.Windows.Forms.Button()
         Me.Label2 = New System.Windows.Forms.Label()
         Me.b_db_server = New System.Windows.Forms.Button()
         Me.tb_db_server_path = New System.Windows.Forms.TextBox()
@@ -82,6 +97,9 @@ Partial Class MPSync_settings
         Me.tp_list = New System.Windows.Forms.TabPage()
         Me.pnl_object_list = New System.Windows.Forms.Panel()
         Me.tb_object_list = New System.Windows.Forms.TextBox()
+        Me.b_delete = New System.Windows.Forms.Button()
+        Me.b_edit = New System.Windows.Forms.Button()
+        Me.b_add = New System.Windows.Forms.Button()
         Me.clb_object_list = New System.Windows.Forms.CheckedListBox()
         Me.tp_paths = New System.Windows.Forms.TabPage()
         Me.cb_folders_sync_method = New System.Windows.Forms.ComboBox()
@@ -91,6 +109,7 @@ Partial Class MPSync_settings
         Me.tb_folders_client_path = New System.Windows.Forms.TextBox()
         Me.Label6 = New System.Windows.Forms.Label()
         Me.b_folders_client = New System.Windows.Forms.Button()
+        Me.b_folders_direction = New System.Windows.Forms.Button()
         Me.tp_advancedsettings = New System.Windows.Forms.TabPage()
         Me.b_apply = New System.Windows.Forms.Button()
         Me.cb_folders_pause = New System.Windows.Forms.CheckBox()
@@ -101,19 +120,18 @@ Partial Class MPSync_settings
         Me.clb_objects = New System.Windows.Forms.CheckedListBox()
         Me.tp_syncnow = New System.Windows.Forms.TabPage()
         Me.lb_status = New System.Windows.Forms.ListBox()
-        Me.ToolTip = New System.Windows.Forms.ToolTip(Me.components)
-        Me.PictureBox2 = New System.Windows.Forms.PictureBox()
-        Me.PictureBox1 = New System.Windows.Forms.PictureBox()
-        Me.b_db_direction = New System.Windows.Forms.Button()
-        Me.b_delete = New System.Windows.Forms.Button()
-        Me.b_edit = New System.Windows.Forms.Button()
-        Me.b_add = New System.Windows.Forms.Button()
-        Me.b_folders_direction = New System.Windows.Forms.Button()
         Me.tc_main.SuspendLayout()
         Me.tp_settings.SuspendLayout()
+        Me.tc_settings.SuspendLayout()
+        Me.tp_selection.SuspendLayout()
         Me.Panel5.SuspendLayout()
-        Me.Panel2.SuspendLayout()
+        CType(Me.PictureBox2, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.Panel1.SuspendLayout()
+        CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.tp_configuration.SuspendLayout()
+        Me.Panel6.SuspendLayout()
+        Me.Panel2.SuspendLayout()
+        Me.tp_service.SuspendLayout()
         Me.tp_database.SuspendLayout()
         Me.tc_database.SuspendLayout()
         Me.tp_db_paths.SuspendLayout()
@@ -134,8 +152,6 @@ Partial Class MPSync_settings
         Me.tp_advancedsettings.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
         Me.tp_syncnow.SuspendLayout()
-        CType(Me.PictureBox2, System.ComponentModel.ISupportInitialize).BeginInit()
-        CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'b_save
@@ -197,10 +213,8 @@ Partial Class MPSync_settings
         'tp_settings
         '
         Me.tp_settings.BackColor = System.Drawing.SystemColors.ButtonFace
-        Me.tp_settings.Controls.Add(Me.Panel5)
-        Me.tp_settings.Controls.Add(Me.Panel2)
+        Me.tp_settings.Controls.Add(Me.tc_settings)
         Me.tp_settings.Controls.Add(Me.b_save)
-        Me.tp_settings.Controls.Add(Me.Panel1)
         Me.tp_settings.Controls.Add(Me.b_sync_now)
         Me.tp_settings.Location = New System.Drawing.Point(4, 22)
         Me.tp_settings.Name = "tp_settings"
@@ -209,15 +223,48 @@ Partial Class MPSync_settings
         Me.tp_settings.TabIndex = 3
         Me.tp_settings.Text = "Settings"
         '
+        'tc_settings
+        '
+        Me.tc_settings.Controls.Add(Me.tp_selection)
+        Me.tc_settings.Controls.Add(Me.tp_configuration)
+        Me.tc_settings.Controls.Add(Me.tp_service)
+        Me.tc_settings.Location = New System.Drawing.Point(3, 7)
+        Me.tc_settings.Name = "tc_settings"
+        Me.tc_settings.SelectedIndex = 0
+        Me.tc_settings.Size = New System.Drawing.Size(576, 178)
+        Me.tc_settings.TabIndex = 68
+        '
+        'tp_selection
+        '
+        Me.tp_selection.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tp_selection.Controls.Add(Me.Panel5)
+        Me.tp_selection.Controls.Add(Me.Panel1)
+        Me.tp_selection.Location = New System.Drawing.Point(4, 22)
+        Me.tp_selection.Name = "tp_selection"
+        Me.tp_selection.Padding = New System.Windows.Forms.Padding(3)
+        Me.tp_selection.Size = New System.Drawing.Size(568, 152)
+        Me.tp_selection.TabIndex = 0
+        Me.tp_selection.Text = "Sync Selection"
+        '
         'Panel5
         '
         Me.Panel5.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
         Me.Panel5.Controls.Add(Me.PictureBox2)
         Me.Panel5.Controls.Add(Me.cb_folders)
-        Me.Panel5.Location = New System.Drawing.Point(19, 81)
+        Me.Panel5.Location = New System.Drawing.Point(12, 80)
         Me.Panel5.Name = "Panel5"
         Me.Panel5.Size = New System.Drawing.Size(545, 62)
-        Me.Panel5.TabIndex = 67
+        Me.Panel5.TabIndex = 69
+        '
+        'PictureBox2
+        '
+        Me.PictureBox2.Image = Global.MPSync.My.Resources.Resources.thumbs
+        Me.PictureBox2.Location = New System.Drawing.Point(3, 5)
+        Me.PictureBox2.Name = "PictureBox2"
+        Me.PictureBox2.Size = New System.Drawing.Size(60, 50)
+        Me.PictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.PictureBox2.TabIndex = 69
+        Me.PictureBox2.TabStop = False
         '
         'cb_folders
         '
@@ -230,26 +277,6 @@ Partial Class MPSync_settings
         Me.cb_folders.Text = "Synchronise specific folders"
         Me.cb_folders.UseVisualStyleBackColor = True
         '
-        'Panel2
-        '
-        Me.Panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.Panel2.Controls.Add(Me.cb_debug)
-        Me.Panel2.Location = New System.Drawing.Point(19, 149)
-        Me.Panel2.Name = "Panel2"
-        Me.Panel2.Size = New System.Drawing.Size(545, 28)
-        Me.Panel2.TabIndex = 67
-        '
-        'cb_debug
-        '
-        Me.cb_debug.AutoSize = True
-        Me.cb_debug.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.cb_debug.Location = New System.Drawing.Point(196, 3)
-        Me.cb_debug.Name = "cb_debug"
-        Me.cb_debug.Size = New System.Drawing.Size(150, 20)
-        Me.cb_debug.TabIndex = 65
-        Me.cb_debug.Text = "Enable DEBUG logs"
-        Me.cb_debug.UseVisualStyleBackColor = True
-        '
         'Panel1
         '
         Me.Panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
@@ -257,10 +284,20 @@ Partial Class MPSync_settings
         Me.Panel1.Controls.Add(Me.cb_databases)
         Me.Panel1.Controls.Add(Me.rb_timestamp)
         Me.Panel1.Controls.Add(Me.rb_triggers)
-        Me.Panel1.Location = New System.Drawing.Point(19, 11)
+        Me.Panel1.Location = New System.Drawing.Point(12, 10)
         Me.Panel1.Name = "Panel1"
         Me.Panel1.Size = New System.Drawing.Size(545, 62)
-        Me.Panel1.TabIndex = 65
+        Me.Panel1.TabIndex = 68
+        '
+        'PictureBox1
+        '
+        Me.PictureBox1.Image = Global.MPSync.My.Resources.Resources.database
+        Me.PictureBox1.Location = New System.Drawing.Point(4, 5)
+        Me.PictureBox1.Name = "PictureBox1"
+        Me.PictureBox1.Size = New System.Drawing.Size(50, 50)
+        Me.PictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.PictureBox1.TabIndex = 68
+        Me.PictureBox1.TabStop = False
         '
         'cb_databases
         '
@@ -296,6 +333,149 @@ Partial Class MPSync_settings
         Me.rb_triggers.TabStop = True
         Me.rb_triggers.Text = "Synchronize using Triggers"
         Me.rb_triggers.UseVisualStyleBackColor = True
+        '
+        'tp_configuration
+        '
+        Me.tp_configuration.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tp_configuration.Controls.Add(Me.Panel6)
+        Me.tp_configuration.Controls.Add(Me.Panel2)
+        Me.tp_configuration.Location = New System.Drawing.Point(4, 22)
+        Me.tp_configuration.Name = "tp_configuration"
+        Me.tp_configuration.Padding = New System.Windows.Forms.Padding(3)
+        Me.tp_configuration.Size = New System.Drawing.Size(568, 152)
+        Me.tp_configuration.TabIndex = 1
+        Me.tp_configuration.Text = "Configuration"
+        '
+        'Panel6
+        '
+        Me.Panel6.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel6.Controls.Add(Me.rb_service)
+        Me.Panel6.Controls.Add(Me.rb_normal)
+        Me.Panel6.Location = New System.Drawing.Point(12, 58)
+        Me.Panel6.Name = "Panel6"
+        Me.Panel6.Size = New System.Drawing.Size(545, 71)
+        Me.Panel6.TabIndex = 72
+        '
+        'rb_service
+        '
+        Me.rb_service.AutoSize = True
+        Me.rb_service.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.rb_service.Location = New System.Drawing.Point(158, 37)
+        Me.rb_service.Name = "rb_service"
+        Me.rb_service.Size = New System.Drawing.Size(184, 20)
+        Me.rb_service.TabIndex = 74
+        Me.rb_service.Text = "Run as a Windows service"
+        Me.rb_service.UseVisualStyleBackColor = True
+        '
+        'rb_normal
+        '
+        Me.rb_normal.AutoSize = True
+        Me.rb_normal.Checked = True
+        Me.rb_normal.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.rb_normal.Location = New System.Drawing.Point(158, 11)
+        Me.rb_normal.Name = "rb_normal"
+        Me.rb_normal.Size = New System.Drawing.Size(227, 20)
+        Me.rb_normal.TabIndex = 72
+        Me.rb_normal.TabStop = True
+        Me.rb_normal.Text = "Run from MediaPortal or Manually"
+        Me.rb_normal.UseVisualStyleBackColor = True
+        '
+        'Panel2
+        '
+        Me.Panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel2.Controls.Add(Me.cb_debug)
+        Me.Panel2.Location = New System.Drawing.Point(12, 23)
+        Me.Panel2.Name = "Panel2"
+        Me.Panel2.Size = New System.Drawing.Size(545, 28)
+        Me.Panel2.TabIndex = 68
+        '
+        'cb_debug
+        '
+        Me.cb_debug.AutoSize = True
+        Me.cb_debug.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.cb_debug.Location = New System.Drawing.Point(196, 3)
+        Me.cb_debug.Name = "cb_debug"
+        Me.cb_debug.Size = New System.Drawing.Size(150, 20)
+        Me.cb_debug.TabIndex = 65
+        Me.cb_debug.Text = "Enable DEBUG logs"
+        Me.cb_debug.UseVisualStyleBackColor = True
+        '
+        'tp_service
+        '
+        Me.tp_service.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tp_service.Controls.Add(Me.b_serviceauto)
+        Me.tp_service.Controls.Add(Me.b_servicedelete)
+        Me.tp_service.Controls.Add(Me.b_servicestop)
+        Me.tp_service.Controls.Add(Me.b_servicestart)
+        Me.tp_service.Controls.Add(Me.tb_servicestatus)
+        Me.tp_service.Controls.Add(Me.Label7)
+        Me.tp_service.Location = New System.Drawing.Point(4, 22)
+        Me.tp_service.Name = "tp_service"
+        Me.tp_service.Padding = New System.Windows.Forms.Padding(3)
+        Me.tp_service.Size = New System.Drawing.Size(568, 152)
+        Me.tp_service.TabIndex = 2
+        Me.tp_service.Text = "Service"
+        '
+        'b_serviceauto
+        '
+        Me.b_serviceauto.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.b_serviceauto.Location = New System.Drawing.Point(177, 88)
+        Me.b_serviceauto.Name = "b_serviceauto"
+        Me.b_serviceauto.Size = New System.Drawing.Size(214, 23)
+        Me.b_serviceauto.TabIndex = 9
+        Me.b_serviceauto.Text = "Set Service to start Automatically"
+        Me.b_serviceauto.UseVisualStyleBackColor = True
+        '
+        'b_servicedelete
+        '
+        Me.b_servicedelete.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.b_servicedelete.Location = New System.Drawing.Point(177, 62)
+        Me.b_servicedelete.Name = "b_servicedelete"
+        Me.b_servicedelete.Size = New System.Drawing.Size(214, 23)
+        Me.b_servicedelete.TabIndex = 8
+        Me.b_servicedelete.Text = "Delete Service"
+        Me.b_servicedelete.UseVisualStyleBackColor = True
+        '
+        'b_servicestop
+        '
+        Me.b_servicestop.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.b_servicestop.Location = New System.Drawing.Point(177, 36)
+        Me.b_servicestop.Name = "b_servicestop"
+        Me.b_servicestop.Size = New System.Drawing.Size(214, 23)
+        Me.b_servicestop.TabIndex = 7
+        Me.b_servicestop.Text = "Stop Service"
+        Me.b_servicestop.UseVisualStyleBackColor = True
+        '
+        'b_servicestart
+        '
+        Me.b_servicestart.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.b_servicestart.Location = New System.Drawing.Point(177, 10)
+        Me.b_servicestart.Name = "b_servicestart"
+        Me.b_servicestart.Size = New System.Drawing.Size(214, 23)
+        Me.b_servicestart.TabIndex = 6
+        Me.b_servicestart.Text = "Start Service now"
+        Me.b_servicestart.UseVisualStyleBackColor = True
+        '
+        'tb_servicestatus
+        '
+        Me.tb_servicestatus.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tb_servicestatus.BorderStyle = System.Windows.Forms.BorderStyle.None
+        Me.tb_servicestatus.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.tb_servicestatus.ForeColor = System.Drawing.Color.Red
+        Me.tb_servicestatus.Location = New System.Drawing.Point(280, 123)
+        Me.tb_servicestatus.Name = "tb_servicestatus"
+        Me.tb_servicestatus.Size = New System.Drawing.Size(195, 15)
+        Me.tb_servicestatus.TabIndex = 4
+        '
+        'Label7
+        '
+        Me.Label7.AutoSize = True
+        Me.Label7.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label7.Location = New System.Drawing.Point(174, 122)
+        Me.Label7.Name = "Label7"
+        Me.Label7.Size = New System.Drawing.Size(100, 16)
+        Me.Label7.TabIndex = 3
+        Me.Label7.Text = "Service Status :"
         '
         'tp_database
         '
@@ -345,6 +525,15 @@ Partial Class MPSync_settings
         Me.cb_db_sync_method.Name = "cb_db_sync_method"
         Me.cb_db_sync_method.Size = New System.Drawing.Size(215, 21)
         Me.cb_db_sync_method.TabIndex = 68
+        '
+        'b_db_direction
+        '
+        Me.b_db_direction.Image = Global.MPSync.My.Resources.Resources.sync_both
+        Me.b_db_direction.Location = New System.Drawing.Point(252, 68)
+        Me.b_db_direction.Name = "b_db_direction"
+        Me.b_db_direction.Size = New System.Drawing.Size(64, 64)
+        Me.b_db_direction.TabIndex = 67
+        Me.b_db_direction.UseVisualStyleBackColor = True
         '
         'Label2
         '
@@ -767,6 +956,38 @@ Partial Class MPSync_settings
         Me.tb_object_list.Size = New System.Drawing.Size(378, 21)
         Me.tb_object_list.TabIndex = 0
         '
+        'b_delete
+        '
+        Me.b_delete.BackgroundImage = Global.MPSync.My.Resources.Resources.delete
+        Me.b_delete.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
+        Me.b_delete.Location = New System.Drawing.Point(506, 72)
+        Me.b_delete.Name = "b_delete"
+        Me.b_delete.Size = New System.Drawing.Size(40, 40)
+        Me.b_delete.TabIndex = 3
+        Me.b_delete.UseVisualStyleBackColor = True
+        Me.b_delete.Visible = False
+        '
+        'b_edit
+        '
+        Me.b_edit.BackgroundImage = Global.MPSync.My.Resources.Resources.edit
+        Me.b_edit.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
+        Me.b_edit.Location = New System.Drawing.Point(506, 118)
+        Me.b_edit.Name = "b_edit"
+        Me.b_edit.Size = New System.Drawing.Size(40, 40)
+        Me.b_edit.TabIndex = 2
+        Me.b_edit.UseVisualStyleBackColor = True
+        Me.b_edit.Visible = False
+        '
+        'b_add
+        '
+        Me.b_add.BackgroundImage = Global.MPSync.My.Resources.Resources.add
+        Me.b_add.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
+        Me.b_add.Location = New System.Drawing.Point(506, 26)
+        Me.b_add.Name = "b_add"
+        Me.b_add.Size = New System.Drawing.Size(40, 40)
+        Me.b_add.TabIndex = 1
+        Me.b_add.UseVisualStyleBackColor = True
+        '
         'clb_object_list
         '
         Me.clb_object_list.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
@@ -854,6 +1075,15 @@ Partial Class MPSync_settings
         Me.b_folders_client.TabIndex = 61
         Me.b_folders_client.Text = "Browse"
         Me.b_folders_client.UseVisualStyleBackColor = True
+        '
+        'b_folders_direction
+        '
+        Me.b_folders_direction.Image = Global.MPSync.My.Resources.Resources.sync_both
+        Me.b_folders_direction.Location = New System.Drawing.Point(252, 68)
+        Me.b_folders_direction.Name = "b_folders_direction"
+        Me.b_folders_direction.Size = New System.Drawing.Size(64, 64)
+        Me.b_folders_direction.TabIndex = 67
+        Me.b_folders_direction.UseVisualStyleBackColor = True
         '
         'tp_advancedsettings
         '
@@ -968,79 +1198,6 @@ Partial Class MPSync_settings
         Me.lb_status.Size = New System.Drawing.Size(569, 212)
         Me.lb_status.TabIndex = 0
         '
-        'PictureBox2
-        '
-        Me.PictureBox2.Image = Global.MPSync.My.Resources.Resources.thumbs
-        Me.PictureBox2.Location = New System.Drawing.Point(3, 5)
-        Me.PictureBox2.Name = "PictureBox2"
-        Me.PictureBox2.Size = New System.Drawing.Size(60, 50)
-        Me.PictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
-        Me.PictureBox2.TabIndex = 69
-        Me.PictureBox2.TabStop = False
-        '
-        'PictureBox1
-        '
-        Me.PictureBox1.Image = Global.MPSync.My.Resources.Resources.database
-        Me.PictureBox1.Location = New System.Drawing.Point(4, 5)
-        Me.PictureBox1.Name = "PictureBox1"
-        Me.PictureBox1.Size = New System.Drawing.Size(50, 50)
-        Me.PictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
-        Me.PictureBox1.TabIndex = 68
-        Me.PictureBox1.TabStop = False
-        '
-        'b_db_direction
-        '
-        Me.b_db_direction.Image = Global.MPSync.My.Resources.Resources.sync_both
-        Me.b_db_direction.Location = New System.Drawing.Point(252, 68)
-        Me.b_db_direction.Name = "b_db_direction"
-        Me.b_db_direction.Size = New System.Drawing.Size(64, 64)
-        Me.b_db_direction.TabIndex = 67
-        Me.b_db_direction.UseVisualStyleBackColor = True
-        '
-        'b_delete
-        '
-        Me.b_delete.BackgroundImage = Global.MPSync.My.Resources.Resources.delete
-        Me.b_delete.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
-        Me.b_delete.Location = New System.Drawing.Point(506, 72)
-        Me.b_delete.Name = "b_delete"
-        Me.b_delete.Size = New System.Drawing.Size(40, 40)
-        Me.b_delete.TabIndex = 3
-        Me.ToolTip.SetToolTip(Me.b_delete, "Delete selected Folder set")
-        Me.b_delete.UseVisualStyleBackColor = True
-        Me.b_delete.Visible = False
-        '
-        'b_edit
-        '
-        Me.b_edit.BackgroundImage = Global.MPSync.My.Resources.Resources.edit
-        Me.b_edit.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
-        Me.b_edit.Location = New System.Drawing.Point(506, 118)
-        Me.b_edit.Name = "b_edit"
-        Me.b_edit.Size = New System.Drawing.Size(40, 40)
-        Me.b_edit.TabIndex = 2
-        Me.ToolTip.SetToolTip(Me.b_edit, "Edit selected Folder set")
-        Me.b_edit.UseVisualStyleBackColor = True
-        Me.b_edit.Visible = False
-        '
-        'b_add
-        '
-        Me.b_add.BackgroundImage = Global.MPSync.My.Resources.Resources.add
-        Me.b_add.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
-        Me.b_add.Location = New System.Drawing.Point(506, 26)
-        Me.b_add.Name = "b_add"
-        Me.b_add.Size = New System.Drawing.Size(40, 40)
-        Me.b_add.TabIndex = 1
-        Me.ToolTip.SetToolTip(Me.b_add, "Add a new Folder set")
-        Me.b_add.UseVisualStyleBackColor = True
-        '
-        'b_folders_direction
-        '
-        Me.b_folders_direction.Image = Global.MPSync.My.Resources.Resources.sync_both
-        Me.b_folders_direction.Location = New System.Drawing.Point(252, 68)
-        Me.b_folders_direction.Name = "b_folders_direction"
-        Me.b_folders_direction.Size = New System.Drawing.Size(64, 64)
-        Me.b_folders_direction.TabIndex = 67
-        Me.b_folders_direction.UseVisualStyleBackColor = True
-        '
         'MPSync_settings
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -1057,12 +1214,21 @@ Partial Class MPSync_settings
         Me.Text = "MediaPortal Sync settings v"
         Me.tc_main.ResumeLayout(False)
         Me.tp_settings.ResumeLayout(False)
+        Me.tc_settings.ResumeLayout(False)
+        Me.tp_selection.ResumeLayout(False)
         Me.Panel5.ResumeLayout(False)
         Me.Panel5.PerformLayout()
-        Me.Panel2.ResumeLayout(False)
-        Me.Panel2.PerformLayout()
+        CType(Me.PictureBox2, System.ComponentModel.ISupportInitialize).EndInit()
         Me.Panel1.ResumeLayout(False)
         Me.Panel1.PerformLayout()
+        CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.tp_configuration.ResumeLayout(False)
+        Me.Panel6.ResumeLayout(False)
+        Me.Panel6.PerformLayout()
+        Me.Panel2.ResumeLayout(False)
+        Me.Panel2.PerformLayout()
+        Me.tp_service.ResumeLayout(False)
+        Me.tp_service.PerformLayout()
         Me.tp_database.ResumeLayout(False)
         Me.tc_database.ResumeLayout(False)
         Me.tp_db_paths.ResumeLayout(False)
@@ -1096,8 +1262,6 @@ Partial Class MPSync_settings
         Me.GroupBox2.ResumeLayout(False)
         Me.GroupBox2.PerformLayout()
         Me.tp_syncnow.ResumeLayout(False)
-        CType(Me.PictureBox2, System.ComponentModel.ISupportInitialize).EndInit()
-        CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -1148,11 +1312,6 @@ Partial Class MPSync_settings
     Friend WithEvents clb_objects As System.Windows.Forms.CheckedListBox
     Friend WithEvents cb_db_pause As System.Windows.Forms.CheckBox
     Friend WithEvents cb_folders_pause As System.Windows.Forms.CheckBox
-    Friend WithEvents Panel2 As System.Windows.Forms.Panel
-    Friend WithEvents cb_debug As System.Windows.Forms.CheckBox
-    Friend WithEvents Panel1 As System.Windows.Forms.Panel
-    Friend WithEvents cb_folders As System.Windows.Forms.CheckBox
-    Friend WithEvents cb_databases As System.Windows.Forms.CheckBox
     Friend WithEvents cb_watched As System.Windows.Forms.CheckBox
     Friend WithEvents tp_watched As System.Windows.Forms.TabPage
     Friend WithEvents Panel3 As System.Windows.Forms.Panel
@@ -1173,11 +1332,6 @@ Partial Class MPSync_settings
     Friend WithEvents rb_o_all As System.Windows.Forms.RadioButton
     Friend WithEvents Label12 As System.Windows.Forms.Label
     Friend WithEvents clb_db_objects As System.Windows.Forms.CheckedListBox
-    Friend WithEvents rb_timestamp As System.Windows.Forms.RadioButton
-    Friend WithEvents rb_triggers As System.Windows.Forms.RadioButton
-    Friend WithEvents Panel5 As System.Windows.Forms.Panel
-    Friend WithEvents PictureBox1 As System.Windows.Forms.PictureBox
-    Friend WithEvents PictureBox2 As System.Windows.Forms.PictureBox
     Friend WithEvents tp_list As System.Windows.Forms.TabPage
     Friend WithEvents clb_object_list As System.Windows.Forms.CheckedListBox
     Friend WithEvents b_delete As System.Windows.Forms.Button
@@ -1186,6 +1340,28 @@ Partial Class MPSync_settings
     Friend WithEvents pnl_object_list As System.Windows.Forms.Panel
     Friend WithEvents tb_object_list As System.Windows.Forms.TextBox
     Friend WithEvents b_apply As System.Windows.Forms.Button
-    Friend WithEvents ToolTip As System.Windows.Forms.ToolTip
+    Friend WithEvents tc_settings As System.Windows.Forms.TabControl
+    Friend WithEvents tp_selection As System.Windows.Forms.TabPage
+    Friend WithEvents Panel5 As System.Windows.Forms.Panel
+    Friend WithEvents PictureBox2 As System.Windows.Forms.PictureBox
+    Friend WithEvents cb_folders As System.Windows.Forms.CheckBox
+    Friend WithEvents Panel1 As System.Windows.Forms.Panel
+    Friend WithEvents PictureBox1 As System.Windows.Forms.PictureBox
+    Friend WithEvents cb_databases As System.Windows.Forms.CheckBox
+    Friend WithEvents rb_timestamp As System.Windows.Forms.RadioButton
+    Friend WithEvents rb_triggers As System.Windows.Forms.RadioButton
+    Friend WithEvents tp_configuration As System.Windows.Forms.TabPage
+    Friend WithEvents Panel6 As System.Windows.Forms.Panel
+    Friend WithEvents rb_service As System.Windows.Forms.RadioButton
+    Friend WithEvents rb_normal As System.Windows.Forms.RadioButton
+    Friend WithEvents Panel2 As System.Windows.Forms.Panel
+    Friend WithEvents cb_debug As System.Windows.Forms.CheckBox
+    Friend WithEvents tp_service As System.Windows.Forms.TabPage
+    Friend WithEvents tb_servicestatus As System.Windows.Forms.TextBox
+    Friend WithEvents Label7 As System.Windows.Forms.Label
+    Friend WithEvents b_servicestart As System.Windows.Forms.Button
+    Friend WithEvents b_serviceauto As System.Windows.Forms.Button
+    Friend WithEvents b_servicedelete As System.Windows.Forms.Button
+    Friend WithEvents b_servicestop As System.Windows.Forms.Button
 
 End Class
