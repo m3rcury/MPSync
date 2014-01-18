@@ -12,15 +12,23 @@
           <Items>
             <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
               <Param1 />
-              <UpdateOption>OverwriteIfOlder</UpdateOption>
+              <UpdateOption>AlwaysOverwrite</UpdateOption>
               <LocalFileName>..\..\..\..\MPSync\MPSync.dll</LocalFileName>
               <ZipFileName>Installer{CopyFile}\{9d3d7efb-e025-422a-8fdd-f24ccf451cfd}-CDB_Sync.dll</ZipFileName>
               <DestinationFilename>%Plugins%\process\MPSync.dll</DestinationFilename>
+            </FileItem>
+            <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
+              <Param1 />
+              <UpdateOption>AlwaysOverwrite</UpdateOption>
+              <LocalFileName>..\..\..\..\MPSync\MPSync_Launcher.exe</LocalFileName>
+              <ZipFileName>Installer{CopyFile}\{aa975164-ed31-4f2e-90a4-0afebc9adfe9}-MPSync_Launcher.exe</ZipFileName>
+              <DestinationFilename>%Base%\MPSync_Launcher.exe</DestinationFilename>
             </FileItem>
           </Items>
         </Files>
       </GroupItem>
       <GroupItem Name="SQLite">
+        <ParentGroup />
         <DisplayName>SQLite</DisplayName>
         <DefaulChecked>true</DefaulChecked>
         <Description>SQLite</Description>
@@ -28,7 +36,7 @@
           <Items>
             <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
               <Param1 />
-              <UpdateOption>OverwriteIfOlder</UpdateOption>
+              <UpdateOption>AlwaysOverwrite</UpdateOption>
               <LocalFileName>..\Externals\System.Data.SQLite.dll</LocalFileName>
               <ZipFileName>Installer{CopyFile}\{fde0e846-bd88-4806-9aa1-01837c53aa25}-System.Data.SQLite.dll</ZipFileName>
               <DestinationFilename>%Base%\System.Data.SQLite.dll</DestinationFilename>
@@ -102,54 +110,33 @@ Click Next to continue or Cancel to exit Setup.</Value>
               </Params>
               <ExecuteLocation>AfterPanelShow</ExecuteLocation>
             </ActionItem>
-            <ActionItem Name="Script" ActionType="Script" ConditionGroup="Default">
+            <ActionItem Name="CreateShortCut" ActionType="CreateShortCut" ConditionGroup="">
               <Params>
                 <Items>
-                  <SectionParam Name="Script">
-                    <Value>//css_reference "MpeCore.dll";
-
-using MpeCore.Classes;
-using MpeCore;
-using System.IO;
-
-public class Script
-{
-    public static void Main(PackageClass packageClass, ActionItem actionItem)
-    {
-         string oldplugin = Path.Combine(Path.Combine(MpeInstaller.TransformInRealPath("%Plugins%"), "process"), "CDB_Sync.dll");
-         try
-        {
-          if (File.Exists(oldplugin))
-            File.Delete(oldplugin);
-        }
-        catch {}
-        return;
-    }
-}
-</Value>
-                    <ValueType>Script</ValueType>
-                    <Description />
+                  <SectionParam Name="ShortCut location">
+                    <Value>%Desktop%\MPSync.lnk</Value>
+                    <ValueType>Template</ValueType>
+                    <Description>Location of shortcut</Description>
                   </SectionParam>
-                  <SectionParam Name="Uninstall Script">
-                    <Value>//css_reference "MpeCore.dll";
-
-using MpeCore.Classes;
-using MpeCore;
-
-public class Script
-{
-    public static void Main(PackageClass packageClass, UnInstallItem item)
-    {
-        return;
-    }
-}
-</Value>
-                    <ValueType>Script</ValueType>
-                    <Description />
+                  <SectionParam Name="ShortCut target">
+                    <Value>%Base%\MPSync_Launcher.exe</Value>
+                    <ValueType>Template</ValueType>
+                    <Description>Target of short cut</Description>
+                  </SectionParam>
+                  <SectionParam Name="Description">
+                    <Value>MPSync launcher</Value>
+                    <ValueType>String</ValueType>
+                    <Description>Description tooltip text </Description>
+                  </SectionParam>
+                  <SectionParam Name="Icon of the shortcut">
+                    <Value />
+                    <ValueType>Template</ValueType>
+                    <Description>Icon of the shortcut, 
+ if is empty the icon of the target will be used</Description>
                   </SectionParam>
                 </Items>
               </Params>
-              <ExecuteLocation>BeforPanelShow</ExecuteLocation>
+              <ExecuteLocation>AfterPanelShow</ExecuteLocation>
             </ActionItem>
           </Items>
         </Actions>
@@ -297,13 +284,13 @@ public class Script
       <Major>1</Major>
       <Minor>0</Minor>
       <Build>0</Build>
-      <Revision>9</Revision>
+      <Revision>10</Revision>
     </Version>
     <ExtensionDescription>This plugin synchronizes your MediaPortal databases with a central database as well as thumbs folder, so that any additons can by automatically applied to any other MP seat you might have in your household.</ExtensionDescription>
     <VersionDescription />
     <DevelopmentStatus>Stable</DevelopmentStatus>
-    <OnlineLocation>https://cdbsync-plugin.googlecode.com/files/[Name]-v[Version].mpe1</OnlineLocation>
-    <ReleaseDate>2013-08-21T23:39:41</ReleaseDate>
+    <OnlineLocation>https://cdbsync-plugin.googlecode.com/files/MPSync-v1.0.0.10.mpe1</OnlineLocation>
+    <ReleaseDate>2014-01-05T23:39:41</ReleaseDate>
     <Tags>synchronization, database, thumbs, any folder you set up.</Tags>
     <Location>E:\Software\MediaPortal\MPSync\[Name]-v[Version].mpe1</Location>
     <Params>
@@ -342,14 +329,21 @@ public class Script
     <Items>
       <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
         <Param1 />
-        <UpdateOption>OverwriteIfOlder</UpdateOption>
+        <UpdateOption>AlwaysOverwrite</UpdateOption>
         <LocalFileName>..\..\..\..\MPSync\MPSync.dll</LocalFileName>
         <ZipFileName>Installer{CopyFile}\{9d3d7efb-e025-422a-8fdd-f24ccf451cfd}-CDB_Sync.dll</ZipFileName>
         <DestinationFilename>%Plugins%\process\MPSync.dll</DestinationFilename>
       </FileItem>
       <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
         <Param1 />
-        <UpdateOption>OverwriteIfOlder</UpdateOption>
+        <UpdateOption>AlwaysOverwrite</UpdateOption>
+        <LocalFileName>..\..\..\..\MPSync\MPSync_Launcher.exe</LocalFileName>
+        <ZipFileName>Installer{CopyFile}\{aa975164-ed31-4f2e-90a4-0afebc9adfe9}-MPSync_Launcher.exe</ZipFileName>
+        <DestinationFilename>%Base%\MPSync_Launcher.exe</DestinationFilename>
+      </FileItem>
+      <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
+        <Param1 />
+        <UpdateOption>AlwaysOverwrite</UpdateOption>
         <LocalFileName>..\Externals\System.Data.SQLite.dll</LocalFileName>
         <ZipFileName>Installer{CopyFile}\{fde0e846-bd88-4806-9aa1-01837c53aa25}-System.Data.SQLite.dll</ZipFileName>
         <DestinationFilename>%Base%\System.Data.SQLite.dll</DestinationFilename>
@@ -358,21 +352,21 @@ public class Script
         <Param1 />
         <UpdateOption>OverwriteIfOlder</UpdateOption>
         <LocalFileName>MPSync.png</LocalFileName>
-        <ZipFileName>Installer{CopyFile}\{a29fa747-77bd-45e2-9c2e-69c48c2f946c}-MPSync.png</ZipFileName>
+        <ZipFileName>Installer{CopyFile}\{f01a15af-b783-489b-a8b0-d9d4cdf87129}-MPSync.png</ZipFileName>
         <DestinationFilename />
       </FileItem>
       <FileItem InstallType="CopyFile" SystemFile="true" Modified="true">
         <Param1 />
         <UpdateOption>OverwriteIfOlder</UpdateOption>
         <LocalFileName>MPSync_logo.png</LocalFileName>
-        <ZipFileName>Installer{CopyFile}\{a5da72b1-4fcb-43c6-a725-499adc31bb24}-MPSync_logo.png</ZipFileName>
+        <ZipFileName>Installer{CopyFile}\{8b11c543-4fea-4b48-98a9-8d11f92da901}-MPSync_logo.png</ZipFileName>
         <DestinationFilename />
       </FileItem>
       <FileItem InstallType="CopyFile" SystemFile="true" Modified="true">
         <Param1 />
         <UpdateOption>OverwriteIfOlder</UpdateOption>
         <LocalFileName>MP_Packaging.png</LocalFileName>
-        <ZipFileName>Installer{CopyFile}\{890daba5-7d07-404a-90b3-610d6de1c051}-MP_Packaging.png</ZipFileName>
+        <ZipFileName>Installer{CopyFile}\{1a9b57ae-3436-4300-8b57-69d6cc5245a7}-MP_Packaging.png</ZipFileName>
         <DestinationFilename />
       </FileItem>
     </Items>

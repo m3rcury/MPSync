@@ -3,10 +3,11 @@ Imports MediaPortal.GUI.Library
 
 Imports System.Data.SQLite
 Imports System.Xml
+Imports System.ServiceProcess
 
 Public Class MPSync_settings
 
-    Dim _curversion As String = "1.0.0.9"
+    Dim _curversion As String = "1.0.0.10"
     Dim i_direction(2) As Image
     Dim i_method(2), _databases, _folders, _watched_dbs, _object_list, _db_objects, _version, _session, _sync_type As String
     Dim _db_sync_method, _folders_sync_method As Integer
@@ -317,6 +318,14 @@ Public Class MPSync_settings
             End If
         End If
 
+        'Check Service Status
+        Service("MPSync", tb_servicestatus.Text)
+
+        '*** temporary code ***
+        rb_service.Checked = False
+        rb_service.Visible = False
+        If tc_settings.TabPages.Contains(tp_service) Then tc_settings.TabPages.Remove(tp_service)
+
     End Sub
 
     Private Sub setSettings()
@@ -610,14 +619,14 @@ Public Class MPSync_settings
 
         If MsgBox("Are you sure?", MsgBoxStyle.YesNo, "Delete") = MsgBoxResult.Yes Then
 
-                deleteObjectSettings(clb_object_list.SelectedItem)
-                clb_object_list.Items.Remove(clb_object_list.SelectedItem)
+            deleteObjectSettings(clb_object_list.SelectedItem)
+            clb_object_list.Items.Remove(clb_object_list.SelectedItem)
 
-                clb_object_list.SelectedItem = Nothing
-                b_delete.Visible = False
-                b_edit.Visible = False
+            clb_object_list.SelectedItem = Nothing
+            b_delete.Visible = False
+            b_edit.Visible = False
 
-            End If
+        End If
 
     End Sub
 
@@ -681,11 +690,143 @@ Public Class MPSync_settings
         clb_watched.Enabled = rb_w_specific.Checked
     End Sub
 
+    Private Sub rb_service_CheckedChanged(sender As Object, e As EventArgs) Handles rb_service.CheckedChanged
+        b_sync_now.Enabled = Not rb_service.Checked
+
+        If rb_service.Checked Then
+            If Not tc_settings.TabPages.Contains(tp_service) Then tc_settings.TabPages.Add(tp_service)
+        Else
+            If tc_settings.TabPages.Contains(tp_service) Then tc_settings.TabPages.Remove(tp_service)
+        End If
+    End Sub
+
+    Private Function Service(ByVal name As String, ByRef status As String, Optional ByVal wait As Boolean = True) As Boolean
+
+        If wait Then
+            Me.Cursor = Cursors.WaitCursor
+            MPSync_process.wait(3, False)
+            Me.Cursor = Cursors.Default
+        End If
+
+        Dim sc As New ServiceController(name)
+
+        Try
+            status = sc.Status.ToString.ToUpper
+            sc.Dispose()
+            Return True
+        Catch ex As Exception
+            status = "N/A"
+            sc.Dispose()
+            Return False
+        End Try
+
+    End Function
+
+    Private Sub b_servicestart_Click(sender As Object, e As EventArgs) Handles b_servicestart.Click
+        Dim process As New Process()
+
+        If Not Service("MPSync", tb_servicestatus.Text, False) Then
+            process.StartInfo.UseShellExecute = True
+            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden
+            process.StartInfo.FileName = "C:\Windows\System32\sc.exe"
+            process.StartInfo.Arguments = "create MPSync binpath= """ & Config.GetFile(Config.Dir.Base, "MPSync_Service.exe") & """ displayname= ""MediaPortal Synchronization Service"" start= demand obj= ""NT AUTHORITY\NetworkService"""
+            process.StartInfo.Verb = "runas"
+            Try
+                process.Start()
+            Catch ex As Exception
+                MsgBox("MPSync Service not created", MsgBoxStyle.OkOnly, "Create Service")
+            End Try
+        End If
+
+        process.StartInfo.UseShellExecute = True
+        'process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden
+        'process.StartInfo.FileName = "C:\Windows\System32\sc.exe"
+        'process.StartInfo.Arguments = "start MPSync"
+        'process.StartInfo.Verb = "runas"
+
+        process.StartInfo.FileName = Config.GetFile(Config.Dir.Base, "MPSync_Process.exe")
+
+        Try
+            process.Start()
+        Catch ex As Exception
+            MsgBox("MPSync Service not started", MsgBoxStyle.OkOnly, "Start Service")
+        End Try
+        Service("MPSync", tb_servicestatus.Text)
+    End Sub
+
+    Private Sub b_servicestop_Click(sender As Object, e As EventArgs) Handles b_servicestop.Click
+        Dim process As New Process()
+        process.StartInfo.UseShellExecute = True
+        process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden
+        process.StartInfo.FileName = "C:\Windows\System32\sc.exe"
+        process.StartInfo.Arguments = "stop MPSync"
+        process.StartInfo.Verb = "runas"
+        Try
+            process.Start()
+        Catch ex As Exception
+            MsgBox("MPSync Service not stopped", MsgBoxStyle.OkOnly, "Stop Service")
+        End Try
+        Service("MPSync", tb_servicestatus.Text)
+    End Sub
+
+    Private Sub b_serviceauto_Click(sender As Object, e As EventArgs) Handles b_serviceauto.Click
+        Dim process As New Process()
+        process.StartInfo.FileName = "C:\Windows\System32\sc.exe"
+
+        If Not Service("MPSync", tb_servicestatus.Text, False) Then
+            process.StartInfo.Arguments = "create MPSync binpath= """ & Config.GetFile(Config.Dir.Base, "MPSync_Service.exe") & """ displayname= ""MediaPortal Synchronization Service"" start= auto obj= ""NT AUTHORITY\NetworkService"""
+        Else
+            process.StartInfo.Arguments = "config MPSync start= auto"
+        End If
+
+        process.StartInfo.Verb = "runas"
+        process.StartInfo.UseShellExecute = True
+        process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden
+        Try
+            process.Start()
+        Catch ex As Exception
+            MsgBox("MPSync Service not set as automatic", MsgBoxStyle.OkOnly, "Set Service")
+        End Try
+        Service("MPSync", tb_servicestatus.Text)
+    End Sub
+
+    Private Sub b_servicedelete_Click(sender As Object, e As EventArgs) Handles b_servicedelete.Click
+        Dim process As New Process()
+        process.StartInfo.FileName = "C:\Windows\System32\sc.exe"
+        process.StartInfo.Arguments = "delete MPSync"
+        process.StartInfo.Verb = "runas"
+        process.StartInfo.UseShellExecute = True
+        process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden
+        Try
+            process.Start()
+        Catch ex As Exception
+            MsgBox("MPSync Service not deleted", MsgBoxStyle.OkOnly, "Delete Service")
+        End Try
+        Service("MPSync", tb_servicestatus.Text)
+    End Sub
+
+    Private Sub tb_servicestatus_TextChanged(sender As Object, e As EventArgs) Handles tb_servicestatus.TextChanged
+        b_servicestart.Enabled = (tb_servicestatus.Text.Contains("STOP") Or tb_servicestatus.Text = "N/A")
+        b_servicestop.Enabled = (Not tb_servicestatus.Text.Contains("STOP") And tb_servicestatus.Text <> "N/A")
+        b_servicedelete.Enabled = (tb_servicestatus.Text <> "N/A")
+
+        If b_servicestop.Enabled Then SyncNowStatus()
+    End Sub
+
     Private Sub b_sync_now_Click(sender As System.Object, e As System.EventArgs) Handles b_sync_now.Click
 
         setSettings()
 
         syncnow = True
+
+        SyncNowStatus()
+
+        Dim mps As New MPSync_process
+        mps.MPSync_Launch()
+
+    End Sub
+
+    Private Sub SyncNowStatus()
 
         If tc_main.TabPages.Contains(tp_syncnow) Then tc_main.TabPages.Remove(tp_syncnow)
         tc_main.TabPages.Add(tp_syncnow)
@@ -704,9 +845,6 @@ Public Class MPSync_settings
         lb_status_timer.Interval = 500
         lb_status_timer.Enabled = True
         lb_status_timer.Start()
-
-        Dim cdb As New MPSync_process
-        cdb.MPSync_Launch()
 
     End Sub
 
@@ -785,4 +923,4 @@ Public Class MPSync_settings
 
     End Sub
 
-    End Class
+End Class

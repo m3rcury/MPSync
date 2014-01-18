@@ -1,0 +1,17 @@
+E:\Rudolph\Documents\Visual Studio 2013\Projects\MPSync_Launcher\MPSync_Launcher\bin\Release\Common.Utils.dll
+E:\Rudolph\Documents\Visual Studio 2013\Projects\MPSync_Launcher\MPSync_Launcher\bin\Release\Utils.dll
+E:\Rudolph\Documents\Visual Studio 2013\Projects\MPSync_Launcher\MPSync_Launcher\obj\x86\Release\MPSync_Launcher.csproj.GenerateResource.Cache
+E:\Rudolph\Documents\Visual Studio 2013\Projects\MPSync_Launcher\MPSync_Launcher\bin\Release\MPSync_Launcher.exe
+E:\Rudolph\Documents\Visual Studio 2013\Projects\MPSync_Launcher\MPSync_Launcher\bin\Release\MPSync_Launcher.pdb
+E:\Rudolph\Documents\Visual Studio 2013\Projects\MPSync_Launcher\MPSync_Launcher\obj\x86\Release\MPSync_Launcher.Properties.Resources.resources
+E:\Rudolph\Documents\Visual Studio 2013\Projects\MPSync_Launcher\MPSync_Launcher\obj\x86\Release\MPSync_Launcher.exe
+E:\Rudolph\Documents\Visual Studio 2013\Projects\MPSync_Launcher\MPSync_Launcher\obj\x86\Release\MPSync_Launcher.pdb
+E:\Rudolph\Documents\Visual Studio 2013\Projects\PluginConfigLoader\MPSync_Launcher\MPSync_Launcher\obj\x86\Release\MPSync_Launcher.exe
+E:\Rudolph\Documents\Visual Studio 2013\Projects\PluginConfigLoader\MPSync_Launcher\MPSync_Launcher\obj\x86\Release\MPSync_Launcher.pdb
+E:\Rudolph\Documents\Visual Studio 2013\Projects\PluginConfigLoader\MPSync_Launcher\MPSync_Launcher\bin\Release\MPSync_Launcher.exe
+E:\Rudolph\Documents\Visual Studio 2013\Projects\PluginConfigLoader\MPSync_Launcher\MPSync_Launcher\bin\Release\MPSync_Launcher.pdb
+E:\Rudolph\Documents\Visual Studio 2013\Projects\PluginConfigLoader\MPSync_Launcher\MPSync_Launcher\bin\Release\Common.Utils.dll
+E:\Rudolph\Documents\Visual Studio 2013\Projects\PluginConfigLoader\MPSync_Launcher\MPSync_Launcher\bin\Release\Utils.dll
+E:\Rudolph\Documents\Visual Studio 2013\Projects\PluginConfigLoader\MPSync_Launcher\MPSync_Launcher\obj\x86\Release\MPSync_Launcher.csprojResolveAssemblyReference.cache
+E:\Rudolph\Documents\Visual Studio 2013\Projects\PluginConfigLoader\MPSync_Launcher\MPSync_Launcher\obj\x86\Release\MPSync_Launcher.Properties.Resources.resources
+E:\Rudolph\Documents\Visual Studio 2013\Projects\PluginConfigLoader\MPSync_Launcher\MPSync_Launcher\obj\x86\Release\MPSync_Launcher.csproj.GenerateResource.Cache
