@@ -6,8 +6,6 @@ Imports System.Threading
 
 Public Class MPSync_process_Folders
 
-    Dim debug As Boolean
-
     Dim s_paths() As String = Nothing
     Dim t_paths() As String = Nothing
     Dim foldertypes() As String = Nothing
@@ -86,8 +84,6 @@ Public Class MPSync_process_Folders
     Private Sub Process(ByVal foldertype As String, ByVal clientpath As String, ByVal serverpath As String, ByVal direction As String, ByVal folders_sync_method As Integer, ByVal selectedfolder() As String)
 
         MPSync_process.logStats("MPSync: [Process] " & foldertype & " synchronization cycle starting.", "LOG")
-
-        debug = MPSync_process.p_Debug
 
         ' direction is client to server
         If direction <> 2 Then
@@ -205,7 +201,7 @@ Public Class MPSync_process_Folders
         If folders_sync_method <> 1 And t_folders(0) <> "" Then
             diff = t_folders.Except(s_folders, StringComparer.InvariantCultureIgnoreCase)
 
-            If debug Then MPSync_process.logStats("MPSync: [Process_folder] found " & (UBound(diff.ToArray) + 1).ToString & " differences for deletion between " & source & " and " & target, "DEBUG")
+            MPSync_process.logStats("MPSync: [Process_folder] found " & (UBound(diff.ToArray) + 1).ToString & " differences for deletion between " & source & " and " & target, "DEBUG")
 
             If UBound(diff.ToArray) >= 0 Then
                 If (diff.Count / t_folders.Count) <= 0.25 Then
@@ -215,17 +211,17 @@ Public Class MPSync_process_Folders
                 End If
             End If
 
-            End If
+        End If
 
-            ' propagate additions or both
-            If folders_sync_method <> 2 And s_folders(0) <> "" Then
-                diff = s_folders.Except(t_folders, StringComparer.InvariantCultureIgnoreCase)
+        ' propagate additions or both
+        If folders_sync_method <> 2 And s_folders(0) <> "" Then
+            diff = s_folders.Except(t_folders, StringComparer.InvariantCultureIgnoreCase)
 
-            If debug Then MPSync_process.logStats("MPSync: [Process_folder] found " & (UBound(diff.ToArray) + 1).ToString & " differences for addition/replacement between " & source & " and " & target, "DEBUG")
+            MPSync_process.logStats("MPSync: [Process_folder] found " & (UBound(diff.ToArray) + 1).ToString & " differences for addition/replacement between " & source & " and " & target, "DEBUG")
 
-                If UBound(diff.ToArray) >= 0 Then Copy_objects(s_path, t_path, diff.ToArray)
+            If UBound(diff.ToArray) >= 0 Then Copy_objects(s_path, t_path, diff.ToArray)
 
-            End If
+        End If
 
             Array.Clear(s_folders, 0, UBound(s_folders))
             Array.Clear(t_folders, 0, UBound(t_folders))
@@ -262,7 +258,7 @@ Public Class MPSync_process_Folders
             If times > 0 Then
                 Try
                     IO.File.Copy(s_path & file(0), t_path & file(0), True)
-                    If MPSync_process.p_Debug Then MPSync_process.logStats("MPSync: [Copy_objects] " & t_path & file(0) & " copied.", "DEBUG")
+                    MPSync_process.logStats("MPSync: [Copy_objects] " & t_path & file(0) & " copied.", "DEBUG")
                 Catch ex As Exception
                     MPSync_process.logStats("MPSync: [Copy_objects] copy failed with exception: " & ex.Message, "ERROR")
                 End Try
@@ -299,7 +295,7 @@ Public Class MPSync_process_Folders
             If times > 0 Then
                 Try
                     IO.File.Delete(t_path & file(0))
-                    If MPSync_process.p_Debug Then MPSync_process.logStats("MPSync: [Delete_objects] " & t_path & file(0) & " deleted.", "DEBUG")
+                    MPSync_process.logStats("MPSync: [Delete_objects] " & t_path & file(0) & " deleted.", "DEBUG")
                 Catch ex As Exception
                     MPSync_process.logStats("MPSync: [Delete_objects] delete failed with exception: " & ex.Message, "ERROR")
                 End Try

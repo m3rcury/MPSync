@@ -24,6 +24,13 @@
               <ZipFileName>Installer{CopyFile}\{aa975164-ed31-4f2e-90a4-0afebc9adfe9}-MPSync_Launcher.exe</ZipFileName>
               <DestinationFilename>%Base%\MPSync_Launcher.exe</DestinationFilename>
             </FileItem>
+            <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
+              <Param1 />
+              <UpdateOption>AlwaysOverwrite</UpdateOption>
+              <LocalFileName>..\..\..\..\MPSync\MPSync_Process.exe</LocalFileName>
+              <ZipFileName>Installer{CopyFile}\{bc675913-e281-499c-853f-6ba39a64a7b7}-MPSync_Process.exe</ZipFileName>
+              <DestinationFilename>%Base%\MPSync_Process.exe</DestinationFilename>
+            </FileItem>
           </Items>
         </Files>
       </GroupItem>
@@ -37,7 +44,7 @@
             <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
               <Param1 />
               <UpdateOption>AlwaysOverwrite</UpdateOption>
-              <LocalFileName>..\Externals\System.Data.SQLite.dll</LocalFileName>
+              <LocalFileName>..\..\..\..\MPSync\System.Data.SQLite.dll</LocalFileName>
               <ZipFileName>Installer{CopyFile}\{fde0e846-bd88-4806-9aa1-01837c53aa25}-System.Data.SQLite.dll</ZipFileName>
               <DestinationFilename>%Base%\System.Data.SQLite.dll</DestinationFilename>
             </FileItem>
@@ -290,7 +297,7 @@ Click Next to continue or Cancel to exit Setup.</Value>
     <VersionDescription />
     <DevelopmentStatus>Stable</DevelopmentStatus>
     <OnlineLocation>https://cdbsync-plugin.googlecode.com/files/MPSync-v1.0.0.10.mpe1</OnlineLocation>
-    <ReleaseDate>2014-01-05T23:39:41</ReleaseDate>
+    <ReleaseDate>2014-03-20T23:39:41</ReleaseDate>
     <Tags>synchronization, database, thumbs, any folder you set up.</Tags>
     <Location>E:\Software\MediaPortal\MPSync\[Name]-v[Version].mpe1</Location>
     <Params>
@@ -344,7 +351,14 @@ Click Next to continue or Cancel to exit Setup.</Value>
       <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
         <Param1 />
         <UpdateOption>AlwaysOverwrite</UpdateOption>
-        <LocalFileName>..\Externals\System.Data.SQLite.dll</LocalFileName>
+        <LocalFileName>..\..\..\..\MPSync\MPSync_Process.exe</LocalFileName>
+        <ZipFileName>Installer{CopyFile}\{bc675913-e281-499c-853f-6ba39a64a7b7}-MPSync_Process.exe</ZipFileName>
+        <DestinationFilename>%Base%\MPSync_Process.exe</DestinationFilename>
+      </FileItem>
+      <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
+        <Param1 />
+        <UpdateOption>AlwaysOverwrite</UpdateOption>
+        <LocalFileName>..\..\..\..\MPSync\System.Data.SQLite.dll</LocalFileName>
         <ZipFileName>Installer{CopyFile}\{fde0e846-bd88-4806-9aa1-01837c53aa25}-System.Data.SQLite.dll</ZipFileName>
         <DestinationFilename>%Base%\System.Data.SQLite.dll</DestinationFilename>
       </FileItem>
@@ -352,21 +366,21 @@ Click Next to continue or Cancel to exit Setup.</Value>
         <Param1 />
         <UpdateOption>OverwriteIfOlder</UpdateOption>
         <LocalFileName>MPSync.png</LocalFileName>
-        <ZipFileName>Installer{CopyFile}\{f01a15af-b783-489b-a8b0-d9d4cdf87129}-MPSync.png</ZipFileName>
+        <ZipFileName>Installer{CopyFile}\{66d61839-883b-42ee-a185-125d924ff33f}-MPSync.png</ZipFileName>
         <DestinationFilename />
       </FileItem>
       <FileItem InstallType="CopyFile" SystemFile="true" Modified="true">
         <Param1 />
         <UpdateOption>OverwriteIfOlder</UpdateOption>
         <LocalFileName>MPSync_logo.png</LocalFileName>
-        <ZipFileName>Installer{CopyFile}\{8b11c543-4fea-4b48-98a9-8d11f92da901}-MPSync_logo.png</ZipFileName>
+        <ZipFileName>Installer{CopyFile}\{307e8dd4-1fa9-48f0-a92b-991f80c25d76}-MPSync_logo.png</ZipFileName>
         <DestinationFilename />
       </FileItem>
       <FileItem InstallType="CopyFile" SystemFile="true" Modified="true">
         <Param1 />
         <UpdateOption>OverwriteIfOlder</UpdateOption>
         <LocalFileName>MP_Packaging.png</LocalFileName>
-        <ZipFileName>Installer{CopyFile}\{1a9b57ae-3436-4300-8b57-69d6cc5245a7}-MP_Packaging.png</ZipFileName>
+        <ZipFileName>Installer{CopyFile}\{e2fd98b5-0596-4e03-9317-8d2932a11cd5}-MP_Packaging.png</ZipFileName>
         <DestinationFilename />
       </FileItem>
     </Items>

@@ -13,7 +13,7 @@ Imports MediaPortal.Common.Utils
 <Assembly: AssemblyDescription("MediaPortal Synchroniser")> 
 <Assembly: AssemblyCompany("m3rcury")> 
 <Assembly: AssemblyProduct("MediaPortal Synchroniser")> 
-<Assembly: AssemblyCopyright("Copyright ©  2013")> 
+<Assembly: AssemblyCopyright("Copyright ©  2013-2014")> 
 <Assembly: AssemblyTrademark("")> 
 
 <Assembly: ComVisible(False)> 
