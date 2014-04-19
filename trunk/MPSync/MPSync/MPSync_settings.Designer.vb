@@ -42,16 +42,16 @@ Partial Class MPSync_settings
         Me.rb_triggers = New System.Windows.Forms.RadioButton()
         Me.tp_configuration = New System.Windows.Forms.TabPage()
         Me.Panel6 = New System.Windows.Forms.Panel()
-        Me.rb_service = New System.Windows.Forms.RadioButton()
+        Me.rb_process = New System.Windows.Forms.RadioButton()
         Me.rb_normal = New System.Windows.Forms.RadioButton()
         Me.Panel2 = New System.Windows.Forms.Panel()
         Me.cb_debug = New System.Windows.Forms.CheckBox()
-        Me.tp_service = New System.Windows.Forms.TabPage()
-        Me.b_serviceauto = New System.Windows.Forms.Button()
-        Me.b_servicedelete = New System.Windows.Forms.Button()
-        Me.b_servicestop = New System.Windows.Forms.Button()
-        Me.b_servicestart = New System.Windows.Forms.Button()
-        Me.tb_servicestatus = New System.Windows.Forms.TextBox()
+        Me.tp_process = New System.Windows.Forms.TabPage()
+        Me.b_removeautostart = New System.Windows.Forms.Button()
+        Me.b_processauto = New System.Windows.Forms.Button()
+        Me.b_processstop = New System.Windows.Forms.Button()
+        Me.b_processstart = New System.Windows.Forms.Button()
+        Me.tb_processstatus = New System.Windows.Forms.TextBox()
         Me.Label7 = New System.Windows.Forms.Label()
         Me.tp_database = New System.Windows.Forms.TabPage()
         Me.tc_database = New System.Windows.Forms.TabControl()
@@ -65,6 +65,7 @@ Partial Class MPSync_settings
         Me.Label1 = New System.Windows.Forms.Label()
         Me.b_db_client = New System.Windows.Forms.Button()
         Me.tp_db_advancedsettings = New System.Windows.Forms.TabPage()
+        Me.cb_vacuum = New System.Windows.Forms.CheckBox()
         Me.cb_watched = New System.Windows.Forms.CheckBox()
         Me.cb_db_pause = New System.Windows.Forms.CheckBox()
         Me.GroupBox1 = New System.Windows.Forms.GroupBox()
@@ -131,7 +132,7 @@ Partial Class MPSync_settings
         Me.tp_configuration.SuspendLayout()
         Me.Panel6.SuspendLayout()
         Me.Panel2.SuspendLayout()
-        Me.tp_service.SuspendLayout()
+        Me.tp_process.SuspendLayout()
         Me.tp_database.SuspendLayout()
         Me.tc_database.SuspendLayout()
         Me.tp_db_paths.SuspendLayout()
@@ -185,9 +186,9 @@ Partial Class MPSync_settings
         Me.l_copyright.ForeColor = System.Drawing.SystemColors.ActiveCaption
         Me.l_copyright.Location = New System.Drawing.Point(2, 256)
         Me.l_copyright.Name = "l_copyright"
-        Me.l_copyright.Size = New System.Drawing.Size(133, 13)
+        Me.l_copyright.Size = New System.Drawing.Size(160, 13)
         Me.l_copyright.TabIndex = 61
-        Me.l_copyright.Text = "Copyright © 2013, m3rcury"
+        Me.l_copyright.Text = "Copyright © 2013-2014, m3rcury"
         '
         'b_sync_now
         '
@@ -227,7 +228,7 @@ Partial Class MPSync_settings
         '
         Me.tc_settings.Controls.Add(Me.tp_selection)
         Me.tc_settings.Controls.Add(Me.tp_configuration)
-        Me.tc_settings.Controls.Add(Me.tp_service)
+        Me.tc_settings.Controls.Add(Me.tp_process)
         Me.tc_settings.Location = New System.Drawing.Point(3, 7)
         Me.tc_settings.Name = "tc_settings"
         Me.tc_settings.SelectedIndex = 0
@@ -349,23 +350,23 @@ Partial Class MPSync_settings
         'Panel6
         '
         Me.Panel6.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.Panel6.Controls.Add(Me.rb_service)
+        Me.Panel6.Controls.Add(Me.rb_process)
         Me.Panel6.Controls.Add(Me.rb_normal)
         Me.Panel6.Location = New System.Drawing.Point(12, 58)
         Me.Panel6.Name = "Panel6"
         Me.Panel6.Size = New System.Drawing.Size(545, 71)
         Me.Panel6.TabIndex = 72
         '
-        'rb_service
+        'rb_process
         '
-        Me.rb_service.AutoSize = True
-        Me.rb_service.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.rb_service.Location = New System.Drawing.Point(158, 37)
-        Me.rb_service.Name = "rb_service"
-        Me.rb_service.Size = New System.Drawing.Size(184, 20)
-        Me.rb_service.TabIndex = 74
-        Me.rb_service.Text = "Run as a Windows service"
-        Me.rb_service.UseVisualStyleBackColor = True
+        Me.rb_process.AutoSize = True
+        Me.rb_process.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.rb_process.Location = New System.Drawing.Point(158, 37)
+        Me.rb_process.Name = "rb_process"
+        Me.rb_process.Size = New System.Drawing.Size(189, 20)
+        Me.rb_process.TabIndex = 74
+        Me.rb_process.Text = "Run as a Windows process"
+        Me.rb_process.UseVisualStyleBackColor = True
         '
         'rb_normal
         '
@@ -400,72 +401,72 @@ Partial Class MPSync_settings
         Me.cb_debug.Text = "Enable DEBUG logs"
         Me.cb_debug.UseVisualStyleBackColor = True
         '
-        'tp_service
+        'tp_process
         '
-        Me.tp_service.BackColor = System.Drawing.SystemColors.ButtonFace
-        Me.tp_service.Controls.Add(Me.b_serviceauto)
-        Me.tp_service.Controls.Add(Me.b_servicedelete)
-        Me.tp_service.Controls.Add(Me.b_servicestop)
-        Me.tp_service.Controls.Add(Me.b_servicestart)
-        Me.tp_service.Controls.Add(Me.tb_servicestatus)
-        Me.tp_service.Controls.Add(Me.Label7)
-        Me.tp_service.Location = New System.Drawing.Point(4, 22)
-        Me.tp_service.Name = "tp_service"
-        Me.tp_service.Padding = New System.Windows.Forms.Padding(3)
-        Me.tp_service.Size = New System.Drawing.Size(568, 152)
-        Me.tp_service.TabIndex = 2
-        Me.tp_service.Text = "Service"
+        Me.tp_process.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tp_process.Controls.Add(Me.b_removeautostart)
+        Me.tp_process.Controls.Add(Me.b_processauto)
+        Me.tp_process.Controls.Add(Me.b_processstop)
+        Me.tp_process.Controls.Add(Me.b_processstart)
+        Me.tp_process.Controls.Add(Me.tb_processstatus)
+        Me.tp_process.Controls.Add(Me.Label7)
+        Me.tp_process.Location = New System.Drawing.Point(4, 22)
+        Me.tp_process.Name = "tp_process"
+        Me.tp_process.Padding = New System.Windows.Forms.Padding(3)
+        Me.tp_process.Size = New System.Drawing.Size(568, 152)
+        Me.tp_process.TabIndex = 2
+        Me.tp_process.Text = "Process"
         '
-        'b_serviceauto
+        'b_removeautostart
         '
-        Me.b_serviceauto.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.b_serviceauto.Location = New System.Drawing.Point(177, 88)
-        Me.b_serviceauto.Name = "b_serviceauto"
-        Me.b_serviceauto.Size = New System.Drawing.Size(214, 23)
-        Me.b_serviceauto.TabIndex = 9
-        Me.b_serviceauto.Text = "Set Service to start Automatically"
-        Me.b_serviceauto.UseVisualStyleBackColor = True
+        Me.b_removeautostart.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.b_removeautostart.Location = New System.Drawing.Point(177, 93)
+        Me.b_removeautostart.Name = "b_removeautostart"
+        Me.b_removeautostart.Size = New System.Drawing.Size(214, 23)
+        Me.b_removeautostart.TabIndex = 10
+        Me.b_removeautostart.Text = "Remove Process from AutoStart"
+        Me.b_removeautostart.UseVisualStyleBackColor = True
         '
-        'b_servicedelete
+        'b_processauto
         '
-        Me.b_servicedelete.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.b_servicedelete.Location = New System.Drawing.Point(177, 62)
-        Me.b_servicedelete.Name = "b_servicedelete"
-        Me.b_servicedelete.Size = New System.Drawing.Size(214, 23)
-        Me.b_servicedelete.TabIndex = 8
-        Me.b_servicedelete.Text = "Delete Service"
-        Me.b_servicedelete.UseVisualStyleBackColor = True
+        Me.b_processauto.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.b_processauto.Location = New System.Drawing.Point(177, 66)
+        Me.b_processauto.Name = "b_processauto"
+        Me.b_processauto.Size = New System.Drawing.Size(214, 23)
+        Me.b_processauto.TabIndex = 9
+        Me.b_processauto.Text = "Set Process to AutoStart"
+        Me.b_processauto.UseVisualStyleBackColor = True
         '
-        'b_servicestop
+        'b_processstop
         '
-        Me.b_servicestop.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.b_servicestop.Location = New System.Drawing.Point(177, 36)
-        Me.b_servicestop.Name = "b_servicestop"
-        Me.b_servicestop.Size = New System.Drawing.Size(214, 23)
-        Me.b_servicestop.TabIndex = 7
-        Me.b_servicestop.Text = "Stop Service"
-        Me.b_servicestop.UseVisualStyleBackColor = True
+        Me.b_processstop.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.b_processstop.Location = New System.Drawing.Point(177, 39)
+        Me.b_processstop.Name = "b_processstop"
+        Me.b_processstop.Size = New System.Drawing.Size(214, 23)
+        Me.b_processstop.TabIndex = 7
+        Me.b_processstop.Text = "Stop Process"
+        Me.b_processstop.UseVisualStyleBackColor = True
         '
-        'b_servicestart
+        'b_processstart
         '
-        Me.b_servicestart.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.b_servicestart.Location = New System.Drawing.Point(177, 10)
-        Me.b_servicestart.Name = "b_servicestart"
-        Me.b_servicestart.Size = New System.Drawing.Size(214, 23)
-        Me.b_servicestart.TabIndex = 6
-        Me.b_servicestart.Text = "Start Service now"
-        Me.b_servicestart.UseVisualStyleBackColor = True
+        Me.b_processstart.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.b_processstart.Location = New System.Drawing.Point(177, 12)
+        Me.b_processstart.Name = "b_processstart"
+        Me.b_processstart.Size = New System.Drawing.Size(214, 23)
+        Me.b_processstart.TabIndex = 6
+        Me.b_processstart.Text = "Start Process now"
+        Me.b_processstart.UseVisualStyleBackColor = True
         '
-        'tb_servicestatus
+        'tb_processstatus
         '
-        Me.tb_servicestatus.BackColor = System.Drawing.SystemColors.ButtonFace
-        Me.tb_servicestatus.BorderStyle = System.Windows.Forms.BorderStyle.None
-        Me.tb_servicestatus.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.tb_servicestatus.ForeColor = System.Drawing.Color.Red
-        Me.tb_servicestatus.Location = New System.Drawing.Point(280, 123)
-        Me.tb_servicestatus.Name = "tb_servicestatus"
-        Me.tb_servicestatus.Size = New System.Drawing.Size(195, 15)
-        Me.tb_servicestatus.TabIndex = 4
+        Me.tb_processstatus.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tb_processstatus.BorderStyle = System.Windows.Forms.BorderStyle.None
+        Me.tb_processstatus.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.tb_processstatus.ForeColor = System.Drawing.Color.Red
+        Me.tb_processstatus.Location = New System.Drawing.Point(280, 123)
+        Me.tb_processstatus.Name = "tb_processstatus"
+        Me.tb_processstatus.Size = New System.Drawing.Size(195, 15)
+        Me.tb_processstatus.TabIndex = 4
         '
         'Label7
         '
@@ -590,6 +591,7 @@ Partial Class MPSync_settings
         'tp_db_advancedsettings
         '
         Me.tp_db_advancedsettings.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tp_db_advancedsettings.Controls.Add(Me.cb_vacuum)
         Me.tp_db_advancedsettings.Controls.Add(Me.cb_watched)
         Me.tp_db_advancedsettings.Controls.Add(Me.cb_db_pause)
         Me.tp_db_advancedsettings.Controls.Add(Me.GroupBox1)
@@ -605,12 +607,24 @@ Partial Class MPSync_settings
         Me.tp_db_advancedsettings.TabIndex = 1
         Me.tp_db_advancedsettings.Text = "Advanced Settings"
         '
+        'cb_vacuum
+        '
+        Me.cb_vacuum.AutoSize = True
+        Me.cb_vacuum.CheckAlign = System.Drawing.ContentAlignment.MiddleRight
+        Me.cb_vacuum.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.cb_vacuum.Location = New System.Drawing.Point(6, 83)
+        Me.cb_vacuum.Name = "cb_vacuum"
+        Me.cb_vacuum.Size = New System.Drawing.Size(135, 17)
+        Me.cb_vacuum.TabIndex = 17
+        Me.cb_vacuum.Text = "Vacuum Databases"
+        Me.cb_vacuum.UseVisualStyleBackColor = True
+        '
         'cb_watched
         '
         Me.cb_watched.AutoSize = True
         Me.cb_watched.CheckAlign = System.Drawing.ContentAlignment.MiddleRight
         Me.cb_watched.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.cb_watched.Location = New System.Drawing.Point(6, 76)
+        Me.cb_watched.Location = New System.Drawing.Point(6, 61)
         Me.cb_watched.Name = "cb_watched"
         Me.cb_watched.Size = New System.Drawing.Size(278, 17)
         Me.cb_watched.TabIndex = 16
@@ -622,7 +636,7 @@ Partial Class MPSync_settings
         Me.cb_db_pause.AutoSize = True
         Me.cb_db_pause.CheckAlign = System.Drawing.ContentAlignment.MiddleRight
         Me.cb_db_pause.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.cb_db_pause.Location = New System.Drawing.Point(6, 46)
+        Me.cb_db_pause.Location = New System.Drawing.Point(6, 39)
         Me.cb_db_pause.Name = "cb_db_pause"
         Me.cb_db_pause.Size = New System.Drawing.Size(172, 17)
         Me.cb_db_pause.TabIndex = 15
@@ -1227,8 +1241,8 @@ Partial Class MPSync_settings
         Me.Panel6.PerformLayout()
         Me.Panel2.ResumeLayout(False)
         Me.Panel2.PerformLayout()
-        Me.tp_service.ResumeLayout(False)
-        Me.tp_service.PerformLayout()
+        Me.tp_process.ResumeLayout(False)
+        Me.tp_process.PerformLayout()
         Me.tp_database.ResumeLayout(False)
         Me.tc_database.ResumeLayout(False)
         Me.tp_db_paths.ResumeLayout(False)
@@ -1352,16 +1366,17 @@ Partial Class MPSync_settings
     Friend WithEvents rb_triggers As System.Windows.Forms.RadioButton
     Friend WithEvents tp_configuration As System.Windows.Forms.TabPage
     Friend WithEvents Panel6 As System.Windows.Forms.Panel
-    Friend WithEvents rb_service As System.Windows.Forms.RadioButton
+    Friend WithEvents rb_process As System.Windows.Forms.RadioButton
     Friend WithEvents rb_normal As System.Windows.Forms.RadioButton
     Friend WithEvents Panel2 As System.Windows.Forms.Panel
     Friend WithEvents cb_debug As System.Windows.Forms.CheckBox
-    Friend WithEvents tp_service As System.Windows.Forms.TabPage
-    Friend WithEvents tb_servicestatus As System.Windows.Forms.TextBox
+    Friend WithEvents tp_process As System.Windows.Forms.TabPage
+    Friend WithEvents tb_processstatus As System.Windows.Forms.TextBox
     Friend WithEvents Label7 As System.Windows.Forms.Label
-    Friend WithEvents b_servicestart As System.Windows.Forms.Button
-    Friend WithEvents b_serviceauto As System.Windows.Forms.Button
-    Friend WithEvents b_servicedelete As System.Windows.Forms.Button
-    Friend WithEvents b_servicestop As System.Windows.Forms.Button
+    Friend WithEvents b_processstart As System.Windows.Forms.Button
+    Friend WithEvents b_processauto As System.Windows.Forms.Button
+    Friend WithEvents b_processstop As System.Windows.Forms.Button
+    Friend WithEvents cb_vacuum As System.Windows.Forms.CheckBox
+    Friend WithEvents b_removeautostart As System.Windows.Forms.Button
 
 End Class
