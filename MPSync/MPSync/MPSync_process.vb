@@ -82,6 +82,8 @@ Public Class MPSync_process
 
         If msgtype = "LOG" Then msgtype = "INFO"
 
+        msgtype = Left(msgtype & "  ", 5)
+
         Dim info() As Byte = New System.Text.UTF8Encoding(True).GetBytes(DateTime.Now & " - [" & msgtype & "] " & message & vbCrLf)
 
         Try

@@ -1203,13 +1203,15 @@ Partial Class MPSync_settings
         'lb_status
         '
         Me.lb_status.CausesValidation = False
+        Me.lb_status.Font = New System.Drawing.Font("Consolas", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lb_status.ForeColor = System.Drawing.SystemColors.InfoText
         Me.lb_status.FormattingEnabled = True
         Me.lb_status.HorizontalScrollbar = True
+        Me.lb_status.ItemHeight = 10
         Me.lb_status.Location = New System.Drawing.Point(7, 7)
         Me.lb_status.Name = "lb_status"
         Me.lb_status.SelectionMode = System.Windows.Forms.SelectionMode.None
-        Me.lb_status.Size = New System.Drawing.Size(569, 212)
+        Me.lb_status.Size = New System.Drawing.Size(569, 204)
         Me.lb_status.TabIndex = 0
         '
         'MPSync_settings
