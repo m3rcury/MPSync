@@ -291,13 +291,13 @@ Click Next to continue or Cancel to exit Setup.</Value>
       <Major>1</Major>
       <Minor>0</Minor>
       <Build>0</Build>
-      <Revision>10</Revision>
+      <Revision>11</Revision>
     </Version>
     <ExtensionDescription>This plugin synchronizes your MediaPortal databases with a central database as well as thumbs folder, so that any additons can by automatically applied to any other MP seat you might have in your household.</ExtensionDescription>
     <VersionDescription />
     <DevelopmentStatus>Stable</DevelopmentStatus>
     <OnlineLocation>http://www.team-mediaportal.com/index.php?option=com_mtree&amp;task=att_download&amp;link_id=268&amp;cf_id=24</OnlineLocation>
-    <ReleaseDate>2014-04-27T23:39:41</ReleaseDate>
+    <ReleaseDate>2014-05-02T23:39:41</ReleaseDate>
     <Tags>synchronization, database, thumbs, any folder you set up.</Tags>
     <Location>E:\Software\MediaPortal\MPSync\[Name]-v[Version].mpe1</Location>
     <Params>

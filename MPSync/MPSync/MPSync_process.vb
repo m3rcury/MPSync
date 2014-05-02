@@ -1053,33 +1053,33 @@ Public Class MPSync_process
         Dim SQLcommand As SQLiteCommand = SQLconnect.CreateCommand
         Dim SQLreader As SQLiteDataReader
 
-        SQLconnect.ConnectionString = "Data Source=" & p_Database(path & database)
-        SQLconnect.Open()
+        Try
+            SQLconnect.ConnectionString = "Data Source=" & p_Database(path & database)
+            SQLconnect.Open()
 
-        If table = Nothing Then
-            SQLcommand.CommandText = "SELECT name FROM sqlite_master WHERE type='trigger'"
-        Else
-            SQLcommand.CommandText = "SELECT name FROM sqlite_master WHERE type='trigger' and tbl_name='" & table & "'"
-        End If
+            If table = Nothing Then
+                SQLcommand.CommandText = "SELECT name FROM sqlite_master WHERE type='trigger'"
+            Else
+                SQLcommand.CommandText = "SELECT name FROM sqlite_master WHERE type='trigger' and tbl_name='" & table & "'"
+            End If
 
-        SQLreader = SQLcommand.ExecuteReader()
+            SQLreader = SQLcommand.ExecuteReader()
 
-        While SQLreader.Read()
-            For x As Integer = 0 To UBound(pattern)
-                If Left(SQLreader(0), Len(pattern(x))) = pattern(x) Then SQL = SQL & "DROP TRIGGER " & SQLreader(0) & "; "
-            Next
-        End While
+            While SQLreader.Read()
+                For x As Integer = 0 To UBound(pattern)
+                    If Left(SQLreader(0), Len(pattern(x))) = pattern(x) Then SQL = SQL & "DROP TRIGGER " & SQLreader(0) & "; "
+                Next
+            End While
 
-        SQLreader.Close()
+            SQLreader.Close()
 
-        If SQL <> Nothing Then
-            Try
+            If SQL <> Nothing Then
                 SQLcommand.CommandText = SQL
                 SQLcommand.ExecuteNonQuery()
-            Catch ex As Exception
-                logStats("MPSync: [Drop_Triggers] Error executing '" & SQLcommand.CommandText & "' on database " & path & database, "ERROR")
-            End Try
-        End If
+            End If
+        Catch ex As Exception
+            logStats("MPSync: [Drop_Triggers] Error executing '" & SQLcommand.CommandText & "' on database " & path & database, "ERROR")
+        End Try
 
         SQLconnect.Close()
 
@@ -1211,25 +1211,25 @@ Public Class MPSync_process
             If SQL(x) <> Nothing Then Drop_Triggers(IO.Path.GetDirectoryName(database) & "\", IO.Path.GetFileName(database), "mpsync_work", table(x))
         Next
 
-        SQLconnect.ConnectionString = "Data Source=" & p_Database(database)
-        SQLconnect.Open()
+        Try
+            SQLconnect.ConnectionString = "Data Source=" & p_Database(database)
+            SQLconnect.Open()
 
-        For x = 0 To UBound(SQL)
+            For x = 0 To UBound(SQL)
 
-            If SQL(x) <> Nothing Then
+                If SQL(x) <> Nothing Then
 
-                logStats("MPSync: [Create_Sync_Triggers] Creating synchronization triggers on table " & table(x) & " in database " & database, "LOG")
+                    logStats("MPSync: [Create_Sync_Triggers] Creating synchronization triggers on table " & table(x) & " in database " & database, "LOG")
 
-                Try
                     SQLcommand.CommandText = SQL(x)
                     SQLcommand.ExecuteNonQuery()
-                Catch ex As Exception
-                    logStats("MPSync: [Create_Sync_Triggers] Error executing '" & SQLcommand.CommandText & " on table " & table(x) & " in database " & database & " with exception: " & ex.Message, "ERROR")
-                End Try
 
-            End If
+                End If
 
-        Next
+            Next
+        Catch ex As Exception
+            logStats("MPSync: [Create_Sync_Triggers] Error executing '" & SQLcommand.CommandText & " on table " & table(x) & " in database " & database & " with exception: " & ex.Message, "ERROR")
+        End Try
 
         SQLconnect.Close()
 
