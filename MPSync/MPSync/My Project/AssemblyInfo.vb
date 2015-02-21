@@ -13,7 +13,7 @@ Imports MediaPortal.Common.Utils
 <Assembly: AssemblyDescription("MediaPortal Synchroniser")> 
 <Assembly: AssemblyCompany("m3rcury")> 
 <Assembly: AssemblyProduct("MediaPortal Synchroniser")> 
-<Assembly: AssemblyCopyright("Copyright ©  2013-2014")> 
+<Assembly: AssemblyCopyright("Copyright ©  2013-2015")> 
 <Assembly: AssemblyTrademark("")> 
 
 <Assembly: ComVisible(False)> 
@@ -22,7 +22,7 @@ Imports MediaPortal.Common.Utils
 <Assembly: Guid("4643842a-7a13-4d06-9eff-78753159a2af")> 
 
 'MediaPortal compatibility
-<Assembly: CompatibleVersion("1.3.100.0", "1.1.6.27644")> 
+<Assembly: CompatibleVersion("1.6.100.0")> 
 <Assembly: UsesSubsystem("MP.SkinEngine")> 
 <Assembly: UsesSubsystem("MP.Config")> 
 
@@ -37,5 +37,5 @@ Imports MediaPortal.Common.Utils
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("1.0.0.11")> 
-<Assembly: AssemblyFileVersion("1.0.0.11")> 
+<Assembly: AssemblyVersion("1.0.0.13")> 
+<Assembly: AssemblyFileVersion("1.0.0.13")> 

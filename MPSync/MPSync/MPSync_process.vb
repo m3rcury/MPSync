@@ -31,10 +31,14 @@ Public Class MPSync_process
 
     Public Shared Property p_Debug As Boolean
         Get
-            Dim debug As Boolean
-            Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
-                debug = XMLreader.GetValueAsBool("Plugin", "debug", False)
-            End Using
+            Dim debug As Boolean = False
+            Try
+                Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+                    debug = XMLreader.GetValueAsBool("Plugin", "debug", False)
+                End Using
+            Catch ex As Exception
+                MPSync_process.logStats("MPSync: Error reading 'debug' value from XML with exception " & ex.Message, "ERROR")
+            End Try
             Return debug
         End Get
         Set(value As Boolean)
@@ -57,14 +61,9 @@ Public Class MPSync_process
 
     End Sub
 
-    Public Shared Sub CheckPlayerplaying(ByVal thread As String, ByVal seconds As Long)
-        If (thread = "db" And _db_pause) Or (thread = "folders" And _folders_pause) Then
-            If MediaPortal.Player.g_Player.Playing Then Log.Info("MPSync: paimports " & thread & " thread as player is playing.")
-            Do While MediaPortal.Player.g_Player.Playing
-                MPSync_process.wait(seconds, False)
-            Loop
-        End If
-    End Sub
+    Public Shared Function CheckPlayerplaying(ByVal thread As String) As Boolean
+        Return ((thread = "db" And _db_pause) Or (thread = "folders" And _folders_pause)) And MediaPortal.Player.g_Player.Playing
+    End Function
 
     Public Shared Sub logStats(ByVal message As String, ByVal msgtype As String)
 
@@ -99,36 +98,40 @@ Public Class MPSync_process
 
         folders = Nothing
 
-        Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync_" & UCase(objsetting) & ".xml"))
+        Try
+            Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync_" & UCase(objsetting) & ".xml"))
 
-            folders_client = XMLreader.GetValueAsString("Path", "client", Nothing)
-            folders_server = XMLreader.GetValueAsString("Path", "server", Nothing)
-            folders_direction = XMLreader.GetValueAsInt("Path", "direction", 0)
-            folders_sync_method = XMLreader.GetValueAsInt("Path", "method", 0)
+                folders_client = XMLreader.GetValueAsString("Path", "client", Nothing)
+                folders_server = XMLreader.GetValueAsString("Path", "server", Nothing)
+                folders_direction = XMLreader.GetValueAsInt("Path", "direction", 0)
+                folders_sync_method = XMLreader.GetValueAsInt("Path", "method", 0)
 
-            folders = XMLreader.GetValueAsString("Settings", "folders", Nothing)
-            _folders_pause = XMLreader.GetValueAsString("Settings", "pause while playing", False)
+                folders = XMLreader.GetValueAsString("Settings", "folders", Nothing)
+                _folders_pause = XMLreader.GetValueAsString("Settings", "pause while playing", False)
 
-        End Using
+            End Using
 
-        ' check that both paths end with a "\"
-        If InStrRev(folders_client, "\") <> Len(folders_client) Then folders_client = Trim(folders_client) & "\"
-        If InStrRev(folders_server, "\") <> Len(folders_server) Then folders_server = Trim(folders_server) & "\"
+            ' check that both paths end with a "\"
+            If InStrRev(folders_client, "\") <> Len(folders_client) Then folders_client = Trim(folders_client) & "\"
+            If InStrRev(folders_server, "\") <> Len(folders_server) Then folders_server = Trim(folders_server) & "\"
 
-        ' get list of folders to synchronise
-        If folders <> Nothing Then
-            If Right(folders, 1) = "|" Then folders = Left(folders, Len(folders) - 1)
-            selectedfolders = Split(folders, "|")
-        Else
-            ReDim selectedfolders(0)
-            selectedfolders(0) = "ALL"
-        End If
+            ' get list of folders to synchronise
+            If folders <> Nothing Then
+                If Right(folders, 1) = "|" Then folders = Left(folders, Len(folders) - 1)
+                selectedfolders = Split(folders, "|")
+            Else
+                ReDim selectedfolders(0)
+                selectedfolders(0) = "ALL"
+            End If
 
-        _folders_client = folders_client
-        _folders_server = folders_server
-        _folders_direction = folders_direction
-        _folders_sync_method = folders_sync_method
-        _folders = selectedfolders
+            _folders_client = folders_client
+            _folders_server = folders_server
+            _folders_direction = folders_direction
+            _folders_sync_method = folders_sync_method
+            _folders = selectedfolders
+        Catch ex As Exception
+            MPSync_process.logStats("MPSync: Error reading MPSync_" & UCase(objsetting) & ".xml with exception " & ex.Message, "ERROR")
+        End Try
 
     End Sub
 
@@ -318,6 +321,7 @@ Public Class MPSync_process
 
             ' calculate actual sync periodicity in seconds
             If db_sync_value = "minutes" Then _db_sync = _db_sync * 60
+            If db_sync_value = "hours" Then _db_sync = _db_sync * 3600
 
             ' check that both paths end with a "\"
             If InStrRev(_db_client, "\") <> Len(_db_client) Then _db_client = Trim(_db_client) & "\"
@@ -549,7 +553,9 @@ Public Class MPSync_process
         Next
 
         Do While bw_threads > 0
-            logStats("MPSync: [getDBInfo] waiting for background threads to finish... " & bw_threads.ToString & " threads remaining processing {" & String.Join(",", bw_dbs.ToArray()) & "}.", "DEBUG")
+            Dim jobs As String = String.Join(",", bw_dbs.ToArray())
+            If jobs = String.Empty Then Exit Do
+            logStats("MPSync: [getDBInfo] waiting for background threads to finish... " & bw_threads.ToString & " threads remaining processing {" & jobs & "}.", "DEBUG")
             wait(10, False)
         Loop
 
@@ -653,7 +659,9 @@ Public Class MPSync_process
         Next
 
         Do While bw_threads > 0
-            logStats("MPSync: [checkTriggers - WATCH] waiting for background threads to finish... " & bw_threads.ToString & " threads remaining processing {" & String.Join(",", bw_dbs.ToArray()) & "}.", "DEBUG")
+            Dim jobs As String = String.Join(",", bw_dbs.ToArray())
+            If jobs = String.Empty Then Exit Do
+            logStats("MPSync: [checkTriggers - WATCH] waiting for background threads to finish... " & bw_threads.ToString & " threads remaining processing {" & jobs & "}.", "DEBUG")
             wait(10, False)
         Loop
 
@@ -712,7 +720,9 @@ Public Class MPSync_process
             Next
 
             Do While bw_threads > 0
-                logStats("MPSync: [checkTriggers - WORK] waiting for background threads to finish... " & bw_threads.ToString & " threads remaining processing {" & String.Join(",", bw_dbs.ToArray()) & "}.", "DEBUG")
+                Dim jobs As String = String.Join(",", bw_dbs.ToArray())
+                If jobs = String.Empty Then Exit Do
+                logStats("MPSync: [checkTriggers - WORK] waiting for background threads to finish... " & bw_threads.ToString & " threads remaining processing {" & jobs & "}.", "DEBUG")
                 wait(10, False)
             Loop
 
@@ -745,7 +755,9 @@ Public Class MPSync_process
             Next
 
             Do While bw_threads > 0
-                logStats("MPSync: [checkTriggers - DROP] waiting for background threads to finish... " & bw_threads.ToString & " threads remaining processing {" & String.Join(",", bw_dbs.ToArray()) & "}.", "DEBUG")
+                Dim jobs As String = String.Join(",", bw_dbs.ToArray())
+                If jobs = String.Empty Then Exit Do
+                logStats("MPSync: [checkTriggers - DROP] waiting for background threads to finish... " & bw_threads.ToString & " threads remaining processing {" & jobs & "}.", "DEBUG")
                 wait(10, False)
             Loop
 

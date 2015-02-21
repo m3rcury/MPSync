@@ -9,6 +9,7 @@ Class MPSync_process_Folders_watch
     Dim t_path As String = Nothing
     Dim folder_type As String = Nothing
     Dim selected_folder() As String = Nothing
+    Dim lastprcessed As String = Nothing
 
     Public Sub watch_folder(ByVal path As String, ByVal foldertype As String, ByVal spath As String, ByVal tpath As String, ByVal selectedfolder() As String)
 
@@ -27,9 +28,7 @@ Class MPSync_process_Folders_watch
         watchfolder.IncludeSubdirectories = True
 
         'Add a list of Filter we want to specify
-        watchfolder.NotifyFilter = NotifyFilters.DirectoryName
-        watchfolder.NotifyFilter = watchfolder.NotifyFilter Or NotifyFilters.FileName
-        watchfolder.NotifyFilter = watchfolder.NotifyFilter Or NotifyFilters.Attributes
+        watchfolder.NotifyFilter = NotifyFilters.DirectoryName Or NotifyFilters.FileName Or NotifyFilters.LastWrite
 
         ' add the handler to each event
         AddHandler watchfolder.Changed, AddressOf fileChange
@@ -48,33 +47,42 @@ Class MPSync_process_Folders_watch
     Private Sub fileChange(ByVal source As Object, ByVal e As System.IO.FileSystemEventArgs)
 
         Try
-            Dim folder As String
-            Dim file As String = Right(e.FullPath, Len(e.FullPath) - Len(s_path)) & "|WATCH"
-            Dim l As Integer = Len(m_path) + 1
+            If (IO.File.GetAttributes(e.FullPath) And FileAttributes.Directory) <> FileAttributes.Directory And lastprcessed <> e.FullPath Then
 
-            If Right(m_path, 1) <> "\" Then l += 1
+                Dim file As String = Right(e.FullPath, Len(e.FullPath) - Len(s_path)) & "|WATCH"
+                Dim folder As String
+                Dim l As Integer = Len(m_path) + 1
 
-            folder = Mid(e.FullPath, l, InStr(l, e.FullPath, "\") - l)
+                lastprcessed = e.FullPath
 
-            If selected_folder.Contains(folder) Or selected_folder.Contains("ALL") Then
+                If Right(m_path, 1) <> "\" Then l += 1
 
-                Dim parm(0) As String
-                parm(0) = file
+                folder = Mid(e.FullPath, l, InStr(l, e.FullPath, "\") - l)
 
-                If e.ChangeType = WatcherChangeTypes.Changed Or e.ChangeType = WatcherChangeTypes.Created Then
-                    MPSync_process_Folders.Copy_objects(s_path, t_path, parm)
-                ElseIf e.ChangeType = WatcherChangeTypes.Deleted Then
-                    MPSync_process_Folders.Delete_objects(t_path, parm)
+                If selected_folder.Contains(folder) Or selected_folder.Contains("ALL") Then
+
+                    Dim parm(0) As String
+                    parm(0) = file
+
+                    If e.ChangeType = WatcherChangeTypes.Changed Or e.ChangeType = WatcherChangeTypes.Created Then
+                        MPSync_process_Folders.Copy_objects(s_path, t_path, parm)
+                    ElseIf e.ChangeType = WatcherChangeTypes.Deleted Then
+                        MPSync_process_Folders.Delete_objects(t_path, parm)
+                    End If
+
                 End If
-
             End If
         Catch ex As Exception
-            MPSync_process.logStats("MPSync: fileChange failed with exception: " & ex.Message, "ERROR")
+            MPSync_process.logStats("MPSync: fileChange failed on " & e.FullPath & " with exception: " & ex.Message, "ERROR")
         End Try
 
     End Sub
 
     Private Sub fileRename(ByVal source As Object, ByVal e As System.IO.RenamedEventArgs)
+
+        If lastprcessed = e.FullPath Then Exit Sub
+
+        lastprcessed = e.FullPath
 
         Try
             Dim folder As String

@@ -5,7 +5,7 @@ Imports System.Xml
 
 Public Class MPSync_settings
 
-    Dim _curversion As String = "1.0.0.11"
+    Dim _curversion As String = "1.0.0.13"
     Dim i_direction(2) As Image
     Dim i_method(2), _databases, _folders, _watched_dbs, _object_list, _db_objects, _version, _session, _sync_type As String
     Dim _db_sync_method, _folders_sync_method As Integer
@@ -303,18 +303,6 @@ Public Class MPSync_settings
 
         populate_watchedchecklistbox(clb_watched)
         populate_objectcheckedlistbox(clb_object_list, object_list)
-
-        If _version <> _curversion Then
-            If IO.File.Exists(Config.GetFile(Config.Dir.Config, "MPSync.xml")) Then
-                If cb_folders.Checked Then
-                    IO.File.Copy(Config.GetFile(Config.Dir.Config, "MPSync.xml"), Config.GetFile(Config.Dir.Config, "MPSync_THUMBS.xml"))
-                    getObjectSettings("THUMBS")
-                    setObjectSettings("THUMBS")
-                End If
-                IO.File.Delete(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
-                MediaPortal.Profile.Settings.ClearCache()
-            End If
-        End If
 
         'check if process is running
         If isProcessRunning() Then tb_processstatus.Text = "RUNNING" Else tb_processstatus.Text = "STOPPED"
