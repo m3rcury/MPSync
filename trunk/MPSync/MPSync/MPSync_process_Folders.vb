@@ -6,6 +6,8 @@ Imports System.Threading
 
 Public Class MPSync_process_Folders
 
+    Private Shared checkplayer As Integer = 30
+
     Dim s_paths() As String = Nothing
     Dim t_paths() As String = Nothing
     Dim foldertypes() As String = Nothing
@@ -223,8 +225,8 @@ Public Class MPSync_process_Folders
 
         End If
 
-            Array.Clear(s_folders, 0, UBound(s_folders))
-            Array.Clear(t_folders, 0, UBound(t_folders))
+        Array.Clear(s_folders, 0, UBound(s_folders))
+        Array.Clear(t_folders, 0, UBound(t_folders))
 
     End Sub
 
@@ -239,7 +241,9 @@ Public Class MPSync_process_Folders
 
         For x = 0 To UBound(parm)
 
-            MPSync_process.CheckPlayerplaying("objects", 30)
+            Do While MPSync_process.CheckPlayerplaying("folders")
+                MPSync_process.wait(checkplayer, False)
+            Loop
 
             times = 5
             file = Split(parm(x), "|")
@@ -283,7 +287,9 @@ Public Class MPSync_process_Folders
 
         For x = 0 To UBound(parm)
 
-            MPSync_process.CheckPlayerplaying("objects", 30)
+            Do While MPSync_process.CheckPlayerplaying("folders")
+                MPSync_process.wait(checkplayer, False)
+            Loop
 
             times = 5
             file = Split(parm(x), "|")
