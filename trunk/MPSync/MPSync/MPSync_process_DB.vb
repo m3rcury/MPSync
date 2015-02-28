@@ -51,7 +51,7 @@ Public Class MPSync_process_DB
         End Set
     End Property
 
-    Private Function LoadTable(ByVal path As String, ByVal database As String, ByVal table As String, Optional ByRef columns As Array = Nothing, Optional ByVal where As String = Nothing, Optional ByVal order As String = Nothing) As Array
+    Public Function LoadTable(ByVal path As String, ByVal database As String, ByVal table As String, Optional ByRef columns As Array = Nothing, Optional ByVal where As String = Nothing, Optional ByVal order As String = Nothing) As Array
 
         MPSync_process.logStats("MPSync: [LoadTable] Load values from table " & table & " in database " & path & database, "DEBUG")
 
@@ -136,7 +136,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Function FormatValue(ByVal value As Object, ByVal type As String) As String
+    Public Function FormatValue(ByVal value As Object, ByVal type As String) As String
 
         'MPSync_process.logStats("MPSync: [FormatValue]", "DEBUG")
 
@@ -198,7 +198,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Function BuildUpdateArray(ByVal s_data As Array, ByVal t_data As Array, ByVal columns As Array) As Array
+    Public Function BuildUpdateArray(ByVal s_data As Array, ByVal t_data As Array, ByVal columns As Array) As Array
 
         'MPSync_process.logStats("MPSync: [BuildUpdateArray]", "DEBUG")
 
@@ -239,7 +239,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Function getFields(ByVal path As String, ByVal database As String, ByVal table As String) As Array
+    Public Function getFields(ByVal path As String, ByVal database As String, ByVal table As String) As Array
 
         'MPSync_process.logStats("MPSync: [getFields]", "DEBUG")
 
@@ -319,7 +319,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Function getPkValues(ByVal values As Array, ByVal mps_columns As Array, ByVal columns As Array) As Array
+    Public Function getPkValues(ByVal values As Array, ByVal mps_columns As Array, ByVal columns As Array) As Array
 
         'MPSync_process.logStats("MPSync: [getPkValues]", "DEBUG")
 
@@ -351,7 +351,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Function getPK(ByVal columns As Array, Optional ByRef pkey As String = Nothing) As Integer
+    Public Function getPK(ByVal columns As Array, Optional ByRef pkey As String = Nothing) As Integer
 
         'MPSync_process.logStats("MPSync: [getPK]", "DEBUG")
 
@@ -370,7 +370,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Function getLastUpdateDate(ByVal values As String, ByVal index As Integer) As String
+    Public Function getLastUpdateDate(ByVal values As String, ByVal index As Integer) As String
 
         'MPSync_process.logStats("MPSync: [getLastUpdateDate]", "DEBUG")
 
@@ -380,7 +380,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Function getArray(ByVal array As Array, ByVal dimension As Integer) As Array
+    Public Function getArray(ByVal array As Array, ByVal dimension As Integer) As Array
 
         'MPSync_process.logStats("MPSync: [getArray]", "DEBUG")
 
@@ -401,7 +401,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Function getCurrentTableValues(ByVal path As String, ByVal database As String, ByVal table As String, ByVal columns As Array, ByVal mps_cols As Array, ByVal pkey As String, ByVal fields As String, ByVal where As String) As Array
+    Public Function getCurrentTableValues(ByVal path As String, ByVal database As String, ByVal table As String, ByVal columns As Array, ByVal mps_cols As Array, ByVal pkey As String, ByVal fields As String, ByVal where As String) As Array
 
         MPSync_process.logStats("MPSync: [getCurrentTableValues] Get current table values from " & table & " in database " & path & database, "DEBUG")
 
@@ -449,7 +449,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Function getUpdateValues(ByVal newvalues As Array, ByVal curvalues As Array) As String
+    Public Function getUpdateValues(ByVal newvalues As Array, ByVal curvalues As Array) As String
 
         'MPSync_process.logStats("MPSync: [getUpdateValues] Getting update values by comparing existing values with new ones.", "DEBUG")
 
@@ -955,7 +955,7 @@ Public Class MPSync_process_DB
 
     End Sub
 
-    Private Function Synchronize_DB(ByVal s_path As String, ByVal t_path As String, ByVal database As String, ByVal table As String, ByVal columns As Array, ByVal method As Integer) As Boolean
+    Public Function Synchronize_DB(ByVal s_path As String, ByVal t_path As String, ByVal database As String, ByVal table As String, ByVal columns As Array, ByVal method As Integer) As Boolean
 
         MPSync_process.logStats("MPSync: [Synchronize_DB] synchronization of table " & table.Replace("~", String.Empty) & " in database " & t_path & database & " in progress...", "LOG")
 
@@ -1012,9 +1012,13 @@ Public Class MPSync_process_DB
                 columns = getFields(source, database, table)
                 w_values = BuildUpdateArray_mpsync(t_data, s_data, columns, columns)
 
-                UpdateRecords_mpsync(source, database, table, w_values, mps_columns, columns)
-
-                If master Then Cleanup_mpsync(target, database, t_data) Else Cleanup_mpsync(source, database, s_data)
+                If master Then
+                    UpdateRecords_mpsync(source, database, table, w_values, mps_columns, columns)
+                    Cleanup_mpsync(target, database, t_data)
+                Else
+                    UpdateRecords_mpsync(target, database, table, w_values, mps_columns, columns)
+                    Cleanup_mpsync(source, database, s_data)
+                End If
 
                 MPSync_process.logStats("MPSync: [UpdateMaster] synchronization of watched for table " & table & " in database " & source & database & " complete.", "LOG")
 

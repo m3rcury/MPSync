@@ -638,6 +638,8 @@ Public Class MPSync_process
         bw_threads = 0
         bw_dbs.Clear()
 
+        mps.SetWatched = Nothing
+
         For x = 0 To UBound(_watched_dbs)
 
             If _watched_dbs(x) <> "" Then

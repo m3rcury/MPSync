@@ -141,6 +141,7 @@
     <Compile Include="MPSync_process_DB.vb" />
     <Compile Include="MPSync_process_Folders.vb" />
     <Compile Include="MPSync_process_Folders_watch.vb" />
+    <Compile Include="MPSync_process_DB_watch.vb" />
     <Compile Include="MPSync_settings.vb">
       <SubType>Form</SubType>
     </Compile>

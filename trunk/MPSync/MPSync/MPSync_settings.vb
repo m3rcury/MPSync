@@ -5,7 +5,7 @@ Imports System.Xml
 
 Public Class MPSync_settings
 
-    Dim _curversion As String = "1.0.0.13"
+    Dim _curversion As String = "1.0.0.14"
     Dim i_direction(2) As Image
     Dim i_method(2), _databases, _folders, _watched_dbs, _object_list, _db_objects, _version, _session, _sync_type As String
     Dim _db_sync_method, _folders_sync_method As Integer
