@@ -388,7 +388,7 @@ Click Next to continue or Cancel to exit Setup.</Value>
   <ProjectSettings>
     <FolderGroups />
     <ProjectFilename>MPSync.xmp2</ProjectFilename>
-    <UpdatePath1>E:\Software\MediaPortal\Subversion\mpsync_plugin\trunk\MPSync\MPSync_update.xml</UpdatePath1>
+    <UpdatePath1>E:\Software\MediaPortal\Subversion\MPSync.git\trunk\MPSync\MPSync_update.xml</UpdatePath1>
     <UpdatePath2 />
     <UpdatePath3 />
   </ProjectSettings>
