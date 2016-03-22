@@ -286,7 +286,7 @@ Click Next to continue or Cancel to exit Setup.</Value>
     <Author>m3rcury</Author>
     <HomePage>http://www.team-mediaportal.com/extensions/utilities/cdb-sync?lang=en</HomePage>
     <ForumPage>http://forum.team-mediaportal.com/threads/plugin-mpsync-mediaportal-synchronization.117417/#post-975411</ForumPage>
-    <UpdateUrl>https://raw.githubusercontent.com/m3rcury/MPSync/master/MPSync/MPSync_update.xml</UpdateUrl>
+    <UpdateUrl>http://www.team-mediaportal.com/index.php?option=com_mtree&amp;task=att_download&amp;link_id=268&amp;cf_id=52</UpdateUrl>
     <Version>
       <Major>1</Major>
       <Minor>0</Minor>
@@ -366,21 +366,21 @@ Click Next to continue or Cancel to exit Setup.</Value>
         <Param1 />
         <UpdateOption>OverwriteIfOlder</UpdateOption>
         <LocalFileName>MPSync.png</LocalFileName>
-        <ZipFileName>Installer{CopyFile}\{d1fa7be5-1b34-4189-a14b-ef2f594a9e14}-MPSync.png</ZipFileName>
+        <ZipFileName>Installer{CopyFile}\{f9f9019b-91f7-494c-a9b8-5cfc28ed97a8}-MPSync.png</ZipFileName>
         <DestinationFilename />
       </FileItem>
       <FileItem InstallType="CopyFile" SystemFile="true" Modified="true">
         <Param1 />
         <UpdateOption>OverwriteIfOlder</UpdateOption>
         <LocalFileName>MPSync_logo.png</LocalFileName>
-        <ZipFileName>Installer{CopyFile}\{2df76351-8e88-44f6-ac33-4e88c014f3f7}-MPSync_logo.png</ZipFileName>
+        <ZipFileName>Installer{CopyFile}\{98dbe5e1-73b8-407d-bf08-b9b318e4dc68}-MPSync_logo.png</ZipFileName>
         <DestinationFilename />
       </FileItem>
       <FileItem InstallType="CopyFile" SystemFile="true" Modified="true">
         <Param1 />
         <UpdateOption>OverwriteIfOlder</UpdateOption>
         <LocalFileName>MP_Packaging.png</LocalFileName>
-        <ZipFileName>Installer{CopyFile}\{f7a6c9c1-5672-44d1-b9ed-90750978293d}-MP_Packaging.png</ZipFileName>
+        <ZipFileName>Installer{CopyFile}\{e314360e-43d6-4037-a269-bbfa4abe267e}-MP_Packaging.png</ZipFileName>
         <DestinationFilename />
       </FileItem>
     </Items>
