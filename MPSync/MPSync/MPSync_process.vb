@@ -8,12 +8,12 @@ Imports System.Data.SQLite
 Public Class MPSync_process
 
     Private mps As New MPSync_settings
-    Private Shared _folders_client, _folders_server, _folders(), folders, object_list As String
+    Private Shared _folders_client, _folders_server, _folders_pause, _folders_md5, _folders_crc32, _folders(), folders, object_list As String
     Private Shared bw_dbs As New ArrayList
     Private bw_threads As Integer
     Public Shared _db_client, _db_server, _databases(), _watched_dbs(), _db_objects(), dbname(), session, sync_type As String
     Public Shared _db_sync, _db_direction, _db_sync_method, _folders_direction, _folders_sync_method As Integer
-    Public Shared _db_pause, _folders_pause, debug, check_watched, _vacuum As Boolean
+    Public Shared _db_pause, debug, check_watched, _vacuum As Boolean
     Public Shared dbinfo() As IO.FileInfo
 
     Dim checked_databases, checked_folders As Boolean
@@ -62,7 +62,7 @@ Public Class MPSync_process
     End Sub
 
     Public Shared Function CheckPlayerplaying(ByVal thread As String) As Boolean
-        Return ((thread = "db" And _db_pause) Or (thread = "folders" And _folders_pause)) And MediaPortal.Player.g_Player.Playing
+        Return ((thread = "db" And _db_pause) Or thread = "folders") And MediaPortal.Player.g_Player.Playing
     End Function
 
     Public Shared Sub logStats(ByVal message As String, ByVal msgtype As String)
@@ -94,7 +94,7 @@ Public Class MPSync_process
 
     End Sub
 
-    Public Shared Sub getObjectSettings(ByVal objsetting As String, Optional ByRef folders_client As String = Nothing, Optional ByRef folders_server As String = Nothing, Optional ByRef folders_direction As Integer = Nothing, Optional ByRef folders_sync_method As Integer = Nothing, Optional ByRef selectedfolders() As String = Nothing)
+    Public Shared Sub getObjectSettings(ByVal objsetting As String, Optional ByRef folders_client As String = Nothing, Optional ByRef folders_server As String = Nothing, Optional ByRef folders_direction As Integer = Nothing, Optional ByRef folders_sync_method As Integer = Nothing, Optional ByRef selectedfolders() As String = Nothing, Optional ByRef folders_pause As Boolean = False, Optional ByRef folders_md5 As Boolean = False, Optional ByRef folders_crc32 As Boolean = False)
 
         folders = Nothing
 
@@ -107,7 +107,9 @@ Public Class MPSync_process
                 folders_sync_method = XMLreader.GetValueAsInt("Path", "method", 0)
 
                 folders = XMLreader.GetValueAsString("Settings", "folders", Nothing)
-                _folders_pause = XMLreader.GetValueAsString("Settings", "pause while playing", False)
+                folders_pause = XMLreader.GetValueAsString("Settings", "pause while playing", False)
+                folders_md5 = XMLreader.GetValueAsString("Settings", "use MD5", False)
+                folders_crc32 = XMLreader.GetValueAsString("Settings", "use CRC32", False)
 
             End Using
 
@@ -129,6 +131,9 @@ Public Class MPSync_process
             _folders_direction = folders_direction
             _folders_sync_method = folders_sync_method
             _folders = selectedfolders
+            _folders_pause = folders_pause.ToString
+            _folders_md5 = folders_md5.ToString
+            _folders_crc32 = folders_crc32.ToString
         Catch ex As Exception
             MPSync_process.logStats("MPSync: Error reading MPSync_" & UCase(objsetting) & ".xml with exception " & ex.Message, "ERROR")
         End Try
@@ -269,7 +274,15 @@ Public Class MPSync_process
                         Case 2
                             logStats("MPSync: " & item(0) & " - " & _folders_client & " <-- " & _folders_server, "INFO")
                     End Select
-                    logStats("MPSync: " & item(0) & " synchronization method - " & i_method(_folders_sync_method), "INFO")
+
+                    If _folders_md5 = "True" Then
+                        logStats("MPSync: " & item(0) & " synchronization method - " & i_method(_folders_sync_method) & ", pause while playing - " & _folders_pause & ", use MD5 - " & _folders_md5, "INFO")
+                    ElseIf _folders_crc32 = "True" Then
+                        logStats("MPSync: " & item(0) & " synchronization method - " & i_method(_folders_sync_method) & ", pause while playing - " & _folders_pause & ", use CRC32 - " & _folders_crc32, "INFO")
+                    Else
+                        logStats("MPSync: " & item(0) & " synchronization method - " & i_method(_folders_sync_method) & ", pause while playing - " & _folders_pause, "INFO")
+                    End If
+
                     If folders = Nothing Then
                         logStats("MPSync: " & item(0) & " selected - ALL", "INFO")
                     Else
@@ -378,14 +391,14 @@ Public Class MPSync_process
                     If _folders_client <> Nothing And _folders_server <> Nothing Then
 
                         ' check that server is available
-                        Dim checkTHUMBPath_Thread As Thread
-                        checkTHUMBPath_Thread = New Thread(AddressOf checkPath)
+                        Dim checkOBJPath_Thread As Thread
+                        checkOBJPath_Thread = New Thread(AddressOf checkPath)
 
                         logStats("MPSync: Checking availability of " & _folders_server, "LOG")
 
-                        checkTHUMBPath_Thread.Start(_folders_server)
+                        checkOBJPath_Thread.Start(_folders_server)
 
-                        Do While checkTHUMBPath_Thread.IsAlive
+                        Do While checkOBJPath_Thread.IsAlive
                             wait(5, False)
                         Loop
 
@@ -1270,7 +1283,7 @@ Public Class MPSync_process
             Log.Debug("MPSync: Started folders thread")
             Dim bw_folders As New BackgroundWorker
             bw_folders.WorkerSupportsCancellation = True
-            AddHandler bw_folders.DoWork, AddressOf MPSync_process_folders.bw_folders_worker
+            AddHandler bw_folders.DoWork, AddressOf MPSync_process_Folders.bw_folders_worker
             bw_folders.RunWorkerAsync()
         Else
             folders = False

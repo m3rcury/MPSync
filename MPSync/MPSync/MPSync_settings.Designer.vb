@@ -22,6 +22,7 @@ Partial Class MPSync_settings
     'Do not modify it imports the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.components = New System.ComponentModel.Container()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(MPSync_settings))
         Me.b_save = New System.Windows.Forms.Button()
         Me.tb_master_path = New System.Windows.Forms.TextBox()
@@ -112,6 +113,8 @@ Partial Class MPSync_settings
         Me.b_folders_client = New System.Windows.Forms.Button()
         Me.b_folders_direction = New System.Windows.Forms.Button()
         Me.tp_advancedsettings = New System.Windows.Forms.TabPage()
+        Me.cb_folders_crc32 = New System.Windows.Forms.CheckBox()
+        Me.cb_folders_md5 = New System.Windows.Forms.CheckBox()
         Me.b_apply = New System.Windows.Forms.Button()
         Me.cb_folders_pause = New System.Windows.Forms.CheckBox()
         Me.GroupBox2 = New System.Windows.Forms.GroupBox()
@@ -121,6 +124,7 @@ Partial Class MPSync_settings
         Me.clb_objects = New System.Windows.Forms.CheckedListBox()
         Me.tp_syncnow = New System.Windows.Forms.TabPage()
         Me.lb_status = New System.Windows.Forms.ListBox()
+        Me.tt_folders_md5 = New System.Windows.Forms.ToolTip(Me.components)
         Me.tc_main.SuspendLayout()
         Me.tp_settings.SuspendLayout()
         Me.tc_settings.SuspendLayout()
@@ -192,6 +196,7 @@ Partial Class MPSync_settings
         '
         'b_sync_now
         '
+        Me.b_sync_now.Enabled = False
         Me.b_sync_now.Location = New System.Drawing.Point(160, 192)
         Me.b_sync_now.Name = "b_sync_now"
         Me.b_sync_now.Size = New System.Drawing.Size(128, 23)
@@ -859,8 +864,8 @@ Partial Class MPSync_settings
         Me.Label11.Name = "Label11"
         Me.Label11.Size = New System.Drawing.Size(237, 52)
         Me.Label11.TabIndex = 24
-        Me.Label11.Text = "This feature will synchronize among clients the" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "status of any music that was pla" & _
-    "yed, movies and " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "series that were watched together with their " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "respective resu" & _
+        Me.Label11.Text = "This feature will synchronize among clients the" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "status of any music that was pla" &
+    "yed, movies and " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "series that were watched together with their " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "respective resu" &
     "me position."
         '
         'GroupBox3
@@ -1103,6 +1108,8 @@ Partial Class MPSync_settings
         'tp_advancedsettings
         '
         Me.tp_advancedsettings.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tp_advancedsettings.Controls.Add(Me.cb_folders_crc32)
+        Me.tp_advancedsettings.Controls.Add(Me.cb_folders_md5)
         Me.tp_advancedsettings.Controls.Add(Me.b_apply)
         Me.tp_advancedsettings.Controls.Add(Me.cb_folders_pause)
         Me.tp_advancedsettings.Controls.Add(Me.GroupBox2)
@@ -1114,6 +1121,32 @@ Partial Class MPSync_settings
         Me.tp_advancedsettings.Size = New System.Drawing.Size(565, 184)
         Me.tp_advancedsettings.TabIndex = 1
         Me.tp_advancedsettings.Text = "Advanced Settings"
+        '
+        'cb_folders_crc32
+        '
+        Me.cb_folders_crc32.AutoSize = True
+        Me.cb_folders_crc32.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.cb_folders_crc32.Location = New System.Drawing.Point(116, 38)
+        Me.cb_folders_crc32.Name = "cb_folders_crc32"
+        Me.cb_folders_crc32.Size = New System.Drawing.Size(168, 17)
+        Me.cb_folders_crc32.TabIndex = 71
+        Me.cb_folders_crc32.Text = "Use CRC32 to verify files"
+        Me.tt_folders_md5.SetToolTip(Me.cb_folders_crc32, "Choose this for a more accurate synchronisation of the objects." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Be aware that th" &
+        "is will increase the synchronization time.")
+        Me.cb_folders_crc32.UseVisualStyleBackColor = True
+        '
+        'cb_folders_md5
+        '
+        Me.cb_folders_md5.AutoSize = True
+        Me.cb_folders_md5.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.cb_folders_md5.Location = New System.Drawing.Point(21, 38)
+        Me.cb_folders_md5.Name = "cb_folders_md5"
+        Me.cb_folders_md5.Size = New System.Drawing.Size(78, 17)
+        Me.cb_folders_md5.TabIndex = 70
+        Me.cb_folders_md5.Text = "Use MD5"
+        Me.tt_folders_md5.SetToolTip(Me.cb_folders_md5, "Choose this for a more accurate synchronisation of the objects." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Be aware that th" &
+        "is will increase the synchronization time.")
+        Me.cb_folders_md5.UseVisualStyleBackColor = True
         '
         'b_apply
         '
@@ -1127,9 +1160,8 @@ Partial Class MPSync_settings
         'cb_folders_pause
         '
         Me.cb_folders_pause.AutoSize = True
-        Me.cb_folders_pause.CheckAlign = System.Drawing.ContentAlignment.MiddleRight
         Me.cb_folders_pause.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.cb_folders_pause.Location = New System.Drawing.Point(6, 26)
+        Me.cb_folders_pause.Location = New System.Drawing.Point(21, 17)
         Me.cb_folders_pause.Name = "cb_folders_pause"
         Me.cb_folders_pause.Size = New System.Drawing.Size(172, 17)
         Me.cb_folders_pause.TabIndex = 18
@@ -1381,5 +1413,8 @@ Partial Class MPSync_settings
     Friend WithEvents b_processstop As System.Windows.Forms.Button
     Friend WithEvents cb_vacuum As System.Windows.Forms.CheckBox
     Friend WithEvents b_removeautostart As System.Windows.Forms.Button
+    Friend WithEvents tt_folders_md5 As System.Windows.Forms.ToolTip
+    Friend WithEvents cb_folders_crc32 As System.Windows.Forms.CheckBox
+    Friend WithEvents cb_folders_md5 As System.Windows.Forms.CheckBox
 
 End Class

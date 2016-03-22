@@ -26,3 +26,14 @@ E:\Rudolph\Documents\Visual Studio 2013\Projects\MPSync\MPSync\bin\Release\Syste
 E:\Rudolph\Documents\Visual Studio 2013\Projects\MPSync\MPSync\bin\Release\MPSync.dll.config
 E:\Rudolph\Documents\Visual Studio 2013\Projects\MPSync\MPSync\bin\Release\MPSync.dll
 E:\Rudolph\Documents\Visual Studio 2013\Projects\MPSync\MPSync\obj\x86\Release\MPSync.dll
+E:\Rudolph\Documents\Visual Studio 2015\Projects\MPSync\MPSync\bin\Release\MPSync.pdb
+E:\Rudolph\Documents\Visual Studio 2015\Projects\MPSync\MPSync\bin\Release\MPSync.xml
+E:\Rudolph\Documents\Visual Studio 2015\Projects\MPSync\MPSync\obj\x86\Release\MPSync.vbprojResolveAssemblyReference.cache
+E:\Rudolph\Documents\Visual Studio 2015\Projects\MPSync\MPSync\obj\x86\Release\MPSync.Resources.resources
+E:\Rudolph\Documents\Visual Studio 2015\Projects\MPSync\MPSync\obj\x86\Release\MPSync.MPSync_settings.resources
+E:\Rudolph\Documents\Visual Studio 2015\Projects\MPSync\MPSync\obj\x86\Release\MPSync.vbproj.GenerateResource.Cache
+E:\Rudolph\Documents\Visual Studio 2015\Projects\MPSync\MPSync\obj\x86\Release\MPSync.xml
+E:\Rudolph\Documents\Visual Studio 2015\Projects\MPSync\MPSync\obj\x86\Release\MPSync.pdb
+E:\Rudolph\Documents\Visual Studio 2015\Projects\MPSync\MPSync\bin\Release\MPSync.dll.config
+E:\Rudolph\Documents\Visual Studio 2015\Projects\MPSync\MPSync\bin\Release\MPSync.dll
+E:\Rudolph\Documents\Visual Studio 2015\Projects\MPSync\MPSync\obj\x86\Release\MPSync.dll

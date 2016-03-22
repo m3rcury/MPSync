@@ -23,6 +23,9 @@ Public Class MPSync_process_Folders
         Dim item As Array
         Dim list As Array = MPSync_process.p_object_list
 
+        ' populate the CRC32 table
+        createCRC32table()
+
         For Each obj As String In list
 
             item = Split(obj, "¬")
@@ -76,25 +79,28 @@ Public Class MPSync_process_Folders
         Dim folders() As String = Nothing
         Dim folders_direction As Integer = Nothing
         Dim folders_sync_method As Integer = Nothing
+        Dim folders_pause As Boolean = False
+        Dim folders_md5 As Boolean = False
+        Dim folders_crc32 As Boolean = False
 
-        MPSync_process.getObjectSettings(foldertype, folders_client, folders_server, folders_direction, folders_sync_method, folders)
+        MPSync_process.getObjectSettings(foldertype, folders_client, folders_server, folders_direction, folders_sync_method, folders, folders_pause, folders_md5, folders_crc32)
 
-        Process(UCase(foldertype), folders_client, folders_server, folders_direction, folders_sync_method, folders)
+        Process(UCase(foldertype), folders_client, folders_server, folders_direction, folders_sync_method, folders, folders_pause, folders_md5, folders_crc32)
 
     End Sub
 
-    Private Sub Process(ByVal foldertype As String, ByVal clientpath As String, ByVal serverpath As String, ByVal direction As String, ByVal folders_sync_method As Integer, ByVal selectedfolder() As String)
+    Private Sub Process(ByVal foldertype As String, ByVal clientpath As String, ByVal serverpath As String, ByVal direction As String, ByVal folders_sync_method As Integer, ByVal selectedfolder() As String, ByVal folders_pause As Boolean, ByVal folders_md5 As Boolean, ByVal folders_crc32 As Boolean)
 
         MPSync_process.logStats("MPSync: [Process] " & foldertype & " synchronization cycle starting.", "LOG")
 
         ' direction is client to server
         If direction <> 2 Then
-            Process_folder(foldertype, clientpath, serverpath, folders_sync_method, selectedfolder)
+            Process_folder(foldertype, clientpath, serverpath, folders_sync_method, selectedfolder, folders_pause, folders_md5, folders_crc32)
         End If
 
         ' direction is server to client
         If direction <> 1 Then
-            Process_folder(foldertype, serverpath, clientpath, folders_sync_method, selectedfolder)
+            Process_folder(foldertype, serverpath, clientpath, folders_sync_method, selectedfolder, folders_pause, folders_md5, folders_crc32)
         End If
 
         MPSync_process.logStats("MPSync: [Process] " & foldertype & " synchronization cycle complete.", "LOG")
@@ -118,7 +124,7 @@ Public Class MPSync_process_Folders
 
     End Sub
 
-    Private Function getobjectsDetails(ByVal path As String, ByVal c_path As String, ByVal selectedfolders() As String) As Array
+    Private Function getobjectsDetails(ByVal path As String, ByVal c_path As String, ByVal selectedfolders() As String, ByVal md5 As Boolean, ByVal crc32 As Boolean) As Array
 
         Dim objects() As String = Nothing
         Dim folder As String = Nothing
@@ -141,7 +147,13 @@ Public Class MPSync_process_Folders
                     If selectedfolders.Contains(folder) Or selectedfolders.Contains("ALL") Then
                         x += 1
                         ReDim Preserve objects(x)
-                        objects(x) = Right(file.FullName, Len(file.FullName) - l2) & "|" & file.LastWriteTimeUtc
+                        If md5 Then
+                            objects(x) = Right(file.FullName, Len(file.FullName) - l2) & "|" & file.LastWriteTimeUtc & "|" & file.Length & "|" & fileMD5(file.FullName)
+                        ElseIf crc32 Then
+                            objects(x) = Right(file.FullName, Len(file.FullName) - l2) & "|" & file.LastWriteTimeUtc & "|" & file.Length & "|" & fileCRC32(file.FullName)
+                        Else
+                            objects(x) = Right(file.FullName, Len(file.FullName) - l2) & "|" & file.LastWriteTimeUtc & "|" & file.Length
+                        End If
                     End If
                 Catch ex As Exception
                 End Try
@@ -166,7 +178,7 @@ Public Class MPSync_process_Folders
 
     End Function
 
-    Private Sub Process_folder(ByVal foldertype As String, ByVal source As String, ByVal target As String, ByVal folders_sync_method As Integer, ByVal selectedfolder() As String)
+    Private Sub Process_folder(ByVal foldertype As String, ByVal source As String, ByVal target As String, ByVal folders_sync_method As Integer, ByVal selectedfolder() As String, ByVal folders_pause As Boolean, ByVal folders_md5 As Boolean, ByVal folders_crc32 As Boolean)
 
         If Not Directory.Exists(source) Then
             MPSync_process.logStats("MPSync: [Process_folder] folder " & source & " does not exist", "ERROR")
@@ -196,8 +208,8 @@ Public Class MPSync_process_Folders
         s_paths(x) = s_path
         t_paths(x) = t_path
 
-        s_folders = getobjectsDetails(source, s_path, selectedfolder)
-        t_folders = getobjectsDetails(target, t_path, selectedfolder)
+        s_folders = getobjectsDetails(source, s_path, selectedfolder, folders_md5, folders_crc32)
+        t_folders = getobjectsDetails(target, t_path, selectedfolder, folders_md5, folders_crc32)
 
         ' propagate deletions or both
         If folders_sync_method <> 1 And t_folders(0) <> "" Then
@@ -221,7 +233,7 @@ Public Class MPSync_process_Folders
 
             MPSync_process.logStats("MPSync: [Process_folder] found " & (UBound(diff.ToArray) + 1).ToString & " differences for addition/replacement between " & source & " and " & target, "DEBUG")
 
-            If UBound(diff.ToArray) >= 0 Then Copy_objects(s_path, t_path, diff.ToArray)
+            If UBound(diff.ToArray) >= 0 Then Copy_objects(s_path, t_path, diff.ToArray, folders_pause)
 
         End If
 
@@ -230,7 +242,7 @@ Public Class MPSync_process_Folders
 
     End Sub
 
-    Public Shared Sub Copy_objects(ByVal s_path As String, ByVal t_path As String, ByVal parm As Array)
+    Public Shared Sub Copy_objects(ByVal s_path As String, ByVal t_path As String, ByVal parm As Array, Optional ByVal folders_pause As Boolean = False)
 
         Dim file As Array = Nothing
         Dim x As Integer
@@ -241,9 +253,11 @@ Public Class MPSync_process_Folders
 
         For x = 0 To UBound(parm)
 
-            Do While MPSync_process.CheckPlayerplaying("folders")
-                MPSync_process.wait(checkplayer, False)
-            Loop
+            If folders_pause Then
+                Do While MPSync_process.CheckPlayerplaying("folders")
+                    MPSync_process.wait(checkplayer, False)
+                Loop
+            End If
 
             times = 5
             file = Split(parm(x), "|")

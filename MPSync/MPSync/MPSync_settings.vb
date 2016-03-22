@@ -5,7 +5,7 @@ Imports System.Xml
 
 Public Class MPSync_settings
 
-    Dim _curversion As String = "1.0.0.14"
+    Dim _curversion As String = "1.0.0.17"
     Dim i_direction(2) As Image
     Dim i_method(2), _databases, _folders, _watched_dbs, _object_list, _db_objects, _version, _session, _sync_type As String
     Dim _db_sync_method, _folders_sync_method As Integer
@@ -87,47 +87,52 @@ Public Class MPSync_settings
 
         clb.Items.Clear()
 
-        If listtype = "db_db_objects" Then
+        Try
+            If listtype = "db_db_objects" Then
 
-            Dim all_checked As Boolean = (_databases = Nothing)
+                Dim all_checked As Boolean = (_databases = Nothing)
 
-            For Each objects As String In IO.Directory.GetFiles(path, searchpattern)
-                If IO.Path.GetExtension(objects) <> ommit Or ommit = Nothing Then
-                    If all_checked Then
-                        clb.Items.Add(IO.Path.GetFileName(objects), True)
-                    Else
-                        clb.Items.Add(IO.Path.GetFileName(objects), _db_objects.Contains(IO.Path.GetFileName(objects)))
+                For Each objects As String In IO.Directory.GetFiles(path, searchpattern)
+                    If IO.Path.GetExtension(objects) <> ommit Or ommit = Nothing Then
+                        If all_checked Then
+                            clb.Items.Add(IO.Path.GetFileName(objects), True)
+                        Else
+                            clb.Items.Add(IO.Path.GetFileName(objects), _db_objects.Contains(IO.Path.GetFileName(objects)))
+                        End If
                     End If
-                End If
-            Next
+                Next
 
-        ElseIf listtype = "databases" Then
+            ElseIf listtype = "databases" Then
 
-            Dim all_checked As Boolean = (_databases = Nothing)
+                Dim all_checked As Boolean = (_databases = Nothing)
 
-            For Each database As String In IO.Directory.GetFiles(path, searchpattern)
-                If IO.Path.GetExtension(database) <> ommit Or ommit = Nothing Then
-                    If all_checked Then
-                        clb.Items.Add(IO.Path.GetFileName(database), True)
-                    Else
-                        clb.Items.Add(IO.Path.GetFileName(database), _databases.Contains(IO.Path.GetFileName(database)))
+                For Each database As String In IO.Directory.GetFiles(path, searchpattern)
+                    If IO.Path.GetExtension(database) <> ommit Or ommit = Nothing Then
+                        If all_checked Then
+                            clb.Items.Add(IO.Path.GetFileName(database), True)
+                        Else
+                            clb.Items.Add(IO.Path.GetFileName(database), _databases.Contains(IO.Path.GetFileName(database)))
+                        End If
                     End If
-                End If
-            Next
+                Next
 
-        ElseIf listtype = "thumbs" Then
+            ElseIf listtype = "thumbs" Then
 
-            Dim all_checked As Boolean = (_folders = Nothing)
+                Dim all_checked As Boolean = (_folders = Nothing)
 
-            For Each folder As String In IO.Directory.GetDirectories(path)
-                If all_checked Then
-                    clb.Items.Add(IO.Path.GetFileName(folder), True)
-                Else
-                    clb.Items.Add(IO.Path.GetFileName(folder), _folders.Contains(IO.Path.GetFileName(folder)))
-                End If
-            Next
+                For Each folder As String In IO.Directory.GetDirectories(path)
+                    If all_checked Then
+                        clb.Items.Add(IO.Path.GetFileName(folder), True)
+                    Else
+                        clb.Items.Add(IO.Path.GetFileName(folder), _folders.Contains(IO.Path.GetFileName(folder)))
+                    End If
+                Next
 
-        End If
+            End If
+            b_sync_now.Enabled = True
+        Catch ex As Exception
+            b_sync_now.Enabled = False
+        End Try
 
     End Sub
 
@@ -154,25 +159,14 @@ Public Class MPSync_settings
 
         Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync_" & UCase(objsetting) & ".xml"))
 
-            If _version = _curversion Then
-
-                _clicks_folders = XMLreader.GetValueAsInt("Path", "direction", 1)
-                tb_folders_client_path.Text = XMLreader.GetValueAsString("Path", "client", Nothing)
-                tb_folders_server_path.Text = XMLreader.GetValueAsString("Path", "server", Nothing)
-                _folders_sync_method = XMLreader.GetValueAsInt("Path", "method", 0)
-                _folders = XMLreader.GetValueAsString("Settings", "folders", Nothing)
-                cb_folders_pause.Checked = XMLreader.GetValueAsString("Settings", "pause while playing", False)
-
-            Else
-
-                _clicks_folders = XMLreader.GetValueAsInt("Thumbs Path", "direction", 1)
-                tb_folders_client_path.Text = XMLreader.GetValueAsString("Thumbs Path", "client", Nothing)
-                tb_folders_server_path.Text = XMLreader.GetValueAsString("Thumbs Path", "server", Nothing)
-                _folders_sync_method = XMLreader.GetValueAsInt("Thumbs Path", "method", 0)
-                _folders = XMLreader.GetValueAsString("Thumbs Settings", "thumbs", Nothing)
-                cb_folders_pause.Checked = XMLreader.GetValueAsString("Thumbs Settings", "pause while playing", False)
-
-            End If
+            _clicks_folders = XMLreader.GetValueAsInt("Path", "direction", 1)
+            tb_folders_client_path.Text = XMLreader.GetValueAsString("Path", "client", Nothing)
+            tb_folders_server_path.Text = XMLreader.GetValueAsString("Path", "server", Nothing)
+            _folders_sync_method = XMLreader.GetValueAsInt("Path", "method", 0)
+            _folders = XMLreader.GetValueAsString("Settings", "folders", Nothing)
+            cb_folders_pause.Checked = XMLreader.GetValueAsString("Settings", "pause while playing", False)
+            cb_folders_md5.Checked = XMLreader.GetValueAsString("Settings", "use MD5", False)
+            cb_folders_crc32.Checked = XMLreader.GetValueAsString("Settings", "use CRC32", False)
 
         End Using
 
@@ -217,6 +211,8 @@ Public Class MPSync_settings
             XMLwriter.SetValue("Path", "method", Array.IndexOf(i_method, cb_folders_sync_method.Text))
 
             XMLwriter.SetValue("Settings", "pause while playing", cb_folders_pause.Checked)
+            XMLwriter.SetValue("Settings", "use MD5", cb_folders_md5.Checked)
+            XMLwriter.SetValue("Settings", "use CRC32", cb_folders_crc32.Checked)
             XMLwriter.SetValue("Settings", "folders", _folders)
 
         End Using
@@ -305,14 +301,14 @@ Public Class MPSync_settings
         populate_objectcheckedlistbox(clb_object_list, object_list)
 
         'check if process is running
-        If isProcessRunning() Then tb_processstatus.Text = "RUNNING" Else tb_processstatus.Text = "STOPPED"
+        'If isProcessRunning() Then tb_processstatus.Text = "RUNNING" Else tb_processstatus.Text = "STOPPED"
 
         'check if process is set to autostart
-        b_processauto.Enabled = Not isProcessAuto()
-        b_removeautostart.Enabled = Not b_processauto.Enabled
+        'b_processauto.Enabled = Not isProcessAuto()
+        'b_removeautostart.Enabled = Not b_processauto.Enabled
 
-        rb_normal.Checked = b_processauto.Enabled
-        rb_process.Checked = Not b_processauto.Enabled
+        'rb_normal.Checked = b_processauto.Enabled
+        'rb_process.Checked = Not b_processauto.Enabled
 
         If b_processauto.Enabled And tc_settings.TabPages.Contains(tp_process) Then tc_settings.TabPages.Remove(tp_process)
 
@@ -401,17 +397,17 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub cb_databases_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles cb_databases.CheckedChanged
+    Private Sub cb_databases_CheckedChanged(sender As Object, e As EventArgs) Handles cb_databases.CheckedChanged
         If cb_databases.Checked Then tc_main.TabPages.Insert(1, tp_database) Else tc_main.TabPages.Remove(tp_database)
         rb_triggers.Enabled = cb_databases.Checked
         rb_timestamp.Enabled = cb_databases.Checked
     End Sub
 
-    Private Sub cb_folders_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles cb_folders.CheckedChanged
+    Private Sub cb_folders_CheckedChanged(sender As Object, e As EventArgs) Handles cb_folders.CheckedChanged
         If cb_folders.Checked Then tc_main.TabPages.Add(tp_folders) Else tc_main.TabPages.Remove(tp_folders)
     End Sub
 
-    Private Sub cb_watched_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles cb_watched.CheckedChanged
+    Private Sub cb_watched_CheckedChanged(sender As Object, e As EventArgs) Handles cb_watched.CheckedChanged
 
         If cb_watched.Checked Then
             tc_database.TabPages.Add(tp_watched)
@@ -422,7 +418,7 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub b_browse_Click(sender As System.Object, e As System.EventArgs) Handles b_db_client.Click, b_folders_client.Click, b_db_server.Click, b_folders_server.Click
+    Private Sub b_browse_Click(sender As Object, e As EventArgs) Handles b_db_client.Click, b_folders_client.Click, b_db_server.Click, b_folders_server.Click
 
         Dim objShell As Object
         Dim objFolder As Object
@@ -478,7 +474,7 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub b_direction_Click(sender As System.Object, e As System.EventArgs) Handles b_db_direction.Click, b_folders_direction.Click
+    Private Sub b_direction_Click(sender As Object, e As EventArgs) Handles b_db_direction.Click, b_folders_direction.Click
 
         If DirectCast(sender, System.Windows.Forms.Button).Name = "b_db_direction" Then
 
@@ -530,7 +526,7 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub b_save_Click(sender As System.Object, e As System.EventArgs) Handles b_save.Click
+    Private Sub b_save_Click(sender As Object, e As EventArgs) Handles b_save.Click
 
         setSettings()
 
@@ -538,7 +534,7 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub tb_path_Leave(sender As System.Object, e As System.EventArgs) Handles tb_db_client_path.Leave, tb_db_server_path.Leave, tb_folders_client_path.Leave, tb_folders_server_path.Leave
+    Private Sub tb_path_Leave(sender As Object, e As EventArgs) Handles tb_db_client_path.Leave, tb_db_server_path.Leave, tb_folders_client_path.Leave, tb_folders_server_path.Leave
 
         If Not IO.Directory.Exists(DirectCast(sender, System.Windows.Forms.TextBox).Text) Then
             MsgBox("Path not found!", MsgBoxStyle.Exclamation)
@@ -561,21 +557,21 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub rb_all_db_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_all_db.CheckedChanged
+    Private Sub rb_all_db_CheckedChanged(sender As Object, e As EventArgs) Handles rb_all_db.CheckedChanged
         clb_databases.Enabled = Not rb_all_db.Checked
         populate_watchedchecklistbox(clb_watched)
     End Sub
 
-    Private Sub rb_specific_db_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_specific_db.CheckedChanged
+    Private Sub rb_specific_db_CheckedChanged(sender As Object, e As EventArgs) Handles rb_specific_db.CheckedChanged
         clb_databases.Enabled = rb_specific_db.Checked
         populate_watchedchecklistbox(clb_watched)
     End Sub
 
-    Private Sub rb_all_folders_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_all_folders.CheckedChanged
+    Private Sub rb_all_folders_CheckedChanged(sender As Object, e As EventArgs) Handles rb_all_folders.CheckedChanged
         clb_objects.Enabled = Not rb_all_folders.Checked
     End Sub
 
-    Private Sub rb_specific_folders_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_specific_folders.CheckedChanged
+    Private Sub rb_specific_folders_CheckedChanged(sender As Object, e As EventArgs) Handles rb_specific_folders.CheckedChanged
         clb_objects.Enabled = rb_specific_folders.Checked
     End Sub
 
@@ -587,7 +583,7 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub b_add_Click(sender As System.Object, e As System.EventArgs) Handles b_add.Click
+    Private Sub b_add_Click(sender As Object, e As EventArgs) Handles b_add.Click
 
         pnl_object_list.Visible = True
 
@@ -606,7 +602,7 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub b_delete_Click(sender As System.Object, e As System.EventArgs) Handles b_delete.Click
+    Private Sub b_delete_Click(sender As Object, e As EventArgs) Handles b_delete.Click
 
         If MsgBox("Are you sure?", MsgBoxStyle.YesNo, "Delete") = MsgBoxResult.Yes Then
 
@@ -621,7 +617,7 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub b_edit_Click(sender As System.Object, e As System.EventArgs) Handles b_edit.Click
+    Private Sub b_edit_Click(sender As Object, e As EventArgs) Handles b_edit.Click
 
         getObjectSettings(clb_object_list.SelectedItem.ToString)
 
@@ -632,7 +628,7 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub b_apply_Click(sender As System.Object, e As System.EventArgs) Handles b_apply.Click
+    Private Sub b_apply_Click(sender As Object, e As EventArgs) Handles b_apply.Click
 
         If tb_folders_client_path.Text <> Nothing And tb_folders_server_path.Text <> Nothing Then
             setObjectSettings(clb_object_list.SelectedItem.ToString)
@@ -648,7 +644,7 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub clb_object_list_SelectedIndexChanged(sender As System.Object, e As System.EventArgs) Handles clb_object_list.SelectedIndexChanged
+    Private Sub clb_object_list_SelectedIndexChanged(sender As Object, e As EventArgs) Handles clb_object_list.SelectedIndexChanged
 
         If clb_object_list.SelectedItem <> Nothing Then
             b_delete.Visible = True
@@ -657,27 +653,27 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub clb_databases_SelectedValueChanged(sender As Object, e As System.EventArgs) Handles clb_databases.SelectedValueChanged
+    Private Sub clb_databases_SelectedValueChanged(sender As Object, e As EventArgs) Handles clb_databases.SelectedValueChanged
         populate_watchedchecklistbox(clb_watched)
     End Sub
 
-    Private Sub rb_w_all_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_w_all.CheckedChanged
+    Private Sub rb_w_all_CheckedChanged(sender As Object, e As EventArgs) Handles rb_w_all.CheckedChanged
         clb_watched.Enabled = Not rb_w_all.Checked
     End Sub
 
-    Private Sub rb_o_all_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_o_all.CheckedChanged
+    Private Sub rb_o_all_CheckedChanged(sender As Object, e As EventArgs) Handles rb_o_all.CheckedChanged
         clb_db_objects.Enabled = Not rb_o_all.Checked
     End Sub
 
-    Private Sub rb_o_specific_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_o_specific.CheckedChanged
+    Private Sub rb_o_specific_CheckedChanged(sender As Object, e As EventArgs) Handles rb_o_specific.CheckedChanged
         clb_db_objects.Enabled = rb_o_specific.Checked
     End Sub
 
-    Private Sub rb_o_nothing_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_o_nothing.CheckedChanged
+    Private Sub rb_o_nothing_CheckedChanged(sender As Object, e As EventArgs) Handles rb_o_nothing.CheckedChanged
         clb_db_objects.Enabled = Not rb_o_nothing.Checked
     End Sub
 
-    Private Sub rb_w_specific_CheckedChanged(sender As System.Object, e As System.EventArgs) Handles rb_w_specific.CheckedChanged
+    Private Sub rb_w_specific_CheckedChanged(sender As Object, e As EventArgs) Handles rb_w_specific.CheckedChanged
         clb_watched.Enabled = rb_w_specific.Checked
     End Sub
 
@@ -694,6 +690,14 @@ Public Class MPSync_settings
     Private Sub rb_normal_CheckedChanged(sender As Object, e As EventArgs) Handles rb_normal.CheckedChanged
         If isProcessAuto() Then b_removeautostart_Click(Nothing, Nothing)
         If isProcessRunning() Then b_processstop_Click(Nothing, Nothing)
+    End Sub
+
+    Private Sub cb_folders_md5_CheckedChanged(sender As Object, e As EventArgs) Handles cb_folders_md5.CheckedChanged
+        If cb_folders_md5.Checked Then cb_folders_crc32.Checked = False
+    End Sub
+
+    Private Sub cb_folders_crc32_CheckedChanged(sender As Object, e As EventArgs) Handles cb_folders_crc32.CheckedChanged
+        If cb_folders_crc32.Checked Then cb_folders_md5.Checked = False
     End Sub
 
     Private Function isProcessRunning(Optional ByVal wait As Boolean = True) As Boolean
@@ -794,7 +798,7 @@ Public Class MPSync_settings
         If b_processstop.Enabled Then SyncNowStatus()
     End Sub
 
-    Private Sub b_sync_now_Click(sender As System.Object, e As System.EventArgs) Handles b_sync_now.Click
+    Private Sub b_sync_now_Click(sender As Object, e As EventArgs) Handles b_sync_now.Click
 
         setSettings()
 
@@ -867,7 +871,7 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub MPSync_settings_FormClosed(sender As System.Object, e As System.EventArgs) Handles MyBase.FormClosed
+    Private Sub MPSync_settings_FormClosed(sender As Object, e As EventArgs) Handles MyBase.FormClosed
 
         Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
             XMLwriter.SetValue("Plugin", "version", _curversion)
@@ -879,7 +883,7 @@ Public Class MPSync_settings
 
     End Sub
 
-    Private Sub MPSync_settings_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
+    Private Sub MPSync_settings_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
         ' initialize version
         Me.Text = Me.Text & _curversion

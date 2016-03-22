@@ -8,7 +8,6 @@ Public Class MPSync_process_DB
 
     Dim lastsync As String
     Dim dlm As String = Chr(7) & "~" & Chr(30)
-    Dim checkplayer As Integer = 30
     Dim _bw_active_db_jobs, bw_sync_db_jobs As Integer
     Dim bw_dbs As New ArrayList
     Dim bw_sync_db() As BackgroundWorker
@@ -498,9 +497,11 @@ Public Class MPSync_process_DB
                     Exit Do
                 End If
 
-            End If
+                MPSync_process.wait(MPSync_process._db_sync, , "DB")
 
-            MPSync_process.wait(MPSync_process._db_sync, , "DB")
+            Else
+                MPSync_process.wait(5, False)
+            End If
 
         Loop
 
