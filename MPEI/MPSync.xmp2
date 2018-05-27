@@ -31,6 +31,13 @@
               <ZipFileName>Installer{CopyFile}\{bc675913-e281-499c-853f-6ba39a64a7b7}-MPSync_Process.exe</ZipFileName>
               <DestinationFilename>%Base%\MPSync_Process.exe</DestinationFilename>
             </FileItem>
+            <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
+              <Param1 />
+              <UpdateOption>AlwaysOverwrite</UpdateOption>
+              <LocalFileName>..\..\..\..\MPSync\MPSync_DirectoryEnumerator.dll</LocalFileName>
+              <ZipFileName>Installer{CopyFile}\{c84def1a-3a36-4335-97c3-99dc63114fde}-MPSync_DirectoryEnumerator.dll</ZipFileName>
+              <DestinationFilename>%Plugins%\process\MPSync_DirectoryEnumerator.dll</DestinationFilename>
+            </FileItem>
           </Items>
         </Files>
       </GroupItem>
@@ -291,13 +298,13 @@ Click Next to continue or Cancel to exit Setup.</Value>
       <Major>1</Major>
       <Minor>0</Minor>
       <Build>0</Build>
-      <Revision>19</Revision>
+      <Revision>21</Revision>
     </Version>
     <ExtensionDescription>This plugin synchronizes your MediaPortal databases with a central database as well as thumbs folder, so that any additons can by automatically applied to any other MP seat you might have in your household.</ExtensionDescription>
-    <VersionDescription>Added file size as part of the criteria for synchronization.</VersionDescription>
+    <VersionDescription>Update SQLite</VersionDescription>
     <DevelopmentStatus>Stable</DevelopmentStatus>
     <OnlineLocation>http://www.team-mediaportal.com/index.php?option=com_mtree&amp;task=att_download&amp;link_id=268&amp;cf_id=24</OnlineLocation>
-    <ReleaseDate>2017-04-17T23:39:41</ReleaseDate>
+    <ReleaseDate>2018-03-20T23:39:41</ReleaseDate>
     <Tags>synchronization, database, thumbs, any folder you set up.</Tags>
     <Location>D:\Software\MediaPortal\MPSync\[Name]-v[Version].mpe1</Location>
     <Params>
@@ -358,6 +365,13 @@ Click Next to continue or Cancel to exit Setup.</Value>
       <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
         <Param1 />
         <UpdateOption>AlwaysOverwrite</UpdateOption>
+        <LocalFileName>..\..\..\..\MPSync\MPSync_DirectoryEnumerator.dll</LocalFileName>
+        <ZipFileName>Installer{CopyFile}\{c84def1a-3a36-4335-97c3-99dc63114fde}-MPSync_DirectoryEnumerator.dll</ZipFileName>
+        <DestinationFilename>%Plugins%\process\MPSync_DirectoryEnumerator.dll</DestinationFilename>
+      </FileItem>
+      <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
+        <Param1 />
+        <UpdateOption>AlwaysOverwrite</UpdateOption>
         <LocalFileName>..\..\..\..\MPSync\System.Data.SQLite.dll</LocalFileName>
         <ZipFileName>Installer{CopyFile}\{fde0e846-bd88-4806-9aa1-01837c53aa25}-System.Data.SQLite.dll</ZipFileName>
         <DestinationFilename>%Base%\System.Data.SQLite.dll</DestinationFilename>
@@ -366,21 +380,21 @@ Click Next to continue or Cancel to exit Setup.</Value>
         <Param1 />
         <UpdateOption>OverwriteIfOlder</UpdateOption>
         <LocalFileName>MPSync.png</LocalFileName>
-        <ZipFileName>Installer{CopyFile}\{2195ad5b-2228-45b0-bdab-25b8e07cc3d5}-MPSync.png</ZipFileName>
+        <ZipFileName>Installer{CopyFile}\{dc0b3957-673c-4418-81d1-da3588606a7d}-MPSync.png</ZipFileName>
         <DestinationFilename />
       </FileItem>
       <FileItem InstallType="CopyFile" SystemFile="true" Modified="true">
         <Param1 />
         <UpdateOption>OverwriteIfOlder</UpdateOption>
         <LocalFileName>MPSync_logo.png</LocalFileName>
-        <ZipFileName>Installer{CopyFile}\{f54804ab-55ed-4bcc-8077-4430696a0768}-MPSync_logo.png</ZipFileName>
+        <ZipFileName>Installer{CopyFile}\{40c8e86b-08b1-4ebb-967c-aa4f01a21028}-MPSync_logo.png</ZipFileName>
         <DestinationFilename />
       </FileItem>
       <FileItem InstallType="CopyFile" SystemFile="true" Modified="true">
         <Param1 />
         <UpdateOption>OverwriteIfOlder</UpdateOption>
         <LocalFileName>MP_Packaging.png</LocalFileName>
-        <ZipFileName>Installer{CopyFile}\{cd48e189-9d8c-4137-9cc6-037abcc546dd}-MP_Packaging.png</ZipFileName>
+        <ZipFileName>Installer{CopyFile}\{d83c6743-0b64-42e7-bb17-32edb0b52eb6}-MP_Packaging.png</ZipFileName>
         <DestinationFilename />
       </FileItem>
     </Items>
