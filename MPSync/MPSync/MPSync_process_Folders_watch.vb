@@ -70,9 +70,9 @@ Class MPSync_process_Folders_watch
                     parm(0) = file
 
                     If e.ChangeType = WatcherChangeTypes.Changed Or e.ChangeType = WatcherChangeTypes.Created Then
-                        MPSync_process_Folders.Copy_objects(s_path, t_path, parm)
+                        MPSync_process_Folders.copy_Objects(s_path, t_path, parm)
                     ElseIf e.ChangeType = WatcherChangeTypes.Deleted Then
-                        MPSync_process_Folders.Delete_objects(t_path, parm)
+                        MPSync_process_Folders.delete_Objects(t_path, parm)
                     End If
 
                 End If
@@ -98,6 +98,10 @@ Class MPSync_process_Folders_watch
             folder = Mid(e.FullPath, l, InStr(l, e.FullPath, "\") - l)
 
             If selected_folder.Contains(folder) Or selected_folder.Contains("ALL") Then
+                Do While MPSync_process_Folders.isFileLocked(e.OldFullPath)
+                    MPSync_process.logStats("MPSync: [copy_Objects] read lock on file " & e.OldFullPath, "DEBUG")
+                    MPSync_process.wait(MPSync_process_Folders.waitLock, False)
+                Loop
                 MPSync_process.logStats("MPSync: " & folder_type & " - " & e.OldFullPath & " renamed to " & e.FullPath, "LOG")
                 FileSystem.Rename(e.OldFullPath, e.FullPath)
             End If

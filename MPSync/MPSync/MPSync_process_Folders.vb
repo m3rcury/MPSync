@@ -8,6 +8,7 @@ Imports DirectoryEnumerator
 Public Class MPSync_process_Folders
 
     Private Shared checkplayer As Integer = 30
+    Public Shared waitLock As Integer = 2
 
     Dim s_paths() As String = Nothing
     Dim t_paths() As String = Nothing
@@ -255,7 +256,7 @@ Public Class MPSync_process_Folders
 
         Dim file As Array = Nothing
         Dim x As Integer
-        Dim times As Integer
+        'Dim times As Integer
         Dim lock As New ReaderWriterLockSlim
 
         Dim directory As String
@@ -264,7 +265,7 @@ Public Class MPSync_process_Folders
 
             If folders_pause Then CheckPlayerActive()
 
-            times = 5
+            'times = 5
             file = Split(parm(x), "|")
 
             directory = IO.Path.GetDirectoryName(t_path & file(0))
@@ -274,22 +275,26 @@ Public Class MPSync_process_Folders
                 MPSync_process.logStats("MPSync: [copy_Objects] directory missing, creating " & directory, "LOG")
             End If
 
-            Do While times > 0 And Not lock.TryEnterReadLock(250)
-                times -= 1
-            Loop
+            'Do While times > 0 And Not lock.TryEnterReadLock(250)
+            'times -= 1
+            'Loop
 
-            If times > 0 Then
-                Try
-                    IO.File.Copy(s_path & file(0), t_path & file(0), True)
-                    MPSync_process.logStats("MPSync: [copy_Objects] " & t_path & file(0) & " copied.", "DEBUG")
-                Catch ex As Exception
-                    MPSync_process.logStats("MPSync: [copy_Objects] copy failed with exception: " & ex.Message, "ERROR")
+            'If times > 0 Then
+            Try
+                Do While isFileLocked(s_path & file(0))
+                    MPSync_process.logStats("MPSync: [copy_Objects] read lock on file " & s_path & file(0), "DEBUG")
+                    MPSync_process.wait(waitLock, False)
+                Loop
+                IO.File.Copy(s_path & file(0), t_path & file(0), True)
+                MPSync_process.logStats("MPSync: [copy_Objects] " & t_path & file(0) & " copied.", "DEBUG")
+            Catch ex As Exception
+                MPSync_process.logStats("MPSync: [copy_Objects] copy failed with exception: " & ex.Message, "ERROR")
                 End Try
-            Else
-                MPSync_process.logStats("MPSync: [copy_Objects] could not get read lock on file " & s_path & file(0), "ERROR")
-            End If
+            'Else
+            'MPSync_process.logStats("MPSync: [copy_Objects] could not get read lock on file " & s_path & file(0), "ERROR")
+            'End If
 
-            lock.ExitReadLock()
+            'lock.ExitReadLock()
 
         Next
 
@@ -301,32 +306,36 @@ Public Class MPSync_process_Folders
 
         Dim file As Array = Nothing
         Dim x As Integer
-        Dim times As Integer
+        'Dim times As Integer
         Dim lock As New ReaderWriterLockSlim
 
         For x = 0 To UBound(parm)
 
             CheckPlayerActive()
 
-            times = 5
+            'times = 5
             file = Split(parm(x), "|")
 
-            Do While times > 0 And Not lock.TryEnterReadLock(250)
-                times -= 1
-            Loop
+            'Do While times > 0 And Not lock.TryEnterReadLock(250)
+            'times -= 1
+            'Loop
 
-            If times > 0 Then
-                Try
-                    IO.File.Delete(t_path & file(0))
+            'If times > 0 Then
+            Try
+                Do While isFileLocked(t_path & file(0))
+                    MPSync_process.logStats("MPSync: [delete_Objects] read lock on file " & t_path & file(0), "DEBUG")
+                    MPSync_process.wait(waitLock, False)
+                Loop
+                IO.File.Delete(t_path & file(0))
                     MPSync_process.logStats("MPSync: [delete_Objects] " & t_path & file(0) & " deleted.", "DEBUG")
                 Catch ex As Exception
                     MPSync_process.logStats("MPSync: [delete_Objects] delete failed with exception: " & ex.Message, "ERROR")
                 End Try
-            Else
-                MPSync_process.logStats("MPSync: [delete_Objects] could not get read lock on file " & t_path & file(0), "ERROR")
-            End If
+            'Else
+            'MPSync_process.logStats("MPSync: [delete_Objects] could not get read lock on file " & t_path & file(0), "ERROR")
+            'End If
 
-            lock.ExitReadLock()
+            'lock.ExitReadLock()
 
         Next
 
@@ -334,10 +343,29 @@ Public Class MPSync_process_Folders
 
     End Sub
 
-    Private Shared Sub CheckPlayerActive()
+    Private Shared Sub checkPlayerActive()
         Do While MediaPortal.Player.g_Player.Playing
             MPSync_process.wait(checkplayer, False)
         Loop
     End Sub
+
+    Public Shared Function isFileLocked(filename As String) As Boolean
+
+        Dim file As FileInfo = My.Computer.FileSystem.GetFileInfo(filename)
+        Dim stream = DirectCast(Nothing, FileStream)
+
+        Try
+            stream = file.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+        Catch generatedExceptionName As IOException
+            Return True
+        Finally
+            If stream IsNot Nothing Then
+                stream.Close()
+            End If
+        End Try
+
+        Return False
+
+    End Function
 
 End Class
