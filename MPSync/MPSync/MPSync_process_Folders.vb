@@ -1,8 +1,9 @@
 ﻿Imports MediaPortal.GUI.Library
 
 Imports System.IO
-Imports System.ComponentModel
 Imports System.Threading
+
+Imports DirectoryEnumerator
 
 Public Class MPSync_process_Folders
 
@@ -89,18 +90,18 @@ Public Class MPSync_process_Folders
 
     End Sub
 
-    Private Sub Process(ByVal foldertype As String, ByVal clientpath As String, ByVal serverpath As String, ByVal direction As String, ByVal folders_sync_method As Integer, ByVal selectedfolder() As String, ByVal folders_pause As Boolean, ByVal folders_md5 As Boolean, ByVal folders_crc32 As Boolean)
+    Private Sub Process(ByVal foldertype As String, ByVal clientpath As String, ByVal serverpath As String, ByVal direction As Integer, ByVal folders_sync_method As Integer, ByVal selectedfolder() As String, ByVal folders_pause As Boolean, ByVal folders_md5 As Boolean, ByVal folders_crc32 As Boolean)
 
         MPSync_process.logStats("MPSync: [Process] " & foldertype & " synchronization cycle starting.", "LOG")
 
         ' direction is client to server
         If direction <> 2 Then
-            Process_folder(foldertype, clientpath, serverpath, folders_sync_method, selectedfolder, folders_pause, folders_md5, folders_crc32)
+            process_Folder(foldertype, clientpath, serverpath, folders_sync_method, selectedfolder, folders_pause, folders_md5, folders_crc32)
         End If
 
         ' direction is server to client
         If direction <> 1 Then
-            Process_folder(foldertype, serverpath, clientpath, folders_sync_method, selectedfolder, folders_pause, folders_md5, folders_crc32)
+            process_Folder(foldertype, serverpath, clientpath, folders_sync_method, selectedfolder, folders_pause, folders_md5, folders_crc32)
         End If
 
         MPSync_process.logStats("MPSync: [Process] " & foldertype & " synchronization cycle complete.", "LOG")
@@ -126,6 +127,7 @@ Public Class MPSync_process_Folders
 
     Private Function getobjectsDetails(ByVal path As String, ByVal c_path As String, ByVal selectedfolders() As String, ByVal md5 As Boolean, ByVal crc32 As Boolean) As Array
 
+        Dim time1, time2 As Date
         Dim objects() As String = Nothing
         Dim folder As String = Nothing
         Dim l1 As Integer = Len(path) + 1
@@ -136,29 +138,32 @@ Public Class MPSync_process_Folders
 
         Try
 
-            Dim dir As New DirectoryInfo(path)
-            Dim list = dir.GetFiles("*.*", SearchOption.AllDirectories)
+            time1 = Now
 
-            For Each file As IO.FileInfo In list
+            For Each file As FileData In FastDirectoryEnumerator.EnumerateFiles(path, "*.*", SearchOption.AllDirectories)
+
+                CheckPlayerActive()
 
                 Try
-                    folder = Mid(file.FullName, l1, InStr(l1, file.FullName, "\") - l1)
+                    folder = Mid(file.Path, l1, InStr(l1, file.Path, "\") - l1)
 
                     If selectedfolders.Contains(folder) Or selectedfolders.Contains("ALL") Then
                         x += 1
                         ReDim Preserve objects(x)
                         If md5 Then
-                            objects(x) = Right(file.FullName, Len(file.FullName) - l2) & "|" & file.LastWriteTimeUtc & "|" & file.Length & "|" & fileMD5(file.FullName)
+                            objects(x) = Right(file.Path, Len(file.Path) - l2) & "|" & file.LastWriteTimeUtc & "|" & file.Size & "|" & fileMD5(file.Path)
                         ElseIf crc32 Then
-                            objects(x) = Right(file.FullName, Len(file.FullName) - l2) & "|" & file.LastWriteTimeUtc & "|" & file.Length & "|" & fileCRC32(file.FullName)
+                            objects(x) = Right(file.Path, Len(file.Path) - l2) & "|" & file.LastWriteTimeUtc & "|" & file.Size & "|" & fileCRC32(file.Path)
                         Else
-                            objects(x) = Right(file.FullName, Len(file.FullName) - l2) & "|" & file.LastWriteTimeUtc & "|" & file.Length
+                            objects(x) = Right(file.Path, Len(file.Path) - l2) & "|" & file.LastWriteTimeUtc & "|" & file.Size
                         End If
                     End If
                 Catch ex As Exception
                 End Try
 
             Next
+
+            time2 = Now
 
         Catch ex As Exception
             MPSync_process.logStats("MPSync: [getobjectsDetails] failed to read objects from folder " & path & " with exception: " & ex.Message, "ERROR")
@@ -172,22 +177,18 @@ Public Class MPSync_process_Folders
             Array.Sort(objects)
         End If
 
-        MPSync_process.logStats("MPSync: [getobjectsDetails] " & x.ToString & " objects found in folder " & path, "LOG")
+        MPSync_process.logStats("MPSync: [getobjectsDetails] " & x.ToString & " objects found in folder " & path & " in " & DateDiff(DateInterval.Second, time1, time2).ToString & " seconds", "LOG")
 
         Return objects
 
     End Function
 
-    Private Sub Process_folder(ByVal foldertype As String, ByVal source As String, ByVal target As String, ByVal folders_sync_method As Integer, ByVal selectedfolder() As String, ByVal folders_pause As Boolean, ByVal folders_md5 As Boolean, ByVal folders_crc32 As Boolean)
+    Private Sub process_Folder(ByVal foldertype As String, ByVal source As String, ByVal target As String, ByVal folders_sync_method As Integer, ByVal selectedfolder() As String, ByVal folders_pause As Boolean, ByVal folders_md5 As Boolean, ByVal folders_crc32 As Boolean)
 
         If Not Directory.Exists(source) Then
-            MPSync_process.logStats("MPSync: [Process_folder] folder " & source & " does not exist", "ERROR")
+            MPSync_process.logStats("MPSync: [process_Folder] folder " & source & " does not exist", "ERROR")
             Exit Sub
         End If
-
-        If Not Directory.Exists(target) Then Directory.CreateDirectory(target)
-
-        On Error Resume Next
 
         Dim diff As IEnumerable(Of String)
         Dim s_folders() As String = Nothing
@@ -195,54 +196,62 @@ Public Class MPSync_process_Folders
         Dim s_path, t_path As String
         Dim x As Integer = 0
 
-        Do While UCase(Right(source, x)) = UCase(Right(target, x))
-            x += 1
-        Loop
+        Try
 
-        x -= 1
-        s_path = Left(source, Len(source) - x)
-        t_path = Left(target, Len(target) - x)
+            If Not Directory.Exists(target) Then Directory.CreateDirectory(target)
 
-        x = Array.IndexOf(foldertypes, foldertype)
+            Do While UCase(Right(source, x)) = UCase(Right(target, x))
+                x += 1
+            Loop
 
-        s_paths(x) = s_path
-        t_paths(x) = t_path
+            x -= 1
+            s_path = Left(source, Len(source) - x)
+            t_path = Left(target, Len(target) - x)
 
-        s_folders = getobjectsDetails(source, s_path, selectedfolder, folders_md5, folders_crc32)
-        t_folders = getobjectsDetails(target, t_path, selectedfolder, folders_md5, folders_crc32)
+            x = Array.IndexOf(foldertypes, foldertype)
 
-        ' propagate deletions or both
-        If folders_sync_method <> 1 And t_folders(0) <> "" Then
-            diff = t_folders.Except(s_folders, StringComparer.InvariantCultureIgnoreCase)
+            s_paths(x) = s_path
+            t_paths(x) = t_path
 
-            MPSync_process.logStats("MPSync: [Process_folder] found " & (UBound(diff.ToArray) + 1).ToString & " differences for deletion between " & source & " and " & target, "DEBUG")
+            s_folders = CType(getobjectsDetails(source, s_path, selectedfolder, folders_md5, folders_crc32), String())
+            t_folders = CType(getobjectsDetails(target, t_path, selectedfolder, folders_md5, folders_crc32), String())
 
-            If UBound(diff.ToArray) >= 0 Then
-                If (diff.Count / t_folders.Count) <= 0.25 Then
-                    Delete_objects(t_path, diff.ToArray)
-                Else
-                    MPSync_process.logStats("MPSync: [Process_folder] differences for deletion exceed 25% treshold.  Deletion not allowed for " & source & " and " & target, "INFO")
+            ' propagate deletions or both
+            If folders_sync_method <> 1 And t_folders(0) <> "" Then
+                diff = t_folders.Except(s_folders, StringComparer.InvariantCultureIgnoreCase)
+
+                MPSync_process.logStats("MPSync: [process_Folder] found " & (UBound(diff.ToArray) + 1).ToString & " differences for deletion between " & source & " and " & target, "DEBUG")
+
+                If UBound(diff.ToArray) >= 0 Then
+                    If (diff.Count / t_folders.Count) <= 0.25 Then
+                        delete_Objects(t_path, diff.ToArray)
+                    Else
+                        MPSync_process.logStats("MPSync: [process_Folder] differences for deletion exceed 25% treshold.  Deletion not allowed for " & source & " and " & target, "INFO")
+                    End If
                 End If
+
             End If
 
-        End If
+            ' propagate additions or both
+            If folders_sync_method <> 2 And s_folders(0) <> "" Then
+                diff = s_folders.Except(t_folders, StringComparer.InvariantCultureIgnoreCase)
 
-        ' propagate additions or both
-        If folders_sync_method <> 2 And s_folders(0) <> "" Then
-            diff = s_folders.Except(t_folders, StringComparer.InvariantCultureIgnoreCase)
+                MPSync_process.logStats("MPSync: [process_Folder] found " & (UBound(diff.ToArray) + 1).ToString & " differences for addition/replacement between " & source & " and " & target, "DEBUG")
 
-            MPSync_process.logStats("MPSync: [Process_folder] found " & (UBound(diff.ToArray) + 1).ToString & " differences for addition/replacement between " & source & " and " & target, "DEBUG")
+                If UBound(diff.ToArray) >= 0 Then copy_Objects(s_path, t_path, diff.ToArray, folders_pause)
 
-            If UBound(diff.ToArray) >= 0 Then Copy_objects(s_path, t_path, diff.ToArray, folders_pause)
+            End If
 
-        End If
+        Catch ex As Exception
+            MPSync_process.logStats("MPSync: [process_Folder] process failed with exception: " & ex.Message, "ERROR")
+        End Try
 
         Array.Clear(s_folders, 0, UBound(s_folders))
         Array.Clear(t_folders, 0, UBound(t_folders))
 
     End Sub
 
-    Public Shared Sub Copy_objects(ByVal s_path As String, ByVal t_path As String, ByVal parm As Array, Optional ByVal folders_pause As Boolean = False)
+    Public Shared Sub copy_Objects(ByVal s_path As String, ByVal t_path As String, ByVal parm As Array, Optional ByVal folders_pause As Boolean = False)
 
         Dim file As Array = Nothing
         Dim x As Integer
@@ -253,11 +262,7 @@ Public Class MPSync_process_Folders
 
         For x = 0 To UBound(parm)
 
-            If folders_pause Then
-                Do While MPSync_process.CheckPlayerplaying("folders")
-                    MPSync_process.wait(checkplayer, False)
-                Loop
-            End If
+            If folders_pause Then CheckPlayerActive()
 
             times = 5
             file = Split(parm(x), "|")
@@ -266,7 +271,7 @@ Public Class MPSync_process_Folders
 
             If Not IO.Directory.Exists(directory) Then
                 IO.Directory.CreateDirectory(directory)
-                MPSync_process.logStats("MPSync: [Copy_objects] directory missing, creating " & directory, "LOG")
+                MPSync_process.logStats("MPSync: [copy_Objects] directory missing, creating " & directory, "LOG")
             End If
 
             Do While times > 0 And Not lock.TryEnterReadLock(250)
@@ -276,23 +281,23 @@ Public Class MPSync_process_Folders
             If times > 0 Then
                 Try
                     IO.File.Copy(s_path & file(0), t_path & file(0), True)
-                    MPSync_process.logStats("MPSync: [Copy_objects] " & t_path & file(0) & " copied.", "DEBUG")
+                    MPSync_process.logStats("MPSync: [copy_Objects] " & t_path & file(0) & " copied.", "DEBUG")
                 Catch ex As Exception
-                    MPSync_process.logStats("MPSync: [Copy_objects] copy failed with exception: " & ex.Message, "ERROR")
+                    MPSync_process.logStats("MPSync: [copy_Objects] copy failed with exception: " & ex.Message, "ERROR")
                 End Try
             Else
-                MPSync_process.logStats("MPSync: [Copy_objects] could not get read lock on file " & s_path & file(0), "ERROR")
+                MPSync_process.logStats("MPSync: [copy_Objects] could not get read lock on file " & s_path & file(0), "ERROR")
             End If
 
             lock.ExitReadLock()
 
         Next
 
-        If file(1) <> "WATCH" Then MPSync_process.logStats("MPSync: [Copy_objects] " & x.ToString & " objects added/replaced.", "LOG")
+        If file(1) <> "WATCH" Then MPSync_process.logStats("MPSync: [copy_Objects] " & x.ToString & " objects added/replaced.", "LOG")
 
     End Sub
 
-    Public Shared Sub Delete_objects(ByVal t_path As String, ByVal parm As Array)
+    Public Shared Sub delete_Objects(ByVal t_path As String, ByVal parm As Array)
 
         Dim file As Array = Nothing
         Dim x As Integer
@@ -301,9 +306,7 @@ Public Class MPSync_process_Folders
 
         For x = 0 To UBound(parm)
 
-            Do While MPSync_process.CheckPlayerplaying("folders")
-                MPSync_process.wait(checkplayer, False)
-            Loop
+            CheckPlayerActive()
 
             times = 5
             file = Split(parm(x), "|")
@@ -315,20 +318,26 @@ Public Class MPSync_process_Folders
             If times > 0 Then
                 Try
                     IO.File.Delete(t_path & file(0))
-                    MPSync_process.logStats("MPSync: [Delete_objects] " & t_path & file(0) & " deleted.", "DEBUG")
+                    MPSync_process.logStats("MPSync: [delete_Objects] " & t_path & file(0) & " deleted.", "DEBUG")
                 Catch ex As Exception
-                    MPSync_process.logStats("MPSync: [Delete_objects] delete failed with exception: " & ex.Message, "ERROR")
+                    MPSync_process.logStats("MPSync: [delete_Objects] delete failed with exception: " & ex.Message, "ERROR")
                 End Try
             Else
-                MPSync_process.logStats("MPSync: [Delete_objects] could not get read lock on file " & t_path & file(0), "ERROR")
+                MPSync_process.logStats("MPSync: [delete_Objects] could not get read lock on file " & t_path & file(0), "ERROR")
             End If
 
             lock.ExitReadLock()
 
         Next
 
-        If file(1) <> "WATCH" Then MPSync_process.logStats("MPSync: [Delete_objects] " & x.ToString & " objects removed.", "LOG")
+        If file(1) <> "WATCH" Then MPSync_process.logStats("MPSync: [delete_Objects] " & x.ToString & " objects removed.", "LOG")
 
+    End Sub
+
+    Private Shared Sub CheckPlayerActive()
+        Do While MediaPortal.Player.g_Player.Playing
+            MPSync_process.wait(checkplayer, False)
+        Loop
     End Sub
 
 End Class

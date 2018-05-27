@@ -5,7 +5,7 @@ Imports System.Xml
 
 Public Class MPSync_settings
 
-    Dim _curversion As String = "1.0.0.17"
+    Dim _curversion As String = "1.0.0.21"
     Dim i_direction(2) As Image
     Dim i_method(2), _databases, _folders, _watched_dbs, _object_list, _db_objects, _version, _session, _sync_type As String
     Dim _db_sync_method, _folders_sync_method As Integer
@@ -131,6 +131,7 @@ Public Class MPSync_settings
             End If
             b_sync_now.Enabled = True
         Catch ex As Exception
+            MPSync_process.logStats("MPSync: " & ex.Message, "ERROR")
             b_sync_now.Enabled = False
         End Try
 

@@ -13,6 +13,11 @@ Class MPSync_process_Folders_watch
 
     Public Sub watch_folder(ByVal path As String, ByVal foldertype As String, ByVal spath As String, ByVal tpath As String, ByVal selectedfolder() As String)
 
+        If Not Directory.Exists(path) Then
+            MPSync_process.logStats("MPSync: [watch_folder] folder " & path & " does not exist", "ERROR")
+            Exit Sub
+        End If
+
         m_path = path
         s_path = spath
         t_path = tpath
