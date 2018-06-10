@@ -6,19 +6,6 @@ MPSync
 </name>
 </assembly>
 <members>
-<member name="M:MPSync.MPSync.MPSync.getHome(System.String@,System.String@,System.String@,System.String@)">
- <summary>
- If the plugin should have it's own button on the main menu of MediaPortal then it
- should return true to this method, otherwise if it should not be on home
- it should return false
- </summary>
- <param name="strButtonText">text the button should have</param>
- <param name="strButtonImage">image for the button, or empty for default</param>
- <param name="strButtonImageFocus">image for the button, or empty for default</param>
- <param name="strPictureImage">subpicture for the button or empty for none</param>
- <returns>true : plugin needs it's own button on home
- false : plugin does not need it's own button on home</returns>
-</member>
 <member name="T:MPSync.My.Resources.Resources">
 <summary>
   A strongly-typed resource class, for looking up localized strings, etc.
@@ -84,6 +71,19 @@ MPSync
 <summary>
   Looks up a localized resource of type System.Drawing.Bitmap.
 </summary>
+</member>
+<member name="M:MPSync.MPSync.MPSync.getHome(System.String@,System.String@,System.String@,System.String@)">
+ <summary>
+ If the plugin should have it's own button on the main menu of MediaPortal then it
+ should return true to this method, otherwise if it should not be on home
+ it should return false
+ </summary>
+ <param name="strButtonText">text the button should have</param>
+ <param name="strButtonImage">image for the button, or empty for default</param>
+ <param name="strButtonImageFocus">image for the button, or empty for default</param>
+ <param name="strPictureImage">subpicture for the button or empty for none</param>
+ <returns>true : plugin needs it's own button on home
+ false : plugin does not need it's own button on home</returns>
 </member>
 </members>
 </doc>
