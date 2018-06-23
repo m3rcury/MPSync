@@ -1,11 +1,12 @@
-E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\bin\Release\MPSync.dll.config
-E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\bin\Release\MPSync.dll
 E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\bin\Release\MPSync.pdb
 E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\bin\Release\MPSync.xml
 E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\obj\x86\Release\MPSync.Resources.resources
 E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\obj\x86\Release\MPSync.MPSync_settings.resources
 E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\obj\x86\Release\MPSync.vbproj.GenerateResource.cache
 E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\obj\x86\Release\MPSync.vbproj.CoreCompileInputs.cache
-E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\obj\x86\Release\MPSync.dll
 E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\obj\x86\Release\MPSync.xml
 E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\obj\x86\Release\MPSync.pdb
+E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\obj\x86\Release\MPSync.vbprojAssemblyReference.cache
+E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\bin\Release\MPSync.dll.config
+E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\bin\Release\MPSync.dll
+E:\Users\Rudolph\Documents\Visual Studio 2017\Projects\MPSync\MPSync\obj\x86\Release\MPSync.dll

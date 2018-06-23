@@ -737,6 +737,17 @@ Public Class MPSync_process_DB
         End If
 
         If parm <> String.Empty Then
+            ' check if there are available threads to submit current stream, unless there is no limit.
+
+            If MPSync_process.checkThreads("DB") <> -1 Then
+
+                Do While _bw_active_db_jobs >= MPSync_process.checkThreads("DB")
+                    MPSync_process.logStats("MPSync: [ProcessTables] waiting for available threads.", "DEBUG")
+                    MPSync_process.wait(10, False)
+                Loop
+
+            End If
+
             ReDim Preserve bw_sync_db(bw_sync_db_jobs)
             bw_sync_db(bw_sync_db_jobs) = New BackgroundWorker
             bw_sync_db(bw_sync_db_jobs).WorkerSupportsCancellation = True

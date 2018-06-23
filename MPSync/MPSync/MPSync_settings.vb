@@ -13,6 +13,8 @@ Public Class MPSync_settings
     Dim _clicks_folders As Integer = 1
     Dim lb_status_timer As New System.Timers.Timer()
 
+    Public Shared max_DB_threads As Integer = -1
+    Public Shared max_folder_threads As Integer = -1
     Public Shared syncnow As Boolean = False
     Public Shared db_complete, folders_complete As Boolean
     Public Delegate Sub lb_statusItemsAddInvoker(ByVal text As String)
@@ -248,6 +250,8 @@ Public Class MPSync_settings
                 cb_debug.Checked = XMLreader.GetValueAsBool("Plugin", "debug", False)
                 _session = XMLreader.GetValueAsString("Plugin", "session ID", System.Guid.NewGuid.ToString())
                 _sync_type = XMLreader.GetValueAsString("Plugin", "sync type", "Triggers")
+                max_DB_threads = XMLreader.GetValueAsInt("Plugin", "max DB threads", -1)
+                max_folder_threads = XMLreader.GetValueAsInt("Plugin", "max folder threads", -1)
 
                 _databases = XMLreader.GetValueAsString("DB Settings", "databases", Nothing)
                 _watched_dbs = XMLreader.GetValueAsString("DB Settings", "watched databases", Nothing)
@@ -297,6 +301,9 @@ Public Class MPSync_settings
             populate_checkedlistbox(clb_databases, tb_db_server_path.Text, "databases", "*.db3", ".db3-journal")
             populate_checkedlistbox(clb_db_objects, tb_db_server_path.Text, "db_db_objects", "*.*", ".db3")
         End If
+
+        If max_DB_threads = -1 Then nud_max_DB_streams.Value = 0 Else nud_max_DB_streams.Value = max_DB_threads
+        If max_folder_threads = -1 Then nud_max_folder_streams.Value = 0 Else nud_max_folder_streams.Value = max_folder_threads
 
         populate_watchedchecklistbox(clb_watched)
         populate_objectcheckedlistbox(clb_object_list, object_list)
@@ -375,6 +382,8 @@ Public Class MPSync_settings
             XMLwriter.SetValueAsBool("Plugin", "debug", cb_debug.Checked)
             XMLwriter.SetValue("Plugin", "session ID", _session)
             XMLwriter.SetValue("Plugin", "sync type", _sync_type)
+            XMLwriter.SetValue("Plugin", "max DB threads", max_DB_threads)
+            XMLwriter.SetValue("Plugin", "max folder threads", max_folder_threads)
 
             XMLwriter.SetValue("DB Path", "client", tb_db_client_path.Text)
             XMLwriter.SetValue("DB Path", "server", tb_db_server_path.Text)
@@ -740,6 +749,14 @@ Public Class MPSync_settings
 
         If isProcessRunning() Then tb_processstatus.Text = "RUNNING" Else tb_processstatus.Text = "STOPPED"
 
+    End Sub
+
+    Private Sub nud_max_streams_ValueChanged(sender As Object, e As EventArgs) Handles nud_max_DB_streams.ValueChanged
+        If nud_max_DB_streams.Value = 0 Then max_DB_threads = -1 Else max_DB_threads = nud_max_DB_streams.Value
+    End Sub
+
+    Private Sub nud_max_folder_streams_ValueChanged(sender As Object, e As EventArgs) Handles nud_max_folder_streams.ValueChanged
+        If nud_max_folder_streams.Value = 0 Then max_folder_threads = -1 Else max_folder_threads = nud_max_folder_streams.Value
     End Sub
 
     Private Sub b_processstop_Click(sender As Object, e As EventArgs) Handles b_processstop.Click

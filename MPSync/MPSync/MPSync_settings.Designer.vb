@@ -42,6 +42,12 @@ Partial Class MPSync_settings
         Me.rb_timestamp = New System.Windows.Forms.RadioButton()
         Me.rb_triggers = New System.Windows.Forms.RadioButton()
         Me.tp_configuration = New System.Windows.Forms.TabPage()
+        Me.Panel7 = New System.Windows.Forms.Panel()
+        Me.Label15 = New System.Windows.Forms.Label()
+        Me.nud_max_folder_streams = New System.Windows.Forms.NumericUpDown()
+        Me.Label14 = New System.Windows.Forms.Label()
+        Me.Label13 = New System.Windows.Forms.Label()
+        Me.nud_max_DB_streams = New System.Windows.Forms.NumericUpDown()
         Me.Panel6 = New System.Windows.Forms.Panel()
         Me.rb_process = New System.Windows.Forms.RadioButton()
         Me.rb_normal = New System.Windows.Forms.RadioButton()
@@ -134,6 +140,9 @@ Partial Class MPSync_settings
         Me.Panel1.SuspendLayout()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.tp_configuration.SuspendLayout()
+        Me.Panel7.SuspendLayout()
+        CType(Me.nud_max_folder_streams, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.nud_max_DB_streams, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.Panel6.SuspendLayout()
         Me.Panel2.SuspendLayout()
         Me.tp_process.SuspendLayout()
@@ -343,6 +352,7 @@ Partial Class MPSync_settings
         'tp_configuration
         '
         Me.tp_configuration.BackColor = System.Drawing.SystemColors.ButtonFace
+        Me.tp_configuration.Controls.Add(Me.Panel7)
         Me.tp_configuration.Controls.Add(Me.Panel6)
         Me.tp_configuration.Controls.Add(Me.Panel2)
         Me.tp_configuration.Location = New System.Drawing.Point(4, 22)
@@ -352,15 +362,79 @@ Partial Class MPSync_settings
         Me.tp_configuration.TabIndex = 1
         Me.tp_configuration.Text = "Configuration"
         '
+        'Panel7
+        '
+        Me.Panel7.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel7.Controls.Add(Me.Label15)
+        Me.Panel7.Controls.Add(Me.nud_max_folder_streams)
+        Me.Panel7.Controls.Add(Me.Label14)
+        Me.Panel7.Controls.Add(Me.Label13)
+        Me.Panel7.Controls.Add(Me.nud_max_DB_streams)
+        Me.Panel7.Location = New System.Drawing.Point(12, 33)
+        Me.Panel7.Name = "Panel7"
+        Me.Panel7.Size = New System.Drawing.Size(545, 40)
+        Me.Panel7.TabIndex = 73
+        '
+        'Label15
+        '
+        Me.Label15.AutoSize = True
+        Me.Label15.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label15.Location = New System.Drawing.Point(310, 11)
+        Me.Label15.Name = "Label15"
+        Me.Label15.Size = New System.Drawing.Size(60, 16)
+        Me.Label15.TabIndex = 7
+        Me.Label15.Text = "Folders :"
+        '
+        'nud_max_folder_streams
+        '
+        Me.nud_max_folder_streams.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.nud_max_folder_streams.Location = New System.Drawing.Point(373, 8)
+        Me.nud_max_folder_streams.Maximum = New Decimal(New Integer() {10, 0, 0, 0})
+        Me.nud_max_folder_streams.Name = "nud_max_folder_streams"
+        Me.nud_max_folder_streams.Size = New System.Drawing.Size(43, 22)
+        Me.nud_max_folder_streams.TabIndex = 6
+        Me.nud_max_folder_streams.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        '
+        'Label14
+        '
+        Me.Label14.AutoSize = True
+        Me.Label14.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label14.Location = New System.Drawing.Point(419, 11)
+        Me.Label14.Name = "Label14"
+        Me.Label14.Size = New System.Drawing.Size(77, 16)
+        Me.Label14.TabIndex = 5
+        Me.Label14.Text = "[0 - No limit]"
+        '
+        'Label13
+        '
+        Me.Label13.AutoSize = True
+        Me.Label13.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label13.Location = New System.Drawing.Point(47, 11)
+        Me.Label13.Name = "Label13"
+        Me.Label13.Size = New System.Drawing.Size(195, 16)
+        Me.Label13.TabIndex = 4
+        Me.Label13.Text = "Maximum Threads - Database :"
+        '
+        'nud_max_DB_streams
+        '
+        Me.nud_max_DB_streams.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.nud_max_DB_streams.Location = New System.Drawing.Point(242, 8)
+        Me.nud_max_DB_streams.Maximum = New Decimal(New Integer() {10, 0, 0, 0})
+        Me.nud_max_DB_streams.Name = "nud_max_DB_streams"
+        Me.nud_max_DB_streams.Size = New System.Drawing.Size(43, 22)
+        Me.nud_max_DB_streams.TabIndex = 0
+        Me.nud_max_DB_streams.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        '
         'Panel6
         '
         Me.Panel6.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
         Me.Panel6.Controls.Add(Me.rb_process)
         Me.Panel6.Controls.Add(Me.rb_normal)
-        Me.Panel6.Location = New System.Drawing.Point(12, 58)
+        Me.Panel6.Location = New System.Drawing.Point(12, 135)
         Me.Panel6.Name = "Panel6"
         Me.Panel6.Size = New System.Drawing.Size(545, 71)
         Me.Panel6.TabIndex = 72
+        Me.Panel6.Visible = False
         '
         'rb_process
         '
@@ -391,16 +465,16 @@ Partial Class MPSync_settings
         '
         Me.Panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
         Me.Panel2.Controls.Add(Me.cb_debug)
-        Me.Panel2.Location = New System.Drawing.Point(12, 23)
+        Me.Panel2.Location = New System.Drawing.Point(12, 79)
         Me.Panel2.Name = "Panel2"
-        Me.Panel2.Size = New System.Drawing.Size(545, 28)
+        Me.Panel2.Size = New System.Drawing.Size(545, 40)
         Me.Panel2.TabIndex = 68
         '
         'cb_debug
         '
         Me.cb_debug.AutoSize = True
         Me.cb_debug.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.cb_debug.Location = New System.Drawing.Point(196, 3)
+        Me.cb_debug.Location = New System.Drawing.Point(196, 9)
         Me.cb_debug.Name = "cb_debug"
         Me.cb_debug.Size = New System.Drawing.Size(150, 20)
         Me.cb_debug.TabIndex = 65
@@ -1272,6 +1346,10 @@ Partial Class MPSync_settings
         Me.Panel1.PerformLayout()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).EndInit()
         Me.tp_configuration.ResumeLayout(False)
+        Me.Panel7.ResumeLayout(False)
+        Me.Panel7.PerformLayout()
+        CType(Me.nud_max_folder_streams, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.nud_max_DB_streams, System.ComponentModel.ISupportInitialize).EndInit()
         Me.Panel6.ResumeLayout(False)
         Me.Panel6.PerformLayout()
         Me.Panel2.ResumeLayout(False)
@@ -1416,5 +1494,10 @@ Partial Class MPSync_settings
     Friend WithEvents tt_folders_md5 As System.Windows.Forms.ToolTip
     Friend WithEvents cb_folders_crc32 As System.Windows.Forms.CheckBox
     Friend WithEvents cb_folders_md5 As System.Windows.Forms.CheckBox
-
+    Friend WithEvents Panel7 As Panel
+    Friend WithEvents Label14 As Label
+    Friend WithEvents Label13 As Label
+    Friend WithEvents nud_max_DB_streams As NumericUpDown
+    Friend WithEvents Label15 As Label
+    Friend WithEvents nud_max_folder_streams As NumericUpDown
 End Class

@@ -22,6 +22,15 @@ Public Class MPSync_process
         Dim names As Array
     End Structure
 
+    Public Shared Property checkThreads(ByVal type As String) As Integer
+        Set(ByVal value As Integer)
+            If type = "DB" Then MPSync_settings.max_DB_threads = value Else MPSync_settings.max_folder_threads = value
+        End Set
+        Get
+            If type = "DB" Then Return MPSync_settings.max_DB_threads Else Return MPSync_settings.max_folder_threads
+        End Get
+    End Property
+
     Public Shared ReadOnly Property p_object_list As Array
         Get
             Dim list As Array = Split(object_list, "|")
@@ -185,6 +194,8 @@ Public Class MPSync_process
             session = XMLreader.GetValueAsString("Plugin", "session ID", Nothing)
             sync_type = XMLreader.GetValueAsString("Plugin", "sync type", "Triggers")
             lastsync = XMLreader.GetValueAsString("Plugin", "last sync", "0001-01-01 00:00:00")
+            checkThreads("DB") = XMLreader.GetValueAsInt("Plugin", "max DB threads", -1)
+            checkThreads("folder") = XMLreader.GetValueAsInt("Plugin", "max folder threads", -1)
             check_watched = XMLreader.GetValueAsBool("DB Settings", "watched", False)
 
             _db_client = XMLreader.GetValueAsString("DB Path", "client", Nothing)
@@ -293,6 +304,18 @@ Public Class MPSync_process
 
             Next
 
+        End If
+
+        If checkThreads("DB") = -1 Then
+            logStats("MPSync: Maximum DB threads - No limit", "INFO")
+        Else
+            logStats("MPSync: Maximum DB threads - [" & checkThreads("DB").ToString & "]", "INFO")
+        End If
+
+        If checkThreads("folder") = -1 Then
+            logStats("MPSync: Maximum Folder threads - No limit", "INFO")
+        Else
+            logStats("MPSync: Maximum Folder threads - [" & checkThreads("folder").ToString & "]", "INFO")
         End If
 
         If _db_client <> Nothing And _db_server <> Nothing And checked_databases Then
@@ -537,6 +560,16 @@ Public Class MPSync_process
             If IO.Path.GetExtension(database) <> ".db3-journal" Then
 
                 If _databases.Contains(IO.Path.GetFileName(database)) Or _databases.Contains("ALL") Then
+                    ' check if there are available threads to submit current stream, unless there is no limit.
+
+                    If checkThreads("DB") <> -1 Then
+
+                        Do While bw_threads >= checkThreads("DB")
+                            logStats("MPSync: [getDBInfo] waiting for available threads.", "DEBUG")
+                            wait(10, False)
+                        Loop
+
+                    End If
 
                     Try
                         ReDim Preserve dbname(x)
@@ -656,6 +689,17 @@ Public Class MPSync_process
         For x = 0 To UBound(_watched_dbs)
 
             If _watched_dbs(x) <> "" Then
+                ' check if there are available threads to submit current stream, unless there is no limit.
+
+                If checkThreads("DB") <> -1 Then
+
+                    Do While bw_threads >= checkThreads("DB")
+                        logStats("MPSync: [checkTriggers] waiting for available threads.", "DEBUG")
+                        wait(10, False)
+                    Loop
+
+                End If
+
                 ReDim Preserve bw_checkTriggers(x)
                 bw_checkTriggers(x) = New BackgroundWorker
                 bw_checkTriggers(x).WorkerSupportsCancellation = True
@@ -697,6 +741,16 @@ Public Class MPSync_process
                     If IO.Path.GetExtension(database) <> ".db3-journal" Then
 
                         If _databases.Contains(IO.Path.GetFileName(database)) Or _databases.Contains("ALL") Then
+                            ' check if there are available threads to submit current stream, unless there is no limit.
+
+                            If checkThreads("DB") <> -1 Then
+
+                                Do While bw_threads >= checkThreads("DB")
+                                    logStats("MPSync: [checkTriggers] waiting for available threads.", "DEBUG")
+                                    wait(10, False)
+                                Loop
+
+                            End If
 
                             ReDim Preserve bw_checkTriggers(x)
                             bw_checkTriggers(x) = New BackgroundWorker
@@ -718,6 +772,16 @@ Public Class MPSync_process
                 If IO.Path.GetExtension(database) <> ".db3-journal" Then
 
                     If _databases.Contains(IO.Path.GetFileName(database)) Or _databases.Contains("ALL") Then
+                        ' check if there are available threads to submit current stream, unless there is no limit.
+
+                        If checkThreads("DB") <> -1 Then
+
+                            Do While bw_threads >= checkThreads("DB")
+                                logStats("MPSync: [checkTriggers] waiting for available threads.", "DEBUG")
+                                wait(10, False)
+                            Loop
+
+                        End If
 
                         ReDim Preserve bw_checkTriggers(x)
                         bw_checkTriggers(x) = New BackgroundWorker
@@ -756,6 +820,17 @@ Public Class MPSync_process
             For Each database As String In IO.Directory.GetFiles(_db_client, "*.db3")
 
                 If IO.Path.GetExtension(database) <> ".db3-journal" Then
+                    ' check if there are available threads to submit current stream, unless there is no limit.
+
+                    If checkThreads("DB") <> -1 Then
+
+                        Do While bw_threads >= checkThreads("DB")
+                            logStats("MPSync: [checkTriggers] waiting for available threads.", "DEBUG")
+                            wait(10, False)
+                        Loop
+
+                    End If
+
                     ReDim Preserve bw_checkTriggers(x)
                     bw_checkTriggers(x) = New BackgroundWorker
                     bw_checkTriggers(x).WorkerSupportsCancellation = True

@@ -15,6 +15,8 @@ Public Class MPSync_process_Folders
     Dim t_paths() As String = Nothing
     Dim foldertypes() As String = Nothing
 
+    Private Shared _bw_active_fl_jobs As Integer
+
     Public Shared Sub bw_folders_worker(sender As System.Object, e As System.ComponentModel.DoWorkEventArgs)
 
         Dim mps_folders As New MPSync_process_Folders
@@ -26,6 +28,8 @@ Public Class MPSync_process_Folders
         Dim item As Array
         Dim list As Array = MPSync_process.p_object_list
 
+        _bw_active_fl_jobs = 0
+
         ' populate the CRC32 table
         createCRC32table()
 
@@ -34,6 +38,19 @@ Public Class MPSync_process_Folders
             item = Split(obj, "¬")
 
             If item(1) = "True" Then
+                ' check if there are available threads to submit current stream, unless there is no limit.
+
+                If MPSync_process.checkThreads("folders") <> -1 Then
+
+                    Do While _bw_active_fl_jobs >= MPSync_process.checkThreads("folders")
+                        MPSync_process.logStats("MPSync: [MPSync_process.WorkMethod][bw_folders_worker] waiting for available threads.", "DEBUG")
+                        MPSync_process.wait(30, False)
+                    Loop
+
+                End If
+
+                _bw_active_fl_jobs += 1
+
                 x += 1
 
                 ReDim Preserve mps_folders.foldertypes(x), mps_folders.s_paths(x), mps_folders.t_paths(x)
@@ -63,7 +80,10 @@ Public Class MPSync_process_Folders
 
                 Next
 
-                MPSync_process.wait(10, False)
+                If _bw_active_fl_jobs > 0 Then
+                    If MPSync_process.p_Debug Then MPSync_process.logStats("MPSync: [MPSync_process.WorkMethod][bw_folders_worker] waiting for background threads to finish... " & _bw_active_fl_jobs.ToString & " threads remaining processing.", "DEBUG")
+                    MPSync_process.wait(10, False)
+                End If
 
             Loop
 
@@ -107,6 +127,8 @@ Public Class MPSync_process_Folders
         End If
 
         MPSync_process.logStats("MPSync: [Process] " & foldertype & " synchronization cycle complete.", "LOG")
+
+        _bw_active_fl_jobs -= 1
 
         If Not MPSync_settings.syncnow Then
 
@@ -302,9 +324,15 @@ Public Class MPSync_process_Folders
                 End If
 
                 Try
+                    Dim lock_count As Integer = 0
                     Do While isFileLocked(s_path & file(0))
                         MPSync_process.logStats("MPSync: [copy_Objects] read lock on file " & s_path & file(0), "DEBUG")
                         MPSync_process.wait(waitLock, False)
+                        lock_count += 1
+                        If lock_count = 10 Then
+                            MPSync_process.logStats("MPSync: [copy_Objects] read lock on file " & s_path & file(0) & "not obtained.  Skipping file.", "DEBUG")
+                            Exit Do
+                        End If
                     Loop
                     IO.File.Copy(s_path & file(0), t_path & file(0), True)
                     MPSync_process.logStats("MPSync: [copy_Objects] " & t_path & file(0) & " copied.", "DEBUG")
@@ -336,9 +364,15 @@ Public Class MPSync_process_Folders
                 If file(1) = "FOLDER" Then
                     IO.Directory.Delete(t_path & file(0))
                 Else
+                    Dim lock_count As Integer = 0
                     Do While isFileLocked(t_path & file(0))
                         MPSync_process.logStats("MPSync: [delete_Objects] read lock on file " & t_path & file(0), "DEBUG")
                         MPSync_process.wait(waitLock, False)
+                        lock_count += 1
+                        If lock_count = 10 Then
+                            MPSync_process.logStats("MPSync: [delete_Objects] read lock on file " & t_path & file(0) & "not obtained.  Skipping file.", "DEBUG")
+                            Exit Do
+                        End If
                     Loop
                     IO.File.Delete(t_path & file(0))
                 End If
