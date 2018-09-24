@@ -9,7 +9,6 @@ Imports DirectoryEnumerator
 Public Class MPSync_process_Folders
 
     Private Shared checkplayer As Integer = 30
-    Public Shared waitLock As Integer = 2
 
     Dim s_paths() As String = Nothing
     Dim t_paths() As String = Nothing
@@ -324,18 +323,10 @@ Public Class MPSync_process_Folders
                 End If
 
                 Try
-                    Dim lock_count As Integer = 0
-                    Do While isFileLocked(s_path & file(0))
-                        MPSync_process.logStats("MPSync: [copy_Objects] read lock on file " & s_path & file(0), "DEBUG")
-                        MPSync_process.wait(waitLock, False)
-                        lock_count += 1
-                        If lock_count = 10 Then
-                            MPSync_process.logStats("MPSync: [copy_Objects] read lock on file " & s_path & file(0) & "not obtained.  Skipping file.", "DEBUG")
-                            Exit Do
-                        End If
-                    Loop
-                    IO.File.Copy(s_path & file(0), t_path & file(0), True)
-                    MPSync_process.logStats("MPSync: [copy_Objects] " & t_path & file(0) & " copied.", "DEBUG")
+                    If Not fileLocked(s_path & file(0), "copy_Objects") Then
+                        IO.File.Copy(s_path & file(0), t_path & file(0), True)
+                        MPSync_process.logStats("MPSync: [copy_Objects] " & t_path & file(0) & " copied.", "DEBUG")
+                    End If
                 Catch ex As Exception
                     MPSync_process.logStats("MPSync: [copy_Objects] copy failed with exception: " & ex.Message, "ERROR")
                 End Try
@@ -363,20 +354,13 @@ Public Class MPSync_process_Folders
             Try
                 If file(1) = "FOLDER" Then
                     IO.Directory.Delete(t_path & file(0))
+                    MPSync_process.logStats("MPSync: [delete_Objects] " & t_path & file(0) & " deleted.", "DEBUG")
                 Else
-                    Dim lock_count As Integer = 0
-                    Do While isFileLocked(t_path & file(0))
-                        MPSync_process.logStats("MPSync: [delete_Objects] read lock on file " & t_path & file(0), "DEBUG")
-                        MPSync_process.wait(waitLock, False)
-                        lock_count += 1
-                        If lock_count = 10 Then
-                            MPSync_process.logStats("MPSync: [delete_Objects] read lock on file " & t_path & file(0) & "not obtained.  Skipping file.", "DEBUG")
-                            Exit Do
-                        End If
-                    Loop
-                    IO.File.Delete(t_path & file(0))
+                    If Not fileLocked(t_path & file(0), "[delete_Objects]") Then
+                        IO.File.Delete(t_path & file(0))
+                        MPSync_process.logStats("MPSync: [delete_Objects] " & t_path & file(0) & " deleted.", "DEBUG")
+                    End If
                 End If
-                MPSync_process.logStats("MPSync: [delete_Objects] " & t_path & file(0) & " deleted.", "DEBUG")
             Catch ex As Exception
                 MPSync_process.logStats("MPSync: [delete_Objects] delete failed with exception: " & ex.Message, "ERROR")
             End Try
@@ -393,18 +377,41 @@ Public Class MPSync_process_Folders
         Loop
     End Sub
 
-    Public Shared Function isFileLocked(filename As String) As Boolean
+    Public Shared Function fileLocked(filename As String, proc As String) As Boolean
 
-        Dim file As FileInfo = My.Computer.FileSystem.GetFileInfo(filename)
-        Dim stream = DirectCast(Nothing, FileStream)
+        Dim lock_count As Integer = 0
+        Dim wait As Integer = 2000          '2 seconds
+
+        Do While isFileLocked(filename)
+
+            MPSync_process.logStats("MPSync: [" & proc & "] obtaining lock on file " & filename, "DEBUG")
+
+            lock_count += 1
+
+            If lock_count = 10 Then
+                MPSync_process.logStats("MPSync: [" & proc & "] lock on file " & filename & "not obtained.  File in use, skipping file.", "DEBUG")
+                Return True
+            End If
+
+            System.Threading.Thread.Sleep(wait)
+
+        Loop
+
+        Return False
+
+    End Function
+
+    Private Shared Function isFileLocked(filename As String) As Boolean
+
+        Dim f As FileStream = Nothing
 
         Try
-            stream = file.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None)
-        Catch generatedExceptionName As IOException
+            f = New IO.FileStream(filename, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+        Catch
             Return True
         Finally
-            If stream IsNot Nothing Then
-                stream.Close()
+            If f IsNot Nothing Then
+                f.Close()
             End If
         End Try
 

@@ -201,7 +201,7 @@ Partial Class MPSync_settings
         Me.l_copyright.Name = "l_copyright"
         Me.l_copyright.Size = New System.Drawing.Size(160, 13)
         Me.l_copyright.TabIndex = 61
-        Me.l_copyright.Text = "Copyright © 2013-2017, m3rcury"
+        Me.l_copyright.Text = "Copyright © 2013-2018, m3rcury"
         '
         'b_sync_now
         '

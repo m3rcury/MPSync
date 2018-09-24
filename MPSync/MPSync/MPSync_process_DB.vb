@@ -408,6 +408,8 @@ Public Class MPSync_process_DB
 
         If records > 0 Then
 
+            MPSync_process.logStats("MPSync: [getCurrentTableValues] Load current table values from " & table & " in database " & path & database, "DEBUG")
+
             Dim SQLconnect As New SQLiteConnection()
             Dim SQLcommand As SQLiteCommand = SQLconnect.CreateCommand
             Dim SQLreader As SQLiteDataReader
@@ -1022,7 +1024,7 @@ Public Class MPSync_process_DB
                 End If
 
                 columns = getFields(source, database, table)
-                w_values = BuildUpdateArray_mpsync(t_data, s_data, columns, columns)
+                w_values = BuildUpdateArray_mpsync(t_data, s_data, mps_columns, columns)
 
                 If master Then
                     UpdateRecords_mpsync(source, database, table, w_values, mps_columns, columns)

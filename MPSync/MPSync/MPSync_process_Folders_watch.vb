@@ -98,18 +98,10 @@ Class MPSync_process_Folders_watch
             folder = Mid(e.FullPath, l, InStr(l, e.FullPath, "\") - l)
 
             If selected_folder.Contains(folder) Or selected_folder.Contains("ALL") Then
-                Dim lock_count As Integer = 0
-                Do While MPSync_process_Folders.isFileLocked(e.OldFullPath)
-                    MPSync_process.logStats("MPSync: [copy_Objects] read lock on file " & e.OldFullPath, "DEBUG")
-                    MPSync_process.wait(MPSync_process_Folders.waitLock, False)
-                    lock_count += 1
-                    If lock_count = 10 Then
-                        MPSync_process.logStats("MPSync: [copy_Objects] read lock on file " & e.OldFullPath & "not obtained.  Skipping file.", "DEBUG")
-                        Exit Do
-                    End If
-                Loop
-                MPSync_process.logStats("MPSync: " & folder_type & " - " & e.OldFullPath & " renamed to " & e.FullPath, "LOG")
-                FileSystem.Rename(e.OldFullPath, e.FullPath)
+                If MPSync_process_Folders.fileLocked(e.OldFullPath, "filerename") Then
+                    MPSync_process.logStats("MPSync: " & folder_type & " - " & e.OldFullPath & " renamed to " & e.FullPath, "LOG")
+                    FileSystem.Rename(e.OldFullPath, e.FullPath)
+                End If
             End If
         Catch ex As Exception
             MPSync_process.logStats("MPSync: rename failed with exception: " & ex.Message, "ERROR")
