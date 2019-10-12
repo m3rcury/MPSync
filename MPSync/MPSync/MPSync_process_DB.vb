@@ -12,6 +12,13 @@ Public Class MPSync_process_DB
     Dim bw_dbs As New ArrayList
     Dim bw_sync_db() As BackgroundWorker
 
+    Public Structure ColumnInfo
+        Public name As String
+        Public type As String
+        Public dflt_value As String
+        Public pk As Boolean
+    End Structure
+
     Private ReadOnly Property p_Session As String
         Get
             Dim session As String = Nothing
@@ -50,7 +57,7 @@ Public Class MPSync_process_DB
         End Set
     End Property
 
-    Public Function LoadTable(ByVal path As String, ByVal database As String, ByVal table As String, Optional ByRef columns As Array = Nothing, Optional ByVal where As String = Nothing, Optional ByVal order As String = Nothing) As Array
+    Public Function LoadTable(ByVal path As String, ByVal database As String, ByVal table As String, Optional ByRef columns As ColumnInfo() = Nothing, Optional ByVal where As String = Nothing, Optional ByVal order As String = Nothing) As Array
 
         MPSync_process.logStats("MPSync: [LoadTable] Load values from table " & table & " in database " & path & database, "DEBUG")
 
@@ -98,7 +105,7 @@ Public Class MPSync_process_DB
 
                     For y = 0 To UBound(columns, 2)
                         If Not IsDBNull(SQLreader(y + 1)) Then
-                            Select Case columns(1, y)
+                            Select Case columns(y).type
                                 Case "INTEGER", "REAL", "BLOB"
                                     data(1, x) &= SQLreader(y + 1).ToString.Replace(",", ".") & dlm
                                     If y = z Then data(2, x) = SQLreader(y + 1).ToString
@@ -238,14 +245,14 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Public Function getFields(ByVal path As String, ByVal database As String, ByVal table As String) As Array
+    Public Function getFields(ByVal path As String, ByVal database As String, ByVal table As String) As ColumnInfo()
 
         'MPSync_process.logStats("MPSync: [getFields]", "DEBUG")
 
         Dim SQLconnect As New SQLiteConnection()
         Dim SQLcommand As SQLiteCommand = SQLconnect.CreateCommand
         Dim SQLreader As SQLiteDataReader
-        Dim columns(,) As String = Nothing
+        Dim columns() As ColumnInfo = Nothing
         Dim x As Integer = 0
 
         Try
@@ -255,11 +262,11 @@ Public Class MPSync_process_DB
             SQLreader = SQLcommand.ExecuteReader()
 
             While SQLreader.Read()
-                ReDim Preserve columns(3, x)
-                columns(0, x) = LCase(SQLreader(1))
-                columns(1, x) = UCase(SQLreader(2))
-                If Not IsDBNull(SQLreader(4)) Then columns(2, x) = SQLreader(4).ToString.Replace("'", "")
-                columns(3, x) = SQLreader(5)
+                ReDim Preserve columns(x)
+                columns(x).name = LCase(SQLreader(1))
+                columns(x).type = UCase(SQLreader(2))
+                If Not IsDBNull(SQLreader(4)) Then columns(x).dflt_value = SQLreader(4).ToString.Replace("'", "")
+                columns(x).pk = SQLreader(5)
                 x += 1
             End While
         Catch ex As Exception
@@ -271,14 +278,14 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Function getSelectFields(ByVal columns As Array) As String
+    Private Function getSelectFields(ByVal columns As ColumnInfo()) As String
 
         'MPSync_process.logStats("MPSync: [getSelectFields]", "DEBUG")
 
         Dim fields As String = Nothing
 
         For x = 0 To UBound(columns, 2)
-            fields &= columns(0, x) & ","
+            fields &= columns(x).name & ","
         Next
 
         Return Left(fields, Len(fields) - 1)
@@ -318,7 +325,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Public Function getPkValues(ByVal values As Array, ByVal mps_columns As Array, ByVal columns As Array) As Array
+    Public Function getPkValues(ByVal values As Array, ByVal mps_columns As ColumnInfo(), ByVal columns As Array) As Array
 
         'MPSync_process.logStats("MPSync: [getPkValues]", "DEBUG")
 
@@ -350,17 +357,20 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Public Function getPK(ByVal columns As Array, Optional ByRef pkey As String = Nothing) As Integer
+    Public Function getPK(ByVal columns As ColumnInfo(), Optional ByRef pkey As String = Nothing) As Integer
 
         'MPSync_process.logStats("MPSync: [getPK]", "DEBUG")
 
         Dim x As Integer
         Dim pk As Array = getArray(columns, 3)
 
-        x = Array.IndexOf(pk, "1")
+        x = 0
+        While x < columns.Length And Not columns(x).pk
+            x += 1
+        End While
 
-        If x <> -1 Then
-            pkey = columns(0, x)
+        If x < columns.Length Then
+            pkey = columns(x).name
             Return x
         Else
             pkey = Nothing
@@ -400,7 +410,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Public Function getCurrentTableValues(ByVal path As String, ByVal database As String, ByVal table As String, ByVal columns As Array, ByVal mps_cols As Array, ByVal pkey As String, ByVal fields As String, ByVal where As String) As Array
+    Public Function getCurrentTableValues(ByVal path As String, ByVal database As String, ByVal table As String, ByVal columns As ColumnInfo(), ByVal mps_cols As Array, ByVal pkey As String, ByVal fields As String, ByVal where As String) As Array
 
         MPSync_process.logStats("MPSync: [getCurrentTableValues] Get current table values from " & table & " in database " & path & database, "DEBUG")
 
@@ -426,14 +436,14 @@ Public Class MPSync_process_DB
             curvalues = Nothing
 
             For x = 0 To UBound(columns, 2)
-                z = Array.IndexOf(mps_cols, columns(0, x))
+                z = Array.IndexOf(mps_cols, columns(x).name)
                 If z <> -1 Then
-                    If columns(0, x) <> pkey Then
+                    If columns(x).name <> pkey Then
                         ReDim Preserve curvalues(i)
                         If Not IsDBNull(SQLreader(i)) Then
-                            curvalues(i) = columns(0, x) & "=" & FormatValue(SQLreader(i), columns(1, x))
+                            curvalues(i) = columns(x).name & "=" & FormatValue(SQLreader(i), columns(x).type)
                         Else
-                            curvalues(i) = columns(0, x) & "=" & FormatValue("NULL", columns(1, x))
+                            curvalues(i) = columns(x).name & "=" & FormatValue("NULL", columns(x).type)
                         End If
                         i += 1
                     End If
@@ -946,7 +956,7 @@ Public Class MPSync_process_DB
 
     Private Sub db_worker(ByVal s_path As String, ByVal t_path As String, ByVal database As String, ByVal table As String)
 
-        Dim columns(,) As String = Nothing
+        Dim columns() As ColumnInfo = Nothing
 
         MPSync_process.logStats("MPSync: [db_worker] synchronization of table " & table & " in database " & t_path & database & " started.", "LOG")
 
@@ -969,7 +979,7 @@ Public Class MPSync_process_DB
 
     End Sub
 
-    Public Function Synchronize_DB(ByVal s_path As String, ByVal t_path As String, ByVal database As String, ByVal table As String, ByVal columns As Array, ByVal method As Integer) As Boolean
+    Public Function Synchronize_DB(ByVal s_path As String, ByVal t_path As String, ByVal database As String, ByVal table As String, ByVal columns As ColumnInfo(), ByVal method As Integer) As Boolean
 
         MPSync_process.logStats("MPSync: [Synchronize_DB] synchronization of table " & table.Replace("~", String.Empty) & " in database " & t_path & database & " in progress...", "LOG")
 
@@ -1114,7 +1124,7 @@ Public Class MPSync_process_DB
 
     End Sub
 
-    Private Function InsertRecords(ByVal s_path As String, ByVal t_path As String, ByVal database As String, ByVal table As String, ByVal columns As Array, ByVal method As Integer) As Boolean
+    Private Function InsertRecords(ByVal s_path As String, ByVal t_path As String, ByVal database As String, ByVal table As String, ByVal columns As ColumnInfo(), ByVal method As Integer) As Boolean
 
         ' propagate additions
         If method = 2 Then Return True
@@ -1185,7 +1195,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Function DeleteRecords(ByVal s_path As String, ByVal t_path As String, ByVal database As String, ByVal table As String, ByVal columns As Array, ByVal method As Integer) As Boolean
+    Private Function DeleteRecords(ByVal s_path As String, ByVal t_path As String, ByVal database As String, ByVal table As String, ByVal columns As ColumnInfo(), ByVal method As Integer) As Boolean
 
         ' propagate deletions
         If method = 1 Or table = "mpsync" Then Return True
@@ -1221,7 +1231,7 @@ Public Class MPSync_process_DB
             SQLcommand.ExecuteNonQuery()
 
             Try
-                If getPK(columns, pkey) = -1 Then pkey = columns(0, 0)
+                If getPK(columns, pkey) = -1 Then pkey = columns(0).name
 
                 SQLcommand.CommandText = "DELETE FROM target." & table & " WHERE " & pkey & " IN (SELECT " & pkey & " FROM (SELECT * FROM target." & table & " EXCEPT SELECT * FROM " & table & "))"
 
@@ -1251,7 +1261,7 @@ Public Class MPSync_process_DB
 
     End Function
 
-    Private Sub UpdateRecords(ByVal path As String, ByVal database As String, ByVal table As String, ByVal s_data As Array, ByVal t_data As Array, ByVal columns As Array, ByVal method As Integer)
+    Private Sub UpdateRecords(ByVal path As String, ByVal database As String, ByVal table As String, ByVal s_data As Array, ByVal t_data As Array, ByVal columns As ColumnInfo(), ByVal method As Integer)
 
         Dim mps_columns As Array = Nothing
         Dim w_values As Array
@@ -1290,15 +1300,15 @@ Public Class MPSync_process_DB
                 a_values = Split(w_values(1, y), dlm)
 
                 For x = 0 To UBound(columns, 2)
-                    z = Array.IndexOf(updcols, columns(0, x))
+                    z = Array.IndexOf(updcols, columns(x).name)
                     If z <> -1 Then
-                        If columns(0, x) <> pkey Then
+                        If columns(x).name <> pkey Then
                             ReDim Preserve update(i)
-                            update(i) = columns(0, x) & "=" & FormatValue(a_values(z), columns(1, x))
-                            fields &= columns(0, x) & ","
+                            update(i) = columns(x).name & "=" & FormatValue(a_values(z), columns(x).type)
+                            fields &= columns(x).name & ","
                             i += 1
                         Else
-                            where = pkey & " = " & FormatValue(a_values(z), columns(1, x))
+                            where = pkey & " = " & FormatValue(a_values(z), columns(x).type)
                         End If
                     End If
                 Next
