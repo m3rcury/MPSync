@@ -26,22 +26,20 @@ Public Class MPSync_settings
 
     Public i_watched(3) As Watched
 
-    Public WriteOnly Property SetWatched
-        Set(value)
-            i_watched(0).database = "movingpictures.db3"
-            i_watched(0).tables = {"user_movie_settings", "movie_info"}
-            i_watched(1).database = "MusicDatabaseV13.db3"
-            i_watched(1).tables = {"tracks"}
-            i_watched(2).database = "TVSeriesDatabase4.db3"
-            i_watched(2).tables = {"local_episodes", "online_episodes", "online_series", "season"}
-            i_watched(3).database = "VideoDatabaseV5.db3"
-            i_watched(3).tables = {"bookmark", "movie", "resume"}
-        End Set
-    End Property
+    Public Sub SetWatched()
+        i_watched(0).database = "movingpictures.db3"
+        i_watched(0).tables = {"user_movie_settings", "movie_info"}
+        i_watched(1).database = "MusicDatabaseV13.db3"
+        i_watched(1).tables = {"tracks"}
+        i_watched(2).database = "TVSeriesDatabase4.db3"
+        i_watched(2).tables = {"local_episodes", "online_episodes", "online_series", "season"}
+        i_watched(3).database = "VideoDatabaseV5.db3"
+        i_watched(3).tables = {"bookmark", "movie", "resume"}
+    End Sub
 
-    Public ReadOnly Property getDatabase As Array
+    Public ReadOnly Property getDatabase As String()
         Get
-            If i_watched(0).database = Nothing Then SetWatched = Nothing
+            If i_watched(0).database = Nothing Then SetWatched()
             Dim database(UBound(i_watched)) As String
             For x As Integer = 0 To UBound(i_watched)
                 database(x) = i_watched(x).database
@@ -52,7 +50,7 @@ Public Class MPSync_settings
 
     Public ReadOnly Property getTables(ByVal database As String) As Array
         Get
-            If i_watched(0).database = Nothing Then SetWatched = Nothing
+            If i_watched(0).database = Nothing Then SetWatched()
             Dim y As Integer = Array.IndexOf(getDatabase, database)
             If y <> -1 Then
                 Dim tables(UBound(i_watched(y).tables)) As String
@@ -72,8 +70,8 @@ Public Class MPSync_settings
 
         If Microsoft.VisualBasic.Right(object_list, 1) = "|" Then object_list = Microsoft.VisualBasic.Left(object_list, Len(object_list) - 1)
 
-        Dim item As Array
-        Dim list As Array = Split(object_list, "|")
+        Dim item As String()
+        Dim list As String() = Split(object_list, "|")
 
         For Each obj As String In list
 
@@ -167,9 +165,9 @@ Public Class MPSync_settings
             tb_folders_server_path.Text = XMLreader.GetValueAsString("Path", "server", Nothing)
             _folders_sync_method = XMLreader.GetValueAsInt("Path", "method", 0)
             _folders = XMLreader.GetValueAsString("Settings", "folders", Nothing)
-            cb_folders_pause.Checked = XMLreader.GetValueAsString("Settings", "pause while playing", False)
-            cb_folders_md5.Checked = XMLreader.GetValueAsString("Settings", "use MD5", False)
-            cb_folders_crc32.Checked = XMLreader.GetValueAsString("Settings", "use CRC32", False)
+            cb_folders_pause.Checked = CBool(XMLreader.GetValueAsString("Settings", "pause while playing", False.ToString()))
+            cb_folders_md5.Checked = CBool(XMLreader.GetValueAsString("Settings", "use MD5", False.ToString()))
+            cb_folders_crc32.Checked = CBool(XMLreader.GetValueAsString("Settings", "use CRC32", False.ToString()))
 
         End Using
 
@@ -656,7 +654,7 @@ Public Class MPSync_settings
 
     Private Sub clb_object_list_SelectedIndexChanged(sender As Object, e As EventArgs) Handles clb_object_list.SelectedIndexChanged
 
-        If clb_object_list.SelectedItem <> Nothing Then
+        If clb_object_list.SelectedItem IsNot Nothing Then
             b_delete.Visible = True
             b_edit.Visible = True
         End If
@@ -785,7 +783,7 @@ Public Class MPSync_settings
         Dim regKey As Microsoft.Win32.RegistryKey
 
         regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE\Microsoft\Windows\CurrentVersion\Run", True)
-        status = Not (regKey.GetValue("MPSync_Process") = Nothing)
+        status = Not (regKey.GetValue("MPSync_Process") Is Nothing)
         regKey.Close()
 
         Return status
