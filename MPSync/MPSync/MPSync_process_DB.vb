@@ -320,9 +320,9 @@ Public Class MPSync_process_DB
 
         If x = -1 Then Return Nothing
 
-        Dim mps_cols As Array = getArray(mps_columns, 0)
+        Dim mps_cols As String() = mps_columns.Select(Function(m) m.name).ToArray
 
-        x = Array.IndexOf(mps_cols, columns(0, x))
+        x = Array.IndexOf(mps_cols, columns(x).name)
 
         Dim temp1 As Array = getArray(values, 1)
 
@@ -366,6 +366,27 @@ Public Class MPSync_process_DB
         Dim a_values() As String = Split(values, dlm)
 
         Return a_values(index)
+
+    End Function
+
+    Public Function getArray(ByVal array As Array, ByVal dimension As Integer) As Array
+
+        'MPSync_process.logStats("MPSync: [getArray]", "DEBUG")
+
+        If array Is Nothing Then Return Nothing
+
+        Dim newarray(0) As String
+
+        Try
+            For x As Integer = 0 To UBound(array, 2)
+                ReDim Preserve newarray(x)
+                newarray(x) = array(dimension, x)
+            Next
+        Catch ex As Exception
+            Return Nothing
+        End Try
+
+        Return newarray
 
     End Function
 
