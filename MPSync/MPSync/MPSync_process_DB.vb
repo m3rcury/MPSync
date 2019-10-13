@@ -1079,6 +1079,15 @@ Public Class MPSync_process_DB
 
     End Sub
 
+    Private Function GetColumnsToCheck(ByVal tablename As String, ByVal columns As List(Of ColumnInfo)) As String
+        If Not MPSync_process.check_watched And tablename = "user_movie_settings" Then
+            Dim colArray As String() = columns.Where(Function(c) c.name <> "watched" And Not c.name Like "resume*").Select(Function(c2) c2.name).ToArray
+            Return String.Join(",", colArray)
+        Else
+            Return "*"
+        End If
+    End Function
+
     Private Function InsertRecords(ByVal s_path As String, ByVal t_path As String, ByVal database As String, ByVal table As String, ByVal columns As List(Of ColumnInfo), ByVal method As Integer) As Boolean
 
         ' propagate additions
@@ -1122,7 +1131,8 @@ Public Class MPSync_process_DB
             Try
                 getPK(columns, pkey)
 
-                SQLcommand.CommandText = "INSERT INTO target." & table & " SELECT * FROM " & table & " EXCEPT SELECT * FROM target." & table
+                Dim cols As String = GetColumnsToCheck(table, columns)
+                SQLcommand.CommandText = "INSERT INTO target." & table & " SELECT " & cols & " FROM " & table & " EXCEPT SELECT " & cols & " FROM target." & table
 
                 MPSync_process.logStats("MPSync: [InsertRecords] " & SQLcommand.CommandText, "DEBUG")
 
@@ -1188,7 +1198,8 @@ Public Class MPSync_process_DB
             Try
                 If getPK(columns, pkey) = -1 Then pkey = columns(0).name
 
-                SQLcommand.CommandText = "DELETE FROM target." & table & " WHERE " & pkey & " IN (SELECT " & pkey & " FROM (SELECT * FROM target." & table & " EXCEPT SELECT * FROM " & table & "))"
+                Dim cols As String = GetColumnsToCheck(table, columns)
+                SQLcommand.CommandText = "DELETE FROM target." & table & " WHERE " & pkey & " IN (SELECT " & pkey & " FROM (SELECT " & cols & " FROM target." & table & " EXCEPT SELECT " & cols & " FROM " & table & "))"
 
                 MPSync_process.logStats("MPSync: [DeleteRecords] " & SQLcommand.CommandText, "DEBUG")
 
