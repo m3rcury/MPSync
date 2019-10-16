@@ -43,7 +43,7 @@ Public Class MPSync_process_DB
         Get
             Dim session As String = Nothing
             Try
-                Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+                Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
                     session = XMLreader.GetValueAsString("Plugin", "session ID", Nothing)
                 End Using
             Catch ex As Exception
@@ -57,7 +57,7 @@ Public Class MPSync_process_DB
         Get
             Dim lastsync As String = "0001-01-01 00:00:00"
             Try
-                Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+                Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
                     lastsync = XMLreader.GetValueAsString("Plugin", "last sync", "0001-01-01 00:00:00")
                 End Using
             Catch ex As Exception
@@ -67,7 +67,7 @@ Public Class MPSync_process_DB
         End Get
         Set(value As String)
             Try
-                Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+                Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
                     XMLwriter.SetValue("Plugin", "last sync", value)
                 End Using
                 MediaPortal.Profile.Settings.SaveCache()

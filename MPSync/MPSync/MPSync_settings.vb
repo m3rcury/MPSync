@@ -26,6 +26,10 @@ Public Class MPSync_settings
 
     Public i_watched(3) As Watched
 
+    Public Shared Function GetConfigFileName() As String
+        Return Config.GetFile(Config.Dir.Config, "MPSync.xml")
+    End Function
+
     Public Sub SetWatched()
         i_watched(0).database = "movingpictures.db3"
         i_watched(0).tables = {"user_movie_settings", "movie_info"}
@@ -236,11 +240,11 @@ Public Class MPSync_settings
 
         Dim object_list As String = Nothing
 
-        If IO.File.Exists(Config.GetFile(Config.Dir.Config, "MPSync.xml")) Then
+        If IO.File.Exists(MPSync_settings.GetConfigFileName) Then
 
             '  get settings from XML configuration file
 
-            Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+            Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
 
                 _version = XMLreader.GetValueAsString("Plugin", "version", "0")
                 cb_databases.Checked = XMLreader.GetValueAsBool("Plugin", "databases", True)
@@ -372,7 +376,7 @@ Public Class MPSync_settings
             _object_list += clb_object_list.GetItemText(clb_object_list.Items(x)) & "¬" & clb_object_list.GetItemChecked(x) & "|"
         Next
 
-        Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+        Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
 
             XMLwriter.SetValue("Plugin", "version", _curversion)
             XMLwriter.SetValueAsBool("Plugin", "databases", cb_databases.Checked)
@@ -889,7 +893,7 @@ Public Class MPSync_settings
 
     Private Sub MPSync_settings_FormClosed(sender As Object, e As EventArgs) Handles MyBase.FormClosed
 
-        Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+        Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
             XMLwriter.SetValue("Plugin", "version", _curversion)
         End Using
 

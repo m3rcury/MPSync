@@ -42,7 +42,7 @@ Public Class MPSync_process
         Get
             Dim debug As Boolean = False
             Try
-                Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+                Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
                     debug = XMLreader.GetValueAsBool("Plugin", "debug", False)
                 End Using
             Catch ex As Exception
@@ -177,7 +177,7 @@ Public Class MPSync_process
 
     Private Sub MPSyncProcess()
 
-        Dim file As String = Config.GetFile(Config.Dir.Config, "MPSync.xml")
+        Dim file As String = MPSync_settings.GetConfigFileName
 
         If Not FileIO.FileSystem.FileExists(file) Then Return
 
@@ -223,7 +223,7 @@ Public Class MPSync_process
 
         If session = Nothing Then
             session = System.Guid.NewGuid.ToString()
-            Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+            Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
                 XMLwriter.SetValue("Plugin", "session ID", session)
             End Using
         End If
