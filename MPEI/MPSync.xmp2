@@ -48,6 +48,13 @@
               <ZipFileName>Installer{CopyFile}\{fde0e846-bd88-4806-9aa1-01837c53aa25}-System.Data.SQLite.dll</ZipFileName>
               <DestinationFilename>%Base%\System.Data.SQLite.dll</DestinationFilename>
             </FileItem>
+            <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
+              <Param1 />
+              <UpdateOption>AlwaysOverwrite</UpdateOption>
+              <LocalFileName>..\MPSync\MPSync\bin\Release\x86\SQLite.Interop.dll</LocalFileName>
+              <ZipFileName>Installer{CopyFile}\{a0bd48e7-3523-4734-a693-f1c331346115}-SQLite.Interop.dll</ZipFileName>
+              <DestinationFilename>%Base%\SQLite.Interop.dll</DestinationFilename>
+            </FileItem>
           </Items>
         </Files>
       </GroupItem>
@@ -361,6 +368,13 @@ Click Next to continue or Cancel to exit Setup.</Value>
         <LocalFileName>..\MPSync\MPSync\bin\Release\System.Data.SQLite.dll</LocalFileName>
         <ZipFileName>Installer{CopyFile}\{fde0e846-bd88-4806-9aa1-01837c53aa25}-System.Data.SQLite.dll</ZipFileName>
         <DestinationFilename>%Base%\System.Data.SQLite.dll</DestinationFilename>
+      </FileItem>
+      <FileItem InstallType="CopyFile" SystemFile="false" Modified="true">
+        <Param1 />
+        <UpdateOption>AlwaysOverwrite</UpdateOption>
+        <LocalFileName>..\MPSync\MPSync\bin\Release\x86\SQLite.Interop.dll</LocalFileName>
+        <ZipFileName>Installer{CopyFile}\{a0bd48e7-3523-4734-a693-f1c331346115}-SQLite.Interop.dll</ZipFileName>
+        <DestinationFilename>%Base%\SQLite.Interop.dll</DestinationFilename>
       </FileItem>
       <FileItem InstallType="CopyFile" SystemFile="true" Modified="true">
         <Param1 />
