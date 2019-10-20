@@ -1129,10 +1129,11 @@ Public Class MPSync_process_DB
             SQLcommand.ExecuteNonQuery()
 
             Try
-                getPK(columns, pkey)
+                If getPK(columns, pkey) = -1 Then pkey = columns(0).name
 
                 Dim cols As String = GetColumnsToCheck(table, columns)
-                SQLcommand.CommandText = "INSERT INTO target." & table & " SELECT " & cols & " FROM " & table & " EXCEPT SELECT " & cols & " FROM target." & table
+                SQLcommand.CommandText = "INSERT INTO target." & table & " SELECT * FROM " & table &
+                    " WHERE " & pkey & " in ( SELECT " & pkey & " FROM ( SELECT " & cols & " FROM " & table & " EXCEPT SELECT " & cols & " FROM target." & table & ") )"
 
                 MPSync_process.logStats("MPSync: [InsertRecords] " & SQLcommand.CommandText, "DEBUG")
 
