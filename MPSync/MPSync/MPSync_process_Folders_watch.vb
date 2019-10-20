@@ -44,9 +44,6 @@ Class MPSync_process_Folders_watch
         'Set this property to true to start watching
         watchfolder.EnableRaisingEvents = True
 
-        Dim autoEvent As New AutoResetEvent(False)
-        autoEvent.WaitOne()
-
     End Sub
 
     Private Sub fileChange(ByVal source As Object, ByVal e As System.IO.FileSystemEventArgs)
