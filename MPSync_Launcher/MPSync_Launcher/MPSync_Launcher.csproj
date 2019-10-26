@@ -155,6 +155,12 @@
   <ItemGroup>
     <Content Include="MPSync.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\MPSync\MPSync\MPSync.vbproj">
+      <Project>{c23857f2-6ba9-4fa4-9d15-b535c5c41564}</Project>
+      <Name>MPSync</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -10,9 +10,6 @@ using MediaPortal.Configuration;
 namespace MPSync_Launcher {
     static class Program {
 
-        private static string pluginFile = string.Empty;
-        private static string[] assemblies = null;
-
         enum MsgBoxIcon {
             INFO,
             WARNING,
@@ -23,17 +20,18 @@ namespace MPSync_Launcher {
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main() {
+        static void Main(string[] args) {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            
+
             // Load Plugin Configuration
-            LoadPluginConfiguration();
+            if (args.Length == 1)
+                LoadPluginConfiguration(Path.Combine(args[0], Properties.Resources.plugin));
+            else
+                LoadPluginConfiguration(Config.GetFile(Config.Dir.Plugins, "process", Properties.Resources.plugin.ToLower()));
         }
         
-        public static void LoadPluginConfiguration() {
-
-            pluginFile = Config.GetFile(Config.Dir.Plugins, "process", Properties.Resources.plugin.ToLower());
+        public static void LoadPluginConfiguration(string pluginFile) {
 
             if (!File.Exists(pluginFile)) {
                 string message = string.Format("Plugin not found: {0}", pluginFile);
@@ -43,6 +41,7 @@ namespace MPSync_Launcher {
 
             // Flag if plugin has a configuration form
             bool hasConfigForm = false;
+            string[] assemblies = null;
 
             try {
                 // Get Plugin Assembly and check if its valid
