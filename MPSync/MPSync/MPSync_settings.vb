@@ -587,7 +587,7 @@ Public Class MPSync_settings
         clb_objects.Enabled = rb_specific_folders.Checked
     End Sub
 
-    Private Sub tb_object_list_KeyPress(sender As Object, e As System.Windows.Forms.KeyPressEventArgs) Handles tb_object_list.KeyPress
+    Private Sub tb_object_list_KeyPress(sender As Object, e As System.Windows.Forms.KeyPressEventArgs)
 
         If e.KeyChar = Chr(13) Then
             SendKeys.Send(vbTab)
@@ -597,20 +597,11 @@ Public Class MPSync_settings
 
     Private Sub b_add_Click(sender As Object, e As EventArgs) Handles b_add.Click
 
-        pnl_object_list.Visible = True
-
-        tb_object_list.Text = Nothing
-        tb_object_list.Focus()
-
-        Do While tb_object_list.Focused
-            Threading.Thread.Sleep(50)
-            Application.DoEvents()
-        Loop
-
-        clb_object_list.Items.Add(tb_object_list.Text, False)
-        clb_object_list.TopIndex = clb_object_list.Items.Count - 1
-        tb_object_list.Text = Nothing
-        pnl_object_list.Visible = False
+        Dim s As String = InputBox("Name:", "Add folder item")
+        If s <> "" Then
+            clb_object_list.Items.Add(s, False)
+            clb_object_list.TopIndex = clb_object_list.Items.Count - 1
+        End If
 
     End Sub
 
@@ -622,8 +613,11 @@ Public Class MPSync_settings
             clb_object_list.Items.Remove(clb_object_list.SelectedItem)
 
             clb_object_list.SelectedItem = Nothing
-            b_delete.Visible = False
-            b_edit.Visible = False
+            b_delete.Enabled = False
+            b_edit.Enabled = False
+
+            tc_objects.TabPages.Remove(tp_paths)
+            tc_objects.TabPages.Remove(tp_advancedsettings)
 
         End If
 
@@ -659,8 +653,8 @@ Public Class MPSync_settings
     Private Sub clb_object_list_SelectedIndexChanged(sender As Object, e As EventArgs) Handles clb_object_list.SelectedIndexChanged
 
         If clb_object_list.SelectedItem IsNot Nothing Then
-            b_delete.Visible = True
-            b_edit.Visible = True
+            b_delete.Enabled = True
+            b_edit.Enabled = True
         End If
 
     End Sub
