@@ -53,7 +53,7 @@
               <UpdateOption>AlwaysOverwrite</UpdateOption>
               <LocalFileName>..\MPSync\MPSync\bin\Release\x86\SQLite.Interop.dll</LocalFileName>
               <ZipFileName>Installer{CopyFile}\{a0bd48e7-3523-4734-a693-f1c331346115}-SQLite.Interop.dll</ZipFileName>
-              <DestinationFilename>%Plugins%\process\SQLite.Interop.dll</DestinationFilename>
+              <DestinationFilename>%Plugins%\process\x86\SQLite.Interop.dll</DestinationFilename>
             </FileItem>
           </Items>
         </Files>
@@ -374,7 +374,7 @@ Click Next to continue or Cancel to exit Setup.</Value>
         <UpdateOption>AlwaysOverwrite</UpdateOption>
         <LocalFileName>..\MPSync\MPSync\bin\Release\x86\SQLite.Interop.dll</LocalFileName>
         <ZipFileName>Installer{CopyFile}\{a0bd48e7-3523-4734-a693-f1c331346115}-SQLite.Interop.dll</ZipFileName>
-        <DestinationFilename>%Plugins%\process\SQLite.Interop.dll</DestinationFilename>
+        <DestinationFilename>%Plugins%\process\x86\SQLite.Interop.dll</DestinationFilename>
       </FileItem>
       <FileItem InstallType="CopyFile" SystemFile="true" Modified="true">
         <Param1 />
