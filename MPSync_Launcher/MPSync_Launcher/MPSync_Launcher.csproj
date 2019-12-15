@@ -81,7 +81,7 @@
     <Reference Include="Core, Version=1.5.100.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Team MediaPortal\MediaPortal\Core.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="System" />
@@ -154,6 +154,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="MPSync.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\MPSync\MPSync\MPSync.vbproj">
+      <Project>{c23857f2-6ba9-4fa4-9d15-b535c5c41564}</Project>
+      <Name>MPSync</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

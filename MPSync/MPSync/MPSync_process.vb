@@ -42,7 +42,7 @@ Public Class MPSync_process
         Get
             Dim debug As Boolean = False
             Try
-                Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+                Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
                     debug = XMLreader.GetValueAsBool("Plugin", "debug", False)
                 End Using
             Catch ex As Exception
@@ -61,7 +61,7 @@ Public Class MPSync_process
         End Get
     End Property
 
-    Public Shared Sub wait(ByVal seconds As Long, Optional ByVal verbose As Boolean = True, Optional ByVal thread As String = Nothing)
+    Public Shared Sub wait(ByVal seconds As Integer, Optional ByVal verbose As Boolean = True, Optional ByVal thread As String = Nothing)
 
         If thread <> Nothing Then thread = thread & " "
         If verbose Then Log.Info("MPSync: " & thread & "process sleeping " & seconds.ToString & " seconds.....")
@@ -116,9 +116,9 @@ Public Class MPSync_process
                 folders_sync_method = XMLreader.GetValueAsInt("Path", "method", 0)
 
                 folders = XMLreader.GetValueAsString("Settings", "folders", Nothing)
-                folders_pause = XMLreader.GetValueAsString("Settings", "pause while playing", False)
-                folders_md5 = XMLreader.GetValueAsString("Settings", "use MD5", False)
-                folders_crc32 = XMLreader.GetValueAsString("Settings", "use CRC32", False)
+                folders_pause = CBool(XMLreader.GetValueAsString("Settings", "pause while playing", False.ToString()))
+                folders_md5 = CBool(XMLreader.GetValueAsString("Settings", "use MD5", False.ToString()))
+                folders_crc32 = CBool(XMLreader.GetValueAsString("Settings", "use CRC32", False.ToString()))
 
             End Using
 
@@ -177,11 +177,11 @@ Public Class MPSync_process
 
     Private Sub MPSyncProcess()
 
-        Dim file As String = Config.GetFile(Config.Dir.Config, "MPSync.xml")
+        Dim file As String = MPSync_settings.GetConfigFileName
 
         If Not FileIO.FileSystem.FileExists(file) Then Return
 
-        Dim i_method As Array = {"Propagate both additions and deletions", "Propagate additions only", "Propagate deletions only"}
+        Dim i_method As String() = {"Propagate both additions and deletions", "Propagate additions only", "Propagate deletions only"}
         Dim db_sync_value, databases, watched_dbs, objects, version, lastsync As String
 
         ' get configuratin from XML file
@@ -223,7 +223,7 @@ Public Class MPSync_process
 
         If session = Nothing Then
             session = System.Guid.NewGuid.ToString()
-            Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+            Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
                 XMLwriter.SetValue("Plugin", "session ID", session)
             End Using
         End If
@@ -514,7 +514,7 @@ Public Class MPSync_process
 
         While SQLreader.Read()
             ReDim Preserve columns(x)
-            columns(x) = LCase(SQLreader(1))
+            columns(x) = LCase(SQLreader.GetString(1))
             x += 1
         End While
 
@@ -526,7 +526,7 @@ Public Class MPSync_process
 
     End Function
 
-    Private Function FieldList(ByVal path As String, ByVal database As String, ByVal table As String, ByVal fields As Array, Optional ByVal prefix As String = Nothing) As String
+    Private Function FieldList(ByVal path As String, ByVal database As String, ByVal table As String, ByVal fields As String(), Optional ByVal prefix As String = Nothing) As String
 
         If debug Then MPSync_process.logStats("MPSync: [FieldList] Get fields for table " & table & " in database " & path & database, "DEBUG")
 
@@ -628,7 +628,7 @@ Public Class MPSync_process
                 SQLcommand.CommandText = "PRAGMA integrity_check;"
                 SQLreader = SQLcommand.ExecuteReader()
                 SQLreader.Read()
-                check = SQLreader(0)
+                check = SQLreader.GetString(0)
                 SQLreader.Close()
             Catch ex As Exception
                 check = "error"
@@ -684,7 +684,7 @@ Public Class MPSync_process
         bw_threads = 0
         bw_dbs.Clear()
 
-        mps.SetWatched = Nothing
+        mps.SetWatched()
 
         For x = 0 To UBound(_watched_dbs)
 
@@ -1169,7 +1169,7 @@ Public Class MPSync_process
 
             While SQLreader.Read()
                 For x As Integer = 0 To UBound(pattern)
-                    If Left(SQLreader(0), Len(pattern(x))) = pattern(x) Then SQL = SQL & "DROP TRIGGER " & SQLreader(0) & "; "
+                    If Left(SQLreader.GetString(0), Len(pattern(x))) = pattern(x) Then SQL = SQL & "DROP TRIGGER " & SQLreader.GetString(0) & "; "
                 Next
             End While
 
@@ -1216,7 +1216,7 @@ Public Class MPSync_process
             If Array.IndexOf(omit, SQLreader(0)) = -1 Then
                 x += 1
                 ReDim Preserve table(x)
-                table(x) = SQLreader(0)
+                table(x) = SQLreader.GetString(0)
             End If
 
         End While
@@ -1238,7 +1238,7 @@ Public Class MPSync_process
             If Array.IndexOf(omit, SQLreader(0)) = -1 Then
                 x += 1
                 ReDim Preserve trigger(x)
-                trigger(x) = SQLreader(0)
+                trigger(x) = SQLreader.GetString(0)
             End If
 
         End While

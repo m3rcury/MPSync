@@ -103,8 +103,6 @@ Partial Class MPSync_settings
         Me.tp_folders = New System.Windows.Forms.TabPage()
         Me.tc_objects = New System.Windows.Forms.TabControl()
         Me.tp_list = New System.Windows.Forms.TabPage()
-        Me.pnl_object_list = New System.Windows.Forms.Panel()
-        Me.tb_object_list = New System.Windows.Forms.TextBox()
         Me.b_delete = New System.Windows.Forms.Button()
         Me.b_edit = New System.Windows.Forms.Button()
         Me.b_add = New System.Windows.Forms.Button()
@@ -161,7 +159,6 @@ Partial Class MPSync_settings
         Me.tp_folders.SuspendLayout()
         Me.tc_objects.SuspendLayout()
         Me.tp_list.SuspendLayout()
-        Me.pnl_object_list.SuspendLayout()
         Me.tp_paths.SuspendLayout()
         Me.tp_advancedsettings.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
@@ -1020,7 +1017,6 @@ Partial Class MPSync_settings
         'tp_list
         '
         Me.tp_list.BackColor = System.Drawing.SystemColors.ButtonFace
-        Me.tp_list.Controls.Add(Me.pnl_object_list)
         Me.tp_list.Controls.Add(Me.b_delete)
         Me.tp_list.Controls.Add(Me.b_edit)
         Me.tp_list.Controls.Add(Me.b_add)
@@ -1032,45 +1028,27 @@ Partial Class MPSync_settings
         Me.tp_list.TabIndex = 2
         Me.tp_list.Text = "Folders List"
         '
-        'pnl_object_list
-        '
-        Me.pnl_object_list.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.pnl_object_list.Controls.Add(Me.tb_object_list)
-        Me.pnl_object_list.Location = New System.Drawing.Point(44, 68)
-        Me.pnl_object_list.Name = "pnl_object_list"
-        Me.pnl_object_list.Size = New System.Drawing.Size(406, 49)
-        Me.pnl_object_list.TabIndex = 4
-        Me.pnl_object_list.Visible = False
-        '
-        'tb_object_list
-        '
-        Me.tb_object_list.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.tb_object_list.Location = New System.Drawing.Point(14, 14)
-        Me.tb_object_list.Name = "tb_object_list"
-        Me.tb_object_list.Size = New System.Drawing.Size(378, 21)
-        Me.tb_object_list.TabIndex = 0
-        '
         'b_delete
         '
-        Me.b_delete.BackgroundImage = Global.MPSync.My.Resources.Resources.delete
         Me.b_delete.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
+        Me.b_delete.Enabled = False
+        Me.b_delete.Image = Global.MPSync.My.Resources.Resources.delete
         Me.b_delete.Location = New System.Drawing.Point(506, 72)
         Me.b_delete.Name = "b_delete"
         Me.b_delete.Size = New System.Drawing.Size(40, 40)
         Me.b_delete.TabIndex = 3
         Me.b_delete.UseVisualStyleBackColor = True
-        Me.b_delete.Visible = False
         '
         'b_edit
         '
-        Me.b_edit.BackgroundImage = Global.MPSync.My.Resources.Resources.edit
         Me.b_edit.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center
+        Me.b_edit.Enabled = False
+        Me.b_edit.Image = Global.MPSync.My.Resources.Resources.edit
         Me.b_edit.Location = New System.Drawing.Point(506, 118)
         Me.b_edit.Name = "b_edit"
         Me.b_edit.Size = New System.Drawing.Size(40, 40)
         Me.b_edit.TabIndex = 2
         Me.b_edit.UseVisualStyleBackColor = True
-        Me.b_edit.Visible = False
         '
         'b_add
         '
@@ -1380,8 +1358,6 @@ Partial Class MPSync_settings
         Me.tp_folders.ResumeLayout(False)
         Me.tc_objects.ResumeLayout(False)
         Me.tp_list.ResumeLayout(False)
-        Me.pnl_object_list.ResumeLayout(False)
-        Me.pnl_object_list.PerformLayout()
         Me.tp_paths.ResumeLayout(False)
         Me.tp_paths.PerformLayout()
         Me.tp_advancedsettings.ResumeLayout(False)
@@ -1464,8 +1440,6 @@ Partial Class MPSync_settings
     Friend WithEvents b_delete As System.Windows.Forms.Button
     Friend WithEvents b_edit As System.Windows.Forms.Button
     Friend WithEvents b_add As System.Windows.Forms.Button
-    Friend WithEvents pnl_object_list As System.Windows.Forms.Panel
-    Friend WithEvents tb_object_list As System.Windows.Forms.TextBox
     Friend WithEvents b_apply As System.Windows.Forms.Button
     Friend WithEvents tc_settings As System.Windows.Forms.TabControl
     Friend WithEvents tp_selection As System.Windows.Forms.TabPage

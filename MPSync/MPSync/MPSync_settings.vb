@@ -26,22 +26,24 @@ Public Class MPSync_settings
 
     Public i_watched(3) As Watched
 
-    Public WriteOnly Property SetWatched
-        Set(value)
-            i_watched(0).database = "movingpictures.db3"
-            i_watched(0).tables = {"user_movie_settings", "movie_info"}
-            i_watched(1).database = "MusicDatabaseV13.db3"
-            i_watched(1).tables = {"tracks"}
-            i_watched(2).database = "TVSeriesDatabase4.db3"
-            i_watched(2).tables = {"local_episodes", "online_episodes", "online_series", "season"}
-            i_watched(3).database = "VideoDatabaseV5.db3"
-            i_watched(3).tables = {"bookmark", "movie", "resume"}
-        End Set
-    End Property
+    Public Shared Function GetConfigFileName() As String
+        Return Config.GetFile(Config.Dir.Config, "MPSync.xml")
+    End Function
 
-    Public ReadOnly Property getDatabase As Array
+    Public Sub SetWatched()
+        i_watched(0).database = "movingpictures.db3"
+        i_watched(0).tables = {"user_movie_settings", "movie_info"}
+        i_watched(1).database = "MusicDatabaseV13.db3"
+        i_watched(1).tables = {"tracks"}
+        i_watched(2).database = "TVSeriesDatabase4.db3"
+        i_watched(2).tables = {"local_episodes", "online_episodes", "online_series", "season"}
+        i_watched(3).database = "VideoDatabaseV5.db3"
+        i_watched(3).tables = {"bookmark", "movie", "resume"}
+    End Sub
+
+    Public ReadOnly Property getDatabase As String()
         Get
-            If i_watched(0).database = Nothing Then SetWatched = Nothing
+            If i_watched(0).database = Nothing Then SetWatched()
             Dim database(UBound(i_watched)) As String
             For x As Integer = 0 To UBound(i_watched)
                 database(x) = i_watched(x).database
@@ -52,7 +54,7 @@ Public Class MPSync_settings
 
     Public ReadOnly Property getTables(ByVal database As String) As Array
         Get
-            If i_watched(0).database = Nothing Then SetWatched = Nothing
+            If i_watched(0).database = Nothing Then SetWatched()
             Dim y As Integer = Array.IndexOf(getDatabase, database)
             If y <> -1 Then
                 Dim tables(UBound(i_watched(y).tables)) As String
@@ -72,8 +74,8 @@ Public Class MPSync_settings
 
         If Microsoft.VisualBasic.Right(object_list, 1) = "|" Then object_list = Microsoft.VisualBasic.Left(object_list, Len(object_list) - 1)
 
-        Dim item As Array
-        Dim list As Array = Split(object_list, "|")
+        Dim item As String()
+        Dim list As String() = Split(object_list, "|")
 
         For Each obj As String In list
 
@@ -167,9 +169,9 @@ Public Class MPSync_settings
             tb_folders_server_path.Text = XMLreader.GetValueAsString("Path", "server", Nothing)
             _folders_sync_method = XMLreader.GetValueAsInt("Path", "method", 0)
             _folders = XMLreader.GetValueAsString("Settings", "folders", Nothing)
-            cb_folders_pause.Checked = XMLreader.GetValueAsString("Settings", "pause while playing", False)
-            cb_folders_md5.Checked = XMLreader.GetValueAsString("Settings", "use MD5", False)
-            cb_folders_crc32.Checked = XMLreader.GetValueAsString("Settings", "use CRC32", False)
+            cb_folders_pause.Checked = CBool(XMLreader.GetValueAsString("Settings", "pause while playing", False.ToString()))
+            cb_folders_md5.Checked = CBool(XMLreader.GetValueAsString("Settings", "use MD5", False.ToString()))
+            cb_folders_crc32.Checked = CBool(XMLreader.GetValueAsString("Settings", "use CRC32", False.ToString()))
 
         End Using
 
@@ -238,11 +240,11 @@ Public Class MPSync_settings
 
         Dim object_list As String = Nothing
 
-        If IO.File.Exists(Config.GetFile(Config.Dir.Config, "MPSync.xml")) Then
+        If IO.File.Exists(MPSync_settings.GetConfigFileName) Then
 
             '  get settings from XML configuration file
 
-            Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+            Using XMLreader As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
 
                 _version = XMLreader.GetValueAsString("Plugin", "version", "0")
                 cb_databases.Checked = XMLreader.GetValueAsBool("Plugin", "databases", True)
@@ -374,7 +376,7 @@ Public Class MPSync_settings
             _object_list += clb_object_list.GetItemText(clb_object_list.Items(x)) & "¬" & clb_object_list.GetItemChecked(x) & "|"
         Next
 
-        Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+        Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
 
             XMLwriter.SetValue("Plugin", "version", _curversion)
             XMLwriter.SetValueAsBool("Plugin", "databases", cb_databases.Checked)
@@ -585,7 +587,7 @@ Public Class MPSync_settings
         clb_objects.Enabled = rb_specific_folders.Checked
     End Sub
 
-    Private Sub tb_object_list_KeyPress(sender As Object, e As System.Windows.Forms.KeyPressEventArgs) Handles tb_object_list.KeyPress
+    Private Sub tb_object_list_KeyPress(sender As Object, e As System.Windows.Forms.KeyPressEventArgs)
 
         If e.KeyChar = Chr(13) Then
             SendKeys.Send(vbTab)
@@ -595,20 +597,11 @@ Public Class MPSync_settings
 
     Private Sub b_add_Click(sender As Object, e As EventArgs) Handles b_add.Click
 
-        pnl_object_list.Visible = True
-
-        tb_object_list.Text = Nothing
-        tb_object_list.Focus()
-
-        Do While tb_object_list.Focused
-            Threading.Thread.Sleep(50)
-            Application.DoEvents()
-        Loop
-
-        clb_object_list.Items.Add(tb_object_list.Text, False)
-        clb_object_list.TopIndex = clb_object_list.Items.Count - 1
-        tb_object_list.Text = Nothing
-        pnl_object_list.Visible = False
+        Dim s As String = InputBox("Name:", "Add folder item")
+        If s <> "" Then
+            clb_object_list.Items.Add(s, False)
+            clb_object_list.TopIndex = clb_object_list.Items.Count - 1
+        End If
 
     End Sub
 
@@ -620,8 +613,11 @@ Public Class MPSync_settings
             clb_object_list.Items.Remove(clb_object_list.SelectedItem)
 
             clb_object_list.SelectedItem = Nothing
-            b_delete.Visible = False
-            b_edit.Visible = False
+            b_delete.Enabled = False
+            b_edit.Enabled = False
+
+            tc_objects.TabPages.Remove(tp_paths)
+            tc_objects.TabPages.Remove(tp_advancedsettings)
 
         End If
 
@@ -656,9 +652,9 @@ Public Class MPSync_settings
 
     Private Sub clb_object_list_SelectedIndexChanged(sender As Object, e As EventArgs) Handles clb_object_list.SelectedIndexChanged
 
-        If clb_object_list.SelectedItem <> Nothing Then
-            b_delete.Visible = True
-            b_edit.Visible = True
+        If clb_object_list.SelectedItem IsNot Nothing Then
+            b_delete.Enabled = True
+            b_edit.Enabled = True
         End If
 
     End Sub
@@ -785,7 +781,7 @@ Public Class MPSync_settings
         Dim regKey As Microsoft.Win32.RegistryKey
 
         regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE\Microsoft\Windows\CurrentVersion\Run", True)
-        status = Not (regKey.GetValue("MPSync_Process") = Nothing)
+        status = Not (regKey.GetValue("MPSync_Process") Is Nothing)
         regKey.Close()
 
         Return status
@@ -891,7 +887,7 @@ Public Class MPSync_settings
 
     Private Sub MPSync_settings_FormClosed(sender As Object, e As EventArgs) Handles MyBase.FormClosed
 
-        Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(Config.GetFile(Config.Dir.Config, "MPSync.xml"))
+        Using XMLwriter As MediaPortal.Profile.Settings = New MediaPortal.Profile.Settings(MPSync_settings.GetConfigFileName)
             XMLwriter.SetValue("Plugin", "version", _curversion)
         End Using
 
